@@ -1,0 +1,382 @@
+#lang pie
+
+'spinach
+
+(the (Pair Atom Atom)
+  (cons 'spinach 'cauliflower))
+
+(the Atom (the Atom 'pie))
+
+
+;;   ___ _              _             ____
+;;  / __| |_  __ _ _ __| |_ ___ _ _  |__ /
+;; | (__| ' \/ _` | '_ \  _/ -_) '_|  |_ \
+;;  \___|_||_\__,_| .__/\__\___|_|   |___/
+;;                |_|
+
+
+;; frame 3-23
+
+
+(iter-Nat 5 3 (λ (k) (add1 k)))
+
+
+;; (iter-Nat 5 3 add1) ; /Users/brian/Documents/GitHub/the-little-typer/playground.pie:17:14: add1: expected valid Pie name
+;   at: add1
+;   in: add1
+
+
+;; (+ 2 3) ;; ; Unknown variable +
+
+
+(claim step-+
+       (-> Nat Nat))
+
+(define step-+
+  (λ (+n-1) (add1 +n-1)))
+
+
+(claim + (-> Nat Nat Nat))
+
+(define +
+  (λ (n j)
+    (iter-Nat n j step-+)))
+
+
+(+ 2 3)
+
+
+;; -+-+-+-+-+-
+;;  g a u s s
+;; -+-+-+-+-+-
+
+
+(claim step-gauss
+       (-> Nat Nat Nat))
+
+(define step-gauss
+  (λ (n-1 gauss_n-1)
+    (+ (add1 n-1) gauss_n-1)))
+
+
+(claim gauss
+       (-> Nat Nat))
+
+(define gauss
+  (λ (n)
+    (rec-Nat n 0
+             step-gauss)))
+
+
+(gauss 10)
+
+
+;;   ___ _              _             _ _
+;;  / __| |_  __ _ _ __| |_ ___ _ _  | | |
+;; | (__| ' \/ _` | '_ \  _/ -_) '_| |_  _|
+;;  \___|_||_\__,_| .__/\__\___|_|     |_|
+;;                |_|
+
+
+;; (claim foo (-> A D))  page 98:  ~"-> is not up to the job"~
+
+
+;; -+-+-+-+-
+;;  f l i p
+;; -+-+-+-+-
+
+
+(claim flip
+       (Π ((A U) (D U))
+          (-> (Pair A D)
+              (Pair D A))))
+
+(define flip
+  (λ (A D)
+    (λ (p)
+      (cons (cdr p) (car p)))))
+
+(flip Nat Nat)
+
+((flip Nat Atom) (cons 17 'apple))
+
+((flip Nat Nat) (cons 2 3))
+
+
+(claim elim-Pair
+       (Π ((A U) (D U) (X U))
+          (-> (Pair A D)
+              (-> A D X)
+              X)))
+
+(define elim-Pair
+  (λ (A D X)
+    (λ (p f)
+      (f (car p) (cdr p)))))
+
+elim-Pair
+
+
+;; -+-+-+-+-+-+-+-+-
+;;  k a r ,   k d r
+;; -+-+-+-+-+-+-+-+-
+
+
+(claim kar
+       (-> (Pair Nat Nat) Nat))
+
+(define kar
+  (λ (p)
+    (elim-Pair Nat Nat Nat
+               p
+               (λ (a d) a))))
+
+kar
+
+(kar (cons 2 3))
+
+
+(claim kdr
+       (-> (Pair Nat Nat) Nat))
+
+(define kdr
+  (λ (pn)
+    (elim-Pair Nat Nat Nat
+               pn
+               (λ (a d) d))))
+
+(kdr (cons 2 3))
+
+
+;; frame 4-50
+
+
+;; -+-+-+-+-
+;;  t w i n
+;; -+-+-+-+-
+
+
+(claim twin
+       (Π ((Y U))
+          (-> Y (Pair Y Y))))
+
+(define twin
+  (λ (Y)
+    (λ (x)
+      (cons x x))))
+
+((twin Atom) 'pew)
+
+
+;;   ___ _              _             ___
+;;  / __| |_  __ _ _ __| |_ ___ _ _  | __|
+;; | (__| ' \/ _` | '_ \  _/ -_) '_| |__ \
+;;  \___|_||_\__,_| .__/\__\___|_|   |___/
+;;                |_|
+
+
+;; frame 31
+
+
+(claim toppings (List Atom))
+
+(define toppings
+  (:: 'potato (:: 'butter nil)))
+
+(claim condiments (List Atom))
+
+(define condiments
+  (:: 'chives
+      (:: 'mayonnaise nil)))
+
+
+;; -+-+-+-+-+-+-
+;;  l e n g t h
+;; -+-+-+-+-+-+-
+
+
+(claim step-length
+       (Π ((E U))
+          (-> E (List E) Nat
+              Nat)))
+
+(define step-length
+  (λ (E)
+    (λ (e es length-es)
+      (add1 length-es))))
+
+
+(claim length
+       (Π ((E U))
+          (-> (List E)
+              Nat)))
+
+(define length
+  (λ (E)
+    (λ (es)
+      (rec-List es 0 (step-length E)))))
+
+
+;; frame 5-42
+
+
+(claim length-Atom
+       (-> (List Atom) Nat))
+
+(define length-Atom
+  (length Atom))
+
+
+;; frame 5-45
+
+
+;; -+-+-+-+-+-+-
+;;  a p p e n d
+;; -+-+-+-+-+-+-
+
+
+(claim step-append
+       (Π ((E U))
+          (-> E (List E) (List E)
+              (List E))))
+
+(define step-append
+  (λ (E)
+    (λ (e es append-es)
+      (:: e append-es))))
+
+
+(claim append
+       (Π ((E U))
+          (-> (List E) (List E)
+              (List E))))
+
+(define append
+  (λ (E)
+    (λ (start end)
+      (rec-List start end (step-append E)))))
+
+((append Nat) nil nil)
+(append Nat nil nil) ; Everything's curried.
+
+
+(claim append-Nat
+       (-> (List Nat) (List Nat)
+           (List Nat)))
+
+(define append-Nat
+  (append Nat))
+
+
+(append-Nat (:: 1 nil) nil)
+(append-Nat nil (:: 2 nil))
+(append-Nat (:: 1 nil) (:: 2 nil))
+
+
+;; -+-+-+-+-+-+-+-
+;;  r e v e r s e
+;; -+-+-+-+-+-+-+-
+
+
+(claim snoc
+       (Π ((E U))
+          (-> (List E) E
+              (List E))))
+
+(define snoc
+  (λ (E)
+    (λ (start e)
+      (append E start (:: e nil)))))
+
+;; illegal! (snoc Nat nil nil)
+
+(snoc Nat nil 1)
+(snoc Nat (:: 1 nil) 2)
+
+
+(claim step-reverse
+       (Π ((E U))
+          (-> E (List E) (List E)
+              (List E))))
+
+(define step-reverse
+  (λ (E)
+    (λ (e es reversed)
+      (snoc E reversed e))))
+
+
+(claim reverse
+       (Π ((E U))
+          (-> (List E) (List E))))
+
+;; I first wrote the "nil" below without peeking at the answer.
+;; But they snuck one in on me, too clever by half!
+
+(define reverse
+  (λ (E)
+    (λ (es)
+      (rec-List es
+                (the (List E) nil) ;; See sneaky footnote page 125!
+                (step-reverse E)))))
+
+(reverse Nat nil)
+(reverse Nat (:: 1 nil))
+(reverse Nat (:: 2 (:: 1 nil)))
+
+
+;;   ___ _              _              __
+;;  / __| |_  __ _ _ __| |_ ___ _ _   / /
+;; | (__| ' \/ _` | '_ \  _/ -_) '_| / _ \
+;;  \___|_||_\__,_| .__/\__\___|_|   \___/
+;;                |_|
+
+
+;; ??? (vec:: (the Atom 'a) vecnil)
+
+(Vec Atom zero)
+(Vec Atom (add1 zero))
+
+(the (Vec Atom zero) vecnil)
+
+;; ??? (vec:: (the Atom 'a) (Vec Atom zero))
+
+;; ??? (vec:: 'a vecnil)
+
+;; ??? (vec:: (the Atom 'a) (the (Vec Atom zero) vecnil))
+
+(claim first-of-one
+       (Π ((E U))
+          (-> (Vec E 1) E)))
+
+(define first-of-one
+  (λ (E)
+    (λ (es)
+      (head es))))
+
+(first-of-one Atom (vec:: 'shiitake vecnil))
+
+;; ??? (vec:: 'shiitake vecnil)
+;; ??? (vec:: 'shiitake (the (Vec Atom zero) vecnil))
+
+;; See https://stackoverflow.com/questions/75516108/vec-in-the-little-typer/75516109#75516109
+
+(the (Vec Atom 1) (vec:: 'shiitake vecnil))
+(the (Vec Atom 1) (vec:: (the Atom 'shiitake) vecnil))
+(the (Vec Atom 1) (vec:: (the Atom 'shiitake) (the (Vec Atom zero) vecnil)))
+(the (Vec Atom 1) (vec:: 'shiitake (the (Vec Atom zero) vecnil)))
+
+
+;; frame 6.34
+
+(claim first
+       (Π ((E U)
+           (ℓ Nat))
+          (-> (Vec E (add1 ℓ)) E)))
+
+(define first
+  (λ (E ℓ)
+    (λ (es)
+      (head es))))
+
+(first Atom 2 (vec:: 'a (vec:: 'b (vec:: 'c vecnil))))
+(first Atom 0 (vec:: 'a vecnil))
