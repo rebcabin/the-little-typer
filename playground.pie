@@ -1,4 +1,18 @@
-#lang pie
+#lang pie  ;; Racket support this language as a
+           ;; package.
+
+
+;;   ___ _                _   __       ___
+;;  / __| |_  _ __ ___   / | / _|___  |_  )
+;; | (__| ' \| '_ (_-<_  | | > _|_ _|  / /
+;;  \___|_||_| .__/__(_) |_| \_____|  /___|
+;;           |_|
+
+
+;; In Emacs racket-mode, C-c C-c sends the whole
+;; file to the racket interpreter. C-M-x sends the
+;; s-exp that surrounds the cursor, just as with
+;; CIDER in Clojure-mode.
 
 
 'spinach
@@ -23,19 +37,30 @@
 ;; (Π ((E U))
 ;;   (→ N E (→ N E) E))
 
+
 ;; The base and the output of step must have the same
 ;; type (E U). E can be anything -- Atom or Nat, for
 ;; instance, but it must be the same on both branches
 ;; of which-Nat.
 
 
-;; A good name for the argument (parameter?) of
-;; step is n-1 because step is called when
+;; Here is pseudocode for which-Nat:
+
+
+;; (which-Nat target base step) == base if
+;; target == 0 else if target == n == (add1 n-1)
+;; then which-Nat = (step n-1)
+
+
+;; A good name for the argument (parameter?) of step
+;; is n-1 because step is called with n-1 when
 ;; target == n == (add1 n-1).
-;;
+
+
 ;; A parameter is a name for an argument. What is
 ;; the name of a parameter (you answer)?
-;;
+
+
 ;; SPOILER: Parameters inhabit a space of symbolic
 ;; calculation inside the compiler or its run-time,
 ;; representative functions like add1. Names of
@@ -48,27 +73,34 @@
 ;; expressions with constructors up top (in first
 ;; positions in parenthesized expressions).
 
-;; (which-Nat target base step) == base if
-;; target == 0 else if target == n == (add1 n-1)
-;; then which-Nat = (step n-1)
-
 
 (which-Nat zero 'naught (λ (n-1) 'more))
 (which-Nat 4    'naught (λ (n-1) 'three))
 
 
-;; Show how rec-Nat can mimic this behavior, i.e., by
-;; the step's ignoring both its arguments:
+;; I made up the following to show how rec-Nat can
+;; mimic the behavior of which-Nat, i.e., by the
+;; step's ignoring both its arguments:
 
 
 (rec-Nat zero 'rec-naught (λ (n-1 r) 'rec-more))
 (rec-Nat 4    'rec-naught (λ (n-1 r) 'rec-three))
 
 
-;; The book writes ignored arguments in dim font. I
-;; think we don't need to bother much about that.
+;; Notice that rec-Nat "destructures" its argument
+;; into (add1 n-1) and then "eliminates" add1 before
+;; handing n-1 to the step function, (λ (n-1 r)
+;; 'some-atom). We write more about destructuring
+;; and elimination below.
+
+
+;; The book writes _ignored arguments_ in dim font.
+;; I think we don't need to bother much about that.
 ;; But we might sometimes write _ or foo_ with a _
-;; suffix for ignored arguments.
+;; suffix for ignored arguments. Lots of programming
+;; languages follow that convention, sometimes
+;; allowing multiple instances of _ without
+;; collision.
 
 
 ;; Later, we'll see that by step's ignoring one of
@@ -86,19 +118,27 @@
 ;; Frame 3.23
 
 
+;; All these functions follow a pattern, with
+;; parameters target, base, and step.
+
+
 ;;        target base      step
 ;;       |------|----|----------------|
 (iter-Nat    5     3  (λ (k) (add1 k)))
 
 
-;; Can't go to point-free form, i.e.,
-;; cannot change add1 for (λ (k) (add1 k)).
+;; Discovery about pie (the language of this file).
+;; Can't go to point-free form, i.e., cannot use
+;; add1 for (λ (k) (add1 k)).
 ;;
 ;; (iter-Nat 5 3 add1) ;
-;; /Users/brian/Documents/GitHub/the-little-typer/playground.pie:17:14:
+;; .../the-little-typer/playground.pie:17:14:
 ;; add1: expected valid Pie name
 ;   at: add1
 ;   in: add1
+
+
+;; pseudocode for iter-Nat
 
 
 ;; (iter-Nat target base step) == base if
@@ -132,13 +172,16 @@
 (claim + (→ Nat Nat Nat))
 
 (define +
-  (λ (n j) ;; Don't need the name n-1 here.
-    ;;        target base  step
+  (λ (n j) ;; Don't use the name n-1 here.
+    ;;        target base  step  ; the pattern
     ;;       |------|----|-------|
     (iter-Nat    n     j   step-+)))
 
 
 ;; Frame 3.28, sort-of
+
+
+;; reminder of the pseudocode of which-Nat:
 
 
 ;; (which-Nat target base step) == base if
@@ -155,11 +198,25 @@
 ;; called "elimination" because it strips off --
 ;; eliminates -- the value constructor add1.
 ;; Selection (which-Nat), iteration (iter-Nat), and
-;; recursion occur in a backwards kind of way, by
-;; eliminating toward zero. This sequential
-;; elimination *builds up* an expression that is
-;; eventually evaluated to the unique normal form --
-;; the "most direct" form.
+;; recursion (rec-Nat) occur in a backwards kind of
+;; way, by eliminating toward zero. We say
+;; "backwards" because your prior experience with
+;; recursion and iteration probably has you starting
+;; with some big Nat and -subtracting- 1 from it by
+;; an arithmetic process before recursing. Here, in
+;; The Little Typer, we instead destructure larger
+;; numbers n into smaller ones (add1 n-1) by writing
+;; out the -addition- that "must have taken place."
+;; The effect is the same, but preserves type
+;; information here. This kind of reckoning is
+;; probably best in any implementation of a type
+;; system.
+
+
+;; Sequential deconstruction and elimination *build
+;; up* an expression of smaller Nats. The expression
+;; that is eventually evaluated to the unique normal
+;; form -- the "most direct" form.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -168,21 +225,30 @@
 
 
 ;; The process of noticing that n == (add1 n-1) is
-;; called "destructuring," a term not in The Little
-;; Typer, but borrowed from Clojure. It defines the
-;; argument and parameter n-1 by eliminating n-1
-;; from (add1 n-1)l
+;; "destructuring," a term not in The Little Typer.
+;; I borrowed it from Clojure. It defines the
+;; argument n-1 by setting up later elimination of
+;; n-1 from (add1 n-1).
+
 
 ;; (iter-Nat target base step) == base if
 ;; target == 0 else if target == n == (add1 n-1)
-;; then iter-Nat ==
+;;                               |-------------|
+;;                                destructuring
+;; then iter-Nat ==        ______/
+;;                        /
 ;;             elimination
 ;; (step       |---------|
 ;;    (iter-Nat    n-1    base step))
 
-(+ 2 3) ; 1. ...
 
-;; 2.     (iter-Nat     2    3 step-+)
+;; Here is a "same-chart" for "(+ 2 3)." I assume we
+;; understand "subst.", i.e., substitution, without
+;; further explanation:
+
+
+(+ 2 3) ; 1. ...                          how? why?
+;; 2.     (iter-Nat     2    3 step-+)    subst. def
 ;; 3.     (iter-Nat (add1 1) 3 step-+)    destructuring
 ;; 4. (step-+            /                elimination
 ;;        (iter-Nat     1    3 step-+))
@@ -192,7 +258,7 @@
 ;;      (step-+         |
 ;;        (iter-Nat     0    3 step-+)))
 ;;        -------------------v--------
-;; 7. (step-+                             subst. base
+;; 7. (step-+                |            subst. base
 ;;      (step-+              3))
 ;; ~~~> 5                                 evaluation
 
@@ -213,9 +279,9 @@
 (define sr+
   (λ (n-1 r) (add1 n-1))) ;               ignore r
 
-(rec-Nat 2 3 sr+) ; 1. ...
 
-;; 2.     (rec-Nat     2    3 sr+)
+(rec-Nat 2 3 sr+) ; 1. ...
+;; 2.     (rec-Nat     2    3 sr+)        subst. def
 ;;                 ____^___
 ;; 3.     (rec-Nat (add1 1) 3 sr+)        destructuring
 ;; 4. (sr+ 1            /                 elimination
@@ -226,7 +292,7 @@
 ;;      (sr+ 0         |
 ;;        (rec-Nat     0    3 sr+)))
 ;;        ------------------v-----        subst. base
-;; 7. (sr+ 0
+;; 7. (sr+ 0                |
 ;;      (sr+ 0              3))
 ;; ~~~> 5                                 evaluation
 
@@ -236,12 +302,13 @@
 ;; -+-+-+-+-+-
 
 
-;; Here is an example that must use both arguments
-;; to rec-Nat.
+;; Here is an example rec-Nat stepper that uses both
+;; arguments that rec-Nat gives it:
 
 
 (claim step-gauss
-       (→ Nat Nat Nat))
+       (→ Nat Nat
+          Nat))
 
 (define step-gauss
   (λ (n-1 rg)
@@ -262,13 +329,18 @@
              ;;            step-gauss)
              step-gauss)))
 
+
+;; Less noisy pseudocode:
+
+
+;; letting rN == rec-Nat, s == some-stepper, a1 == add1
+;; claim s (→ Nat Nat Nat)
+;; (rN     0    b s) ~~> b
+;; (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
+
+
 (gauss 3) ; 1. ...
-
-;; let rN == rec-Nat, sg == step-gauss, a1 == add1
-;; (rN    0   b s) ~~> b
-;; (rN (a1 n) b s) ~~> (s n (rN n b s))
-
-;; 2.       (rN    3   0 sg)
+;; 2.       (rN    3   0 sg)              subst. def
 ;;              ___^__
 ;; 3.       (rN (a1 2) 0 sg)              destructuring
 ;; 4. (sg 2        /                      elimination
@@ -288,11 +360,11 @@
 ;; 8. (sg 2 -------v--------
 ;;      (sg 1      |
 ;;        (sg 0    0)))                   subst. base
-;; 9. (sg 2 (sg 1 (+ (add1 0) 0)))        apply +, incl.
-;; A. (sg 2 (sg 1 1))                     multiple
-;; B. (sg 2 (+ (add1 1) 1))               steps not
-;; C. (sg 2 3)                            exploded here
-;; D. (+ (add1 2) 3)
+;; 9. (sg 2 (sg 1 (+ (add1 0) 0)))        apply +,
+;; A. (sg 2 (sg 1 1))                     including
+;; B. (sg 2 (+ (add1 1) 1))               multiple
+;; C. (sg 2 3)                            steps not
+;; D. (+ (add1 2) 3)                      exploded here
 ;; E. 6
 
 
@@ -301,6 +373,14 @@
 ;; | (__| ' \/ _` | '_ \  _/ -_) '_| |_  _|
 ;;  \___|_||_\__,_| .__/\__\___|_|     |_|
 ;;                |_|
+
+
+;; This chapter is mostly about the miniature
+;; calculus on types, a calculus effected by Π. I
+;; assume this is easy for you, so I don't talk
+;; much, just show some examples. In Emacs, type
+;; M-C-x with the cursor in an example to see its
+;; value in the pie/racket interpreter.
 
 
 ;; (claim foo (→ A D))
@@ -348,14 +428,21 @@ elim-Pair
 ;; -+-+-+-+-+-+-+-+-
 
 
+;; These kar and kdr functions are specialized for
+;; Nats. -kar- and -kdr- are probably lousy names
+;; for them, but we'll go with them just to exit
+;; the chapter. -elim-pair- is not specialized,
+;; so we bracket the function-calls appropriately.
+
+
 (claim kar
        (→ (Pair Nat Nat) Nat))
 
 (define kar
   (λ (p)
-    (elim-Pair Nat Nat Nat
+    ((elim-Pair Nat Nat Nat) ; specialized on Nats
                p
-               (λ (a d) a))))
+               (λ (a d_) a)))) ; ignore argument d
 
 kar
 
@@ -367,9 +454,9 @@ kar
 
 (define kdr
   (λ (pn)
-    (elim-Pair Nat Nat Nat
+    ((elim-Pair Nat Nat Nat) ; specialized on Nats
                pn
-               (λ (a d) d))))
+               (λ (a_ d) d)))) ; ignore argument a
 
 (kdr (cons 2 3))
 
@@ -421,10 +508,36 @@ kar
 ;; -+-+-+-+-+-+-
 
 
+;; reminder of rec-Nat:
+
+
+;; letting rN == rec-Nat, s == some-stepper, a1 == add1
+;; claim s (→ Nat Nat Nat)
+;; (rN     0    b s) ~~> b
+;; (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
+
+
+;; pseudocode for rec-List:
+;; claim s (-> E (List E) X X)            stepper
+;; claim b X                              base
+;; claim t (List E)                       target
+
+
+;; letting rL = rec-List, s == some-stepper, :: for
+;; destructuring like add1 (the "1" in add1 is
+;; analogous to the additional E argument in the
+;; stepper, s [Frame 5.27]; the book does not state
+;; this, but it's obvious in retrospect!).
+;; (rL    nil    b s) ~~> b
+;; (rl (:: e es) b s) ~~> (s e es (rL es b s))
+
+
 (claim step-length
        (Π ((E U))
-          (→ E (List E) Nat
-              Nat)))
+          (→ E
+             (List E)
+             Nat
+             Nat)))
 
 (define step-length
   (λ (E)
@@ -461,10 +574,17 @@ kar
 ;; -+-+-+-+-+-+-
 
 
+;; step-append is called post-destructuring into
+;; (:: e es) and post-elimination of ::, just as with
+;; rec-Nat.
+
+
 (claim step-append
        (Π ((E U))
-          (→ E (List E) (List E)
-              (List E))))
+          (→ E
+             (List E)
+             (List E)
+             (List E))))
 
 (define step-append
   (λ (E)
@@ -474,21 +594,24 @@ kar
 
 (claim append
        (Π ((E U))
-          (→ (List E) (List E)
-              (List E))))
+          (→ (List E)
+             (List E)
+             (List E))))
 
 (define append
   (λ (E)
     (λ (start end)
       (rec-List start end (step-append E)))))
 
+
 ((append Nat) nil nil)
 (append Nat nil nil) ; Everything's curried.
 
 
 (claim append-Nat
-       (→ (List Nat) (List Nat)
-           (List Nat)))
+       (→ (List Nat)
+          (List Nat)
+          (List Nat)))
 
 (define append-Nat
   (append Nat))
@@ -506,24 +629,37 @@ kar
 
 (claim snoc
        (Π ((E U))
-          (→ (List E) E
-              (List E))))
+          (→ (List E) ; start
+             E        ; element e
+             (List E))))
 
 (define snoc
   (λ (E)
     (λ (start e)
       (append E start (:: e nil)))))
 
-;; illegal! (snoc Nat nil nil)
 
+;; The compiler detects, by type analysis, that
+;; consing nil onto nil is illegal: it does not
+;; produce a List!
+
+
+;; illegal! compile error! (snoc Nat nil nil)
 (snoc Nat nil 1)
 (snoc Nat (:: 1 nil) 2)
 
 
 (claim step-reverse
        (Π ((E U))
-          (→ E (List E) (List E)
-              (List E))))
+          (→ E
+             (List E)
+             (List E)
+             (List E))))
+
+;; step-reverse is called post-destructuring into
+;; (:: e es) and post-elimination of ::, just as
+;; with rec-Nat. So it gets two arguments, e, es,
+;; as well as the recursive "almost," reversed.
 
 (define step-reverse
   (λ (E)
@@ -533,11 +669,15 @@ kar
 
 (claim reverse
        (Π ((E U))
-          (→ (List E) (List E))))
+          (→ (List E)
+             (List E))))
+
 
 ;; I first wrote the "nil" below without peeking at
 ;; the answer. But they snuck one in on me, too
-;; clever by half!
+;; clever by half! "nil" must be explicitly typed,
+;; here.
+
 
 (define reverse
   (λ (E)
@@ -566,12 +706,40 @@ kar
 (Vec Atom (add1 zero))
 
 
-;; an instance expression (The Little Typer does
-;; not use the word "instance," but I use it to
-;; mean a value that is not, itself, a type):
+;; Vec is like a list that carries its length along
+;; with it. A Vec of length 3 is of a different type
+;; than a Vec of length 2. We'll have to
+;; occasionally pass Nats around to remind certain
+;; functions of the Nat part of a Vec type.
+
+
+;; Here is an instance expression (The Little Typer
+;; through chapter 6 does not use the word
+;; "instance" in this way, but I use it to mean a
+;; value that is not, itself, a type):
 
 
 (the (Vec Atom zero) vecnil)
+
+
+;; Frame 6.21
+
+
+;; -head- and -tail- are built-in, but they need
+;; a type-hint:
+
+
+(head (the (Vec Atom 1) (vec:: 'a vecnil)))
+
+
+;; (head (vec:: 'a vecnil))
+;; because
+; Can't determine a type
+;   Source locations:
+;   playground.pie:71:6
+
+
+(tail (the (Vec Atom 1) (vec:: 'a vecnil)))
 
 
 (claim first-of-one
@@ -584,6 +752,9 @@ kar
       (head es))))
 
 (first-of-one Atom (vec:: 'shiitake vecnil))
+
+
+;; Lots of expressions need type hints:
 
 
 ;; See https://stackoverflow.com/questions/75516108/vec-in-the-little-typer/75516109#75516109
@@ -604,20 +775,39 @@ kar
 ;; Frames 6.34 through 6.37
 
 
-;; This version of first requires a Nat argument,
+;;   __       __       ___ __
+;;  / /____  / /____ _/ (_) /___ __
+;; / __/ _ \/ __/ _ `/ / / __/ // /
+;; \__/\___/\__/\_,_/_/_/\__/\_, /
+;;                          /___/
+
+
+;; This version of -first- requires a Nat argument,
 ;; ℓ-1, that is one fewer than the length of the
-;; Vec. The argument must have this form so that
-;; -first- be a total function; so that neither its
-;; input nor its output may ever be vecnil, that is,
-;; the sole (Vec E 0). -First- guarantees totality
-;; by destructuring ℓ-1 into (add1 ℓ-1), which may
-;; never be zero.
+;; Vec. The argument must be one fewer than the
+;; length so that -first- be a total function; so
+;; that neither its input nor its output may ever be
+;; vecnil, that is, the sole (Vec E 0). -First-
+;; guarantees totality by destructuring ℓ-1 into
+;; (add1 ℓ-1), which may never be zero, then
+;; eliminating add1 to yield ℓ-1, which can be zero.
+
+
+;; The requirement that all functions be total gives
+;; the type system great power to reject values that
+;; might diverge, i.e., be non-terminating or empty.
+
+
+;; First must be total, so its base type must be
+;; some Vec with at least one element. The _type_
+;; (Vec E (add1 ℓ-1)) tells the whole story!
 
 
 (claim first
        (Π ((E U)
            (ℓ-1 Nat))
-          (→ (Vec E (add1 ℓ-1)) E)))
+          (→ (Vec E (add1 ℓ-1))
+             E)))
 
 (define first
   (λ (E ℓ-1)
