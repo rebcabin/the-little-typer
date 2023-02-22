@@ -202,11 +202,11 @@
 ;; way, by eliminating toward zero. We say
 ;; "backwards" because your prior experience with
 ;; recursion and iteration probably has you starting
-;; with some big Nat and -subtracting- 1 from it by
+;; with some big Nat and _subtracting_ 1 from it by
 ;; an arithmetic process before recursing. Here, in
 ;; The Little Typer, we instead destructure larger
 ;; numbers n into smaller ones (add1 n-1) by writing
-;; out the -addition- that "must have taken place."
+;; out the _addition_ that "must have taken place."
 ;; The effect is the same, but preserves type
 ;; information here. This kind of reckoning is
 ;; probably best in any implementation of a type
@@ -429,10 +429,10 @@ elim-Pair
 
 
 ;; These kar and kdr functions are specialized for
-;; Nats. -kar- and -kdr- are probably lousy names
-;; for them, but we'll go with them just to exit
-;; the chapter. -elim-pair- is not specialized,
-;; so we bracket the function-calls appropriately.
+;; Nats. kar and kdr are probably lousy names for
+;; them, but we'll go with them just to exit the
+;; chapter. `elim-pair` is not specialized, so we
+;; bracket the function-calls appropriately.
 
 
 (claim kar
@@ -725,8 +725,8 @@ kar
 ;; Frame 6.21
 
 
-;; -head- and -tail- are built-in, but they need
-;; a type-hint:
+;; head and tail are built-in, but they need
+;; type-hints:
 
 
 (head (the (Vec Atom 1) (vec:: 'a vecnil)))
@@ -782,12 +782,12 @@ kar
 ;;                          /___/
 
 
-;; This version of -first- requires a Nat argument,
+;; This version of `first` requires a Nat argument,
 ;; ℓ-1, that is one fewer than the length of the
 ;; Vec. The argument must be one fewer than the
-;; length so that -first- be a total function; so
+;; length so that `first` be a total function; so
 ;; that neither its input nor its output may ever be
-;; vecnil, that is, the sole (Vec E 0). -First-
+;; vecnil, that is, the sole (Vec E 0). `First`
 ;; guarantees totality by destructuring ℓ-1 into
 ;; (add1 ℓ-1), which may never be zero, then
 ;; eliminating add1 to yield ℓ-1, which can be zero.
@@ -818,6 +818,17 @@ kar
 (first Atom 0 (vec:: 'a vecnil))
 
 
+;; The book captures the lesson about totality in
+;; the slogan "Use a More Specific Type ... to weed
+;; out unwanted arguments" on page 137.
+
+
+;; The rest of Chapter 6 seems to me just to
+;; enshrine standard facts about the form of lambda
+;; calculus at the type level, the form that uses
+;; GREEK CAPITAL LETTER PI, Π.
+
+
 ;;   ___ _              _             ____
 ;;  / __| |_  __ _ _ __| |_ ___ _ _  |__  |
 ;; | (__| ' \/ _` | '_ \  _/ -_) '_|   / /
@@ -826,7 +837,15 @@ kar
 
 
 ;; (define peas
-;;
+;;   (λ (how-many-peas)
+;;     (rec-Nat how-many-peas ; target
+;;              vecnil        ; base: type?
+;;              (λ (ℓ-1_ peas_ℓ-1) ; uh-oh
+;;                (vec:: 'pea peas_ℓ-1)))))  ; type?
+
+
+;; -peas- does not have a consistent type. rec-Nat
+;; requires the type of `base` to be the
 
 
 ;; Frame 7.28
