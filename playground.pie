@@ -162,16 +162,16 @@
 ;; the "most direct" form.
 
 
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  d e c o n s t r u c t u r i n g
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  d e s t r u c t u r i n g
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
 ;; The process of noticing that n == (add1 n-1) is
 ;; called "destructuring," a term not in The Little
 ;; Typer, but borrowed from Clojure. It defines the
-;; parameter
-;; destructures
+;; argument and parameter n-1 by eliminating n-1
+;; from (add1 n-1)l
 
 ;; (iter-Nat target base step) == base if
 ;; target == 0 else if target == n == (add1 n-1)
@@ -183,15 +183,16 @@
 (+ 2 3) ; 1. ...
 
 ;; 2.     (iter-Nat     2    3 step-+)
-;; 3.     (iter-Nat (add1 1) 3 step-+)
+;; 3.     (iter-Nat (add1 1) 3 step-+)    destructuring
 ;; 4. (step-+            /                elimination
 ;;        (iter-Nat     1    3 step-+))
-;; 5. (step-+
-;;        (iter-Nat (add1 0) 3 step-+))
+;; 5. (step-+       ____^___
+;;        (iter-Nat (add1 0) 3 step-+))   destructuring
 ;; 6. (step-+            /                elimination
 ;;      (step-+         |
 ;;        (iter-Nat     0    3 step-+)))
-;; 7. (step-+
+;;        -------------------v--------
+;; 7. (step-+                             subst. base
 ;;      (step-+              3))
 ;; ~~~> 5                                 evaluation
 
@@ -215,14 +216,16 @@
 (rec-Nat 2 3 sr+) ; 1. ...
 
 ;; 2.     (rec-Nat     2    3 sr+)
-;; 3.     (rec-Nat (add1 1) 3 sr+)
+;;                 ____^___
+;; 3.     (rec-Nat (add1 1) 3 sr+)        destructuring
 ;; 4. (sr+ 1            /                 elimination
 ;;        (rec-Nat     1    3 sr+))
-;; 5. (sr+ 1
+;; 5. (sr+ 1       ____^___               destructuring
 ;;        (rec-Nat (add1 0) 3 sr+))
 ;; 6. (sr+ 0            /                 elimination
 ;;      (sr+ 0         |
 ;;        (rec-Nat     0    3 sr+)))
+;;        ------------------v-----        subst. base
 ;; 7. (sr+ 0
 ;;      (sr+ 0              3))
 ;; ~~~> 5                                 evaluation
@@ -266,32 +269,29 @@
 ;; (rN (a1 n) b s) ~~> (s n (rN n b s))
 
 ;; 2.       (rN    3   0 sg)
-;; 3.       (rN (a1 2) 0 sg)
-;; 4. (sg 2        /
+;;              ___^__
+;; 3.       (rN (a1 2) 0 sg)              destructuring
+;; 4. (sg 2        /                      elimination
 ;;          (rN    2   0 sg))
-;; 5. (sg 2
-;;          (rN (a1 1) 0 sg))
-;; 6. (sg 2        /
+;; 5. (sg 2     ___^__
+;;          (rN (a1 1) 0 sg))             destructuring
+;; 6. (sg 2        /                      elimination
 ;;      (sg 1      |
 ;;          (rN    1   0 sg)))
-;; 6. (sg 2
-;;      (sg 1
-;;          (rN (a1 0) 0 sg)))
-;; 7. (sg 2        /
+;; 6. (sg 2        |
+;;      (sg 1   ___^__
+;;          (rN (a1 0) 0 sg)))            destructuring
+;; 7. (sg 2        /                      elimination
 ;;      (sg 1      |
 ;;        (sg 0    |
 ;;          (rN    0   0 sg))))
-;; 8. (sg 2
-;;      (sg 1
-;;        (sg 0
-;;          (rN    0   0 sg))))
-;; 8. (sg 2
-;;      (sg 1
-;;        (sg 0    0)))
-;; 9. (sg 2 (sg 1 (+ (add1 0) 0)))
-;; A. (sg 2 (sg 1 1))
-;; B. (sg 2 (+ (add1 1) 1))
-;; C. (sg 2 3)
+;; 8. (sg 2 -------v--------
+;;      (sg 1      |
+;;        (sg 0    0)))                   subst. base
+;; 9. (sg 2 (sg 1 (+ (add1 0) 0)))        apply +, incl.
+;; A. (sg 2 (sg 1 1))                     multiple
+;; B. (sg 2 (+ (add1 1) 1))               steps not
+;; C. (sg 2 3)                            exploded here
 ;; D. (+ (add1 2) 3)
 ;; E. 6
 
@@ -535,14 +535,16 @@ kar
        (Π ((E U))
           (→ (List E) (List E))))
 
-;; I first wrote the "nil" below without peeking at the answer.
-;; But they snuck one in on me, too clever by half!
+;; I first wrote the "nil" below without peeking at
+;; the answer. But they snuck one in on me, too
+;; clever by half!
 
 (define reverse
   (λ (E)
     (λ (es)
       (rec-List es
-                (the (List E) nil) ;; See sneaky footnote page 125!
+                (the (List E) nil)
+                ;; See sneaky footnote page 125!
                 (step-reverse E)))))
 
 (reverse Nat nil)
@@ -557,18 +559,20 @@ kar
 ;;                |_|
 
 
-;; ??? (vec:: (the Atom 'a) vecnil)
+;; two type expressions:
+
 
 (Vec Atom zero)
 (Vec Atom (add1 zero))
 
+
+;; an instance expression (The Little Typer does
+;; not use the word "instance," but I use it to
+;; mean a value that is not, itself, a type):
+
+
 (the (Vec Atom zero) vecnil)
 
-;; ??? (vec:: (the Atom 'a) (Vec Atom zero))
-
-;; ??? (vec:: 'a vecnil)
-
-;; ??? (vec:: (the Atom 'a) (the (Vec Atom zero) vecnil))
 
 (claim first-of-one
        (Π ((E U))
@@ -581,15 +585,15 @@ kar
 
 (first-of-one Atom (vec:: 'shiitake vecnil))
 
-;; ??? (vec:: 'shiitake vecnil)
-;; ??? (vec:: 'shiitake (the (Vec Atom zero) vecnil))
 
 ;; See https://stackoverflow.com/questions/75516108/vec-in-the-little-typer/75516109#75516109
 
 (the (Vec Atom 1) (vec:: 'shiitake vecnil))
 (the (Vec Atom 1) (vec:: (the Atom 'shiitake) vecnil))
-(the (Vec Atom 1) (vec:: (the Atom 'shiitake) (the (Vec Atom zero) vecnil)))
-(the (Vec Atom 1) (vec:: 'shiitake (the (Vec Atom zero) vecnil)))
+(the (Vec Atom 1) (vec:: (the Atom 'shiitake)
+                         (the (Vec Atom zero) vecnil)))
+(the (Vec Atom 1) (vec:: 'shiitake
+                         (the (Vec Atom zero) vecnil)))
 
 
 ;; -+-+-+-+-+-
@@ -597,15 +601,26 @@ kar
 ;; -+-+-+-+-+-
 
 
-;; Frame 6.34
+;; Frames 6.34 through 6.37
+
+
+;; This version of first requires a Nat argument,
+;; ℓ-1, that is one fewer than the length of the
+;; Vec. The argument must have this form so that
+;; -first- be a total function; so that neither its
+;; input nor its output may ever be vecnil, that is,
+;; the sole (Vec E 0). -First- guarantees totality
+;; by destructuring ℓ-1 into (add1 ℓ-1), which may
+;; never be zero.
+
 
 (claim first
        (Π ((E U)
-           (ℓ Nat))
-          (→ (Vec E (add1 ℓ)) E)))
+           (ℓ-1 Nat))
+          (→ (Vec E (add1 ℓ-1)) E)))
 
 (define first
-  (λ (E ℓ)
+  (λ (E ℓ-1)
     (λ (es)
       (head es))))
 
@@ -620,7 +635,8 @@ kar
 ;;                |_|
 
 
-
+;; (define peas
+;;
 
 
 ;; Frame 7.28
