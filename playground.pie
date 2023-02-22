@@ -64,6 +64,7 @@
 ;; (step n
 ;;    (iter-Nat n base step))
 
+;; git?
 
 (+ 2 3) ; 1. ...
 
