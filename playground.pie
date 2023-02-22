@@ -15,12 +15,15 @@
 ;;                |_|
 
 
-;; frame 3-23
+;; Frame 3.23
 
 
 (iter-Nat 5 3 (λ (k) (add1 k)))
 
 
+;; Can't go to point-free form, i.e.,
+;; cannot change add1 for (λ (k) (add1 k)).
+;;
 ;; (iter-Nat 5 3 add1) ; /Users/brian/Documents/GitHub/the-little-typer/playground.pie:17:14: add1: expected valid Pie name
 ;   at: add1
 ;   in: add1
@@ -33,7 +36,7 @@
        (-> Nat Nat))
 
 (define step-+
-  (λ (+n-1) (add1 +n-1)))
+  (λ (n) (add1 n)))
 
 
 (claim + (-> Nat Nat Nat))
@@ -43,7 +46,64 @@
     (iter-Nat n j step-+)))
 
 
-(+ 2 3)
+;; Frame 3.28, sort-of
+
+;; (which-Nat target base step) == base if
+;; target == 0 else if target == (add1 n)
+;; then which-Nat = (step n)
+
+;; (iter-Nat target base step) == base if
+;; target == 0 else if target == (add1 n)
+;; then iter-Nat ==
+;; (step
+;;    (iter-Nat n base step))
+
+;; (rec-Nat target base step) == base if
+;; target == 0 else if target == (add1 n)
+;; then iter-Nat ==
+;; (step n
+;;    (iter-Nat n base step))
+
+
+(+ 2 3) ; 1. ...
+
+;; 2.     (iter-Nat     2    3 step-+)
+;; 3.     (iter-Nat (add1 1) 3 step-+)
+;; 4. (step-+
+;;        (iter-Nat     1    3 step-+))
+;; 5. (step-+
+;;        (iter-Nat (add1 0) 3 step-+))
+;; 6. (step-+
+;;      (step-+
+;;        (iter-Nat     0    3 step-+)))
+;; 7. (step-+
+;;      (step-+              3))
+;; ~~~> 5
+
+
+;; something I made up:
+
+
+(claim sr+
+       (-> Nat Nat Nat))
+
+(define sr+
+  (λ (n r) (add1 n)))
+
+(rec-Nat 2 3 sr+) ; 1. ...
+
+;; 2.     (rec-Nat     2    3 sr+)
+;; 3.     (rec-Nat (add1 1) 3 sr+)
+;; 4. (sr+ 1
+;;        (rec-Nat     1    3 sr+))
+;; 5. (sr+ 1
+;;        (rec-Nat (add1 0) 3 sr+))
+;; 6. (sr+ 0
+;;      (sr+ 0
+;;        (rec-Nat     0    3 sr+)))
+;; 7. (sr+ 0
+;;      (sr+ 0              3))
+;; ~~~> 5
 
 
 ;; -+-+-+-+-+-
@@ -64,11 +124,30 @@
 
 (define gauss
   (λ (n)
-    (rec-Nat n 0
+    (rec-Nat n ; "target": if zero, return ...
+             0 ; "base": else, return
+             ;; (step-gauss
+             ;;   (rec-Nat (add1 n-1)
+             ;;            base
+             ;;            step-gauss)
              step-gauss)))
 
 
-(gauss 10)
+
+
+
+(gauss 3) ; 1. ...
+
+;; 2. (rN      3   0 sg)
+;; 3. (rN   (a1 2) 0 sg)
+;; 4. (sg 2
+;;      (rN    2   0 sg))
+;; 5. (sg 2
+;;      (rN (a1 1) 0 sg))
+;; 6. (sg 2
+;;      (sg 1
+;;        (
+
 
 
 ;;   ___ _              _             _ _
@@ -148,7 +227,7 @@ kar
 (kdr (cons 2 3))
 
 
-;; frame 4-50
+;; Frame 4.50
 
 
 ;; -+-+-+-+-
@@ -175,7 +254,7 @@ kar
 ;;                |_|
 
 
-;; frame 31
+;; Frame 5.31
 
 
 (claim toppings (List Atom))
@@ -217,7 +296,7 @@ kar
       (rec-List es 0 (step-length E)))))
 
 
-;; frame 5-42
+;; Frame 5.42
 
 
 (claim length-Atom
@@ -227,7 +306,7 @@ kar
   (length Atom))
 
 
-;; frame 5-45
+;; Frame 5.45
 
 
 ;; -+-+-+-+-+-+-
@@ -366,7 +445,12 @@ kar
 (the (Vec Atom 1) (vec:: 'shiitake (the (Vec Atom zero) vecnil)))
 
 
-;; frame 6.34
+;; -+-+-+-+-+-
+;;  f i r s t
+;; -+-+-+-+-+-
+
+
+;; Frame 6.34
 
 (claim first
        (Π ((E U)
@@ -380,3 +464,69 @@ kar
 
 (first Atom 2 (vec:: 'a (vec:: 'b (vec:: 'c vecnil))))
 (first Atom 0 (vec:: 'a vecnil))
+
+
+;;   ___ _              _             ____
+;;  / __| |_  __ _ _ __| |_ ___ _ _  |__  |
+;; | (__| ' \/ _` | '_ \  _/ -_) '_|   / /
+;;  \___|_||_\__,_| .__/\__\___|_|    /_/
+;;                |_|
+
+
+
+
+
+;; Frame 7.28
+
+
+(claim base-last
+       (Π ((E U))
+          (→ (Vec E (add1 zero)) E)))
+
+(define base-last
+  (λ (E)
+    (λ (es)
+      (head es))))
+
+
+(claim mot-last
+       (→ U Nat U))
+
+(define mot-last
+  (λ (E k)
+    (→ (Vec E (add1 k)) E)))
+
+
+(mot-last Atom zero)
+
+
+(Vec U zero)
+(the (Vec U zero) vecnil)
+
+
+(claim step-last
+       (Π ((E U)
+           (ℓ-1 Nat))
+          (→ (mot-last E ℓ-1)
+             (mot-last E (add1 ℓ-1)))))
+
+(define step-last
+  (λ (E ℓ-1)
+    (λ (last-ℓ-1)
+      (λ (es)
+        (last-ℓ-1 (tail es))))))
+
+
+(claim last
+       (Π ((E U)
+           (ℓ-1 Nat))
+          (-> (Vec E (add1 ℓ-1)) E)))
+
+(define last
+  (λ (E ℓ-1)
+    (ind-Nat ℓ-1
+             (mot-last E)
+             (base-last E)
+             (step-last E))))
+
+(last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
