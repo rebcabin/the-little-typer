@@ -29,25 +29,51 @@
 ;; of which-Nat.
 
 
+;; A good name for the argument (parameter?) of
+;; step is n-1 because step is called when
+;; target == n == (add1 n-1).
+;;
+;; A parameter is a name for an argument. What is
+;; the name of a parameter (you answer)?
+;;
+;; SPOILER: Parameters inhabit a space of symbolic
+;; calculation inside the compiler or its run-time,
+;; representative functions like add1. Names of
+;; parameters only appear in the implementations of
+;; the compiler or its run-time representative
+;; functions, where they may stand for arbitrary
+;; parameters. At the user's level. parameters are
+;; names for arguments, where they may stand for
+;; arbitrary argument values. Recall that values are
+;; expressions with constructors up top (in first
+;; positions in parenthesized expressions).
+
 ;; (which-Nat target base step) == base if
-;; target == 0 else if target == (add1 n)
-;; then which-Nat = (step n)
+;; target == 0 else if target == n == (add1 n-1)
+;; then which-Nat = (step n-1)
 
 
-(which-Nat zero 'naught (λ (n) 'more))
-(which-Nat 4    'naught (λ (n) 'four))
+(which-Nat zero 'naught (λ (n-1) 'more))
+(which-Nat 4    'naught (λ (n-1) 'three))
 
 
 ;; Show how rec-Nat can mimic this behavior, i.e., by
 ;; the step's ignoring both its arguments:
 
 
-(rec-Nat zero 'rec-naught (λ (n r) 'rec-more))
-(rec-Nat 4    'rec-naught (λ (n r) 'rec-four))
+(rec-Nat zero 'rec-naught (λ (n-1 r) 'rec-more))
+(rec-Nat 4    'rec-naught (λ (n-1 r) 'rec-three))
 
 
-;; Later, we'll see that by step's ignoring one of its
-;; arguments, rec-Nat simulates iter-Nat.
+;; The book writes ignored arguments in dim font. I
+;; think we don't need to bother much about that.
+;; But we might sometimes write _ or foo_ with a _
+;; suffix for ignored arguments.
+
+
+;; Later, we'll see that by step's ignoring one of
+;; its arguments, namely r, the recursive
+;; computation, rec-Nat simulates iter-Nat.
 
 
 ;;   ___ _              _             ____
@@ -76,10 +102,10 @@
 
 
 ;; (iter-Nat target base step) == base if
-;; target == 0 else if target == (add1 n)
+;; target == 0 else if target == n == (add1 n-1)
 ;; then iter-Nat ==
 ;; (step
-;;    (iter-Nat n base step))
+;;    (iter-Nat n-1 base step))
 
 
 ;; iter-Nat has type
@@ -99,10 +125,6 @@
 (claim step-+
        (→ Nat Nat))
 
-;; A good name for the argument (parameter?) of
-;; step is n-1 because step is called when
-;; target == n == (add1 n-1).
-
 (define step-+
   (λ (n-1) (add1 n-1)))
 
@@ -110,69 +132,100 @@
 (claim + (→ Nat Nat Nat))
 
 (define +
-  (λ (n j)
-    (iter-Nat n j step-+)))
+  (λ (n j) ;; Don't need the name n-1 here.
+    ;;        target base  step
+    ;;       |------|----|-------|
+    (iter-Nat    n     j   step-+)))
 
 
 ;; Frame 3.28, sort-of
 
 
 ;; (which-Nat target base step) == base if
-;; target == 0 else if target == (add1 n)
-;; then which-Nat = (step n)
+;; target == 0 else if target == n == (add1 n-1)
+;; then which-Nat = (step n-1)
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-
+;;  e l i m i n a t i o n
+;; -+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; The process of replacing (add1 n-1) with n-1 is
+;; called "elimination" because it strips off --
+;; eliminates -- the value constructor add1.
+;; Selection (which-Nat), iteration (iter-Nat), and
+;; recursion occur in a backwards kind of way, by
+;; eliminating toward zero. This sequential
+;; elimination *builds up* an expression that is
+;; eventually evaluated to the unique normal form --
+;; the "most direct" form.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  d e c o n s t r u c t u r i n g
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; The process of noticing that n == (add1 n-1) is
+;; called "destructuring," a term not in The Little
+;; Typer, but borrowed from Clojure. It defines the
+;; parameter
+;; destructures
 
 ;; (iter-Nat target base step) == base if
-;; target == 0 else if target == (add1 n)
+;; target == 0 else if target == n == (add1 n-1)
 ;; then iter-Nat ==
-;; (step
-;;    (iter-Nat n base step))
+;;             elimination
+;; (step       |---------|
+;;    (iter-Nat    n-1    base step))
 
 (+ 2 3) ; 1. ...
 
 ;; 2.     (iter-Nat     2    3 step-+)
 ;; 3.     (iter-Nat (add1 1) 3 step-+)
-;; 4. (step-+            /
+;; 4. (step-+            /                elimination
 ;;        (iter-Nat     1    3 step-+))
 ;; 5. (step-+
 ;;        (iter-Nat (add1 0) 3 step-+))
-;; 6. (step-+            /
+;; 6. (step-+            /                elimination
 ;;      (step-+         |
 ;;        (iter-Nat     0    3 step-+)))
 ;; 7. (step-+
 ;;      (step-+              3))
-;; ~~~> 5
+;; ~~~> 5                                 evaluation
 
 
-;; something I made up to show that rec-Nat is
-;; at least as strong as iter-Nat
+;; Here is something I made up to show that rec-Nat
+;; is at least as strong as iter-Nat.
 
 
 ;; (rec-Nat target base step) == base if
-;; target == 0 else if target == (add1 n)
+;; target == 0 else if target == (add1 n-1)
 ;; then rec-Nat ==
-;; (step n
-;;    (rec-Nat n base step))
+;; (step n-1                              nota bene
+;;    (rec-Nat n-1 base step))            elimination
 
 (claim sr+
        (→ Nat Nat Nat))
 
 (define sr+
-  (λ (n r) (add1 n)))
+  (λ (n-1 r) (add1 n-1))) ;               ignore r
 
 (rec-Nat 2 3 sr+) ; 1. ...
 
 ;; 2.     (rec-Nat     2    3 sr+)
 ;; 3.     (rec-Nat (add1 1) 3 sr+)
-;; 4. (sr+ 1            /
+;; 4. (sr+ 1            /                 elimination
 ;;        (rec-Nat     1    3 sr+))
 ;; 5. (sr+ 1
 ;;        (rec-Nat (add1 0) 3 sr+))
-;; 6. (sr+ 0            /
+;; 6. (sr+ 0            /                 elimination
 ;;      (sr+ 0         |
 ;;        (rec-Nat     0    3 sr+)))
 ;; 7. (sr+ 0
 ;;      (sr+ 0              3))
-;; ~~~> 5
+;; ~~~> 5                                 evaluation
 
 
 ;; -+-+-+-+-+-
@@ -180,23 +233,28 @@
 ;; -+-+-+-+-+-
 
 
+;; Here is an example that must use both arguments
+;; to rec-Nat.
+
+
 (claim step-gauss
        (→ Nat Nat Nat))
 
 (define step-gauss
-  (λ (n-1 g-1)
-    (+ (add1 n-1) g-1)))
+  (λ (n-1 rg)
+    (+ (add1 n-1) rg)))
 
 
 (claim gauss
        (→ Nat Nat))
 
 (define gauss
-  (λ (n)
+  (λ (n) ; Don't name this argument n-1
     (rec-Nat n ; "target": if zero, return ...
-             0 ; "base": else, return
+             0 ; "base": else, if it's (add1 n-1)
+             ;; return
              ;; (step-gauss
-             ;;   (rec-Nat (add1 n-1)
+             ;;   (rec-Nat n-1
              ;;            base
              ;;            step-gauss)
              step-gauss)))
