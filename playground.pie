@@ -1,11 +1,53 @@
 #lang pie
 
+
 'spinach
 
 (the (Pair Atom Atom)
   (cons 'spinach 'cauliflower))
 
 (the Atom (the Atom 'pie))
+
+
+;; -+-+-+-+-+-+-+-+-+-
+;;  w h i c h - N a t
+;; -+-+-+-+-+-+-+-+-+-
+
+
+;; which-Nat has type
+;; (Π ((E U))
+;;   (→ target:N base:E step:(→ N E) E))
+;;
+;; or, less noisily
+;;
+;; (Π ((E U))
+;;   (→ N E (→ N E) E))
+
+;; The base and the output of step must have the same
+;; type (E U). E can be anything -- Atom or Nat, for
+;; instance, but it must be the same on both branches
+;; of which-Nat.
+
+
+;; (which-Nat target base step) == base if
+;; target == 0 else if target == (add1 n)
+;; then which-Nat = (step n)
+
+
+(which-Nat zero 'naught (λ (n) 'more))
+(which-Nat 4    'naught (λ (n) 'four))
+
+
+;; Show how rec-Nat can mimic this behavior, i.e., by
+;; the step's ignoring both its arguments:
+
+
+(rec-Nat zero 'rec-naught (λ (n r) 'rec-more))
+(rec-Nat 4    'rec-naught (λ (n r) 'rec-four))
+
+
+;; Later, we'll see that by step's ignoring one of its
+;; arguments, rec-Nat simulates iter-Nat.
 
 
 ;;   ___ _              _             ____
@@ -18,28 +60,54 @@
 ;; Frame 3.23
 
 
-(iter-Nat 5 3 (λ (k) (add1 k)))
+;;        target base      step
+;;       |------|----|----------------|
+(iter-Nat    5     3  (λ (k) (add1 k)))
 
 
 ;; Can't go to point-free form, i.e.,
 ;; cannot change add1 for (λ (k) (add1 k)).
 ;;
-;; (iter-Nat 5 3 add1) ; /Users/brian/Documents/GitHub/the-little-typer/playground.pie:17:14: add1: expected valid Pie name
+;; (iter-Nat 5 3 add1) ;
+;; /Users/brian/Documents/GitHub/the-little-typer/playground.pie:17:14:
+;; add1: expected valid Pie name
 ;   at: add1
 ;   in: add1
+
+
+;; (iter-Nat target base step) == base if
+;; target == 0 else if target == (add1 n)
+;; then iter-Nat ==
+;; (step
+;;    (iter-Nat n base step))
+
+
+;; iter-Nat has type
+;;
+;; (Π ((E U))
+;;   (→ N E (→ N E) E))
+;;
+;; same as the type of which-Nat. The difference
+;; between the two is that iter-Nat calls iter-Nat
+;; for the argument of step. User-defined code must
+;; not recurse, but this system-defined routine can.
 
 
 ;; (+ 2 3) ;; ; Unknown variable +
 
 
 (claim step-+
-       (-> Nat Nat))
+       (→ Nat Nat))
+
+;; A good name for the argument (parameter?) of
+;; step is n-1 because step is called when
+;; target == n == (add1 n-1).
 
 (define step-+
-  (λ (n) (add1 n)))
+  (λ (n-1) (add1 n-1)))
 
 
-(claim + (-> Nat Nat Nat))
+(claim + (→ Nat Nat Nat))
 
 (define +
   (λ (n j)
@@ -47,6 +115,7 @@
 
 
 ;; Frame 3.28, sort-of
+
 
 ;; (which-Nat target base step) == base if
 ;; target == 0 else if target == (add1 n)
@@ -58,35 +127,34 @@
 ;; (step
 ;;    (iter-Nat n base step))
 
-;; (rec-Nat target base step) == base if
-;; target == 0 else if target == (add1 n)
-;; then iter-Nat ==
-;; (step n
-;;    (iter-Nat n base step))
-
-;; git?
-
 (+ 2 3) ; 1. ...
 
 ;; 2.     (iter-Nat     2    3 step-+)
 ;; 3.     (iter-Nat (add1 1) 3 step-+)
-;; 4. (step-+
+;; 4. (step-+            /
 ;;        (iter-Nat     1    3 step-+))
 ;; 5. (step-+
 ;;        (iter-Nat (add1 0) 3 step-+))
-;; 6. (step-+
-;;      (step-+
+;; 6. (step-+            /
+;;      (step-+         |
 ;;        (iter-Nat     0    3 step-+)))
 ;; 7. (step-+
 ;;      (step-+              3))
 ;; ~~~> 5
 
 
-;; something I made up:
+;; something I made up to show that rec-Nat is
+;; at least as strong as iter-Nat
 
+
+;; (rec-Nat target base step) == base if
+;; target == 0 else if target == (add1 n)
+;; then rec-Nat ==
+;; (step n
+;;    (rec-Nat n base step))
 
 (claim sr+
-       (-> Nat Nat Nat))
+       (→ Nat Nat Nat))
 
 (define sr+
   (λ (n r) (add1 n)))
@@ -95,12 +163,12 @@
 
 ;; 2.     (rec-Nat     2    3 sr+)
 ;; 3.     (rec-Nat (add1 1) 3 sr+)
-;; 4. (sr+ 1
+;; 4. (sr+ 1            /
 ;;        (rec-Nat     1    3 sr+))
 ;; 5. (sr+ 1
 ;;        (rec-Nat (add1 0) 3 sr+))
-;; 6. (sr+ 0
-;;      (sr+ 0
+;; 6. (sr+ 0            /
+;;      (sr+ 0         |
 ;;        (rec-Nat     0    3 sr+)))
 ;; 7. (sr+ 0
 ;;      (sr+ 0              3))
@@ -113,15 +181,15 @@
 
 
 (claim step-gauss
-       (-> Nat Nat Nat))
+       (→ Nat Nat Nat))
 
 (define step-gauss
-  (λ (n-1 gauss_n-1)
-    (+ (add1 n-1) gauss_n-1)))
+  (λ (n-1 g-1)
+    (+ (add1 n-1) g-1)))
 
 
 (claim gauss
-       (-> Nat Nat))
+       (→ Nat Nat))
 
 (define gauss
   (λ (n)
@@ -133,22 +201,41 @@
              ;;            step-gauss)
              step-gauss)))
 
-
-
-
-
 (gauss 3) ; 1. ...
 
-;; 2. (rN      3   0 sg)
-;; 3. (rN   (a1 2) 0 sg)
-;; 4. (sg 2
-;;      (rN    2   0 sg))
+;; let rN == rec-Nat, sg == step-gauss, a1 == add1
+;; (rN    0   b s) ~~> b
+;; (rN (a1 n) b s) ~~> (s n (rN n b s))
+
+;; 2.       (rN    3   0 sg)
+;; 3.       (rN (a1 2) 0 sg)
+;; 4. (sg 2        /
+;;          (rN    2   0 sg))
 ;; 5. (sg 2
-;;      (rN (a1 1) 0 sg))
+;;          (rN (a1 1) 0 sg))
+;; 6. (sg 2        /
+;;      (sg 1      |
+;;          (rN    1   0 sg)))
 ;; 6. (sg 2
 ;;      (sg 1
-;;        (
-
+;;          (rN (a1 0) 0 sg)))
+;; 7. (sg 2        /
+;;      (sg 1      |
+;;        (sg 0    |
+;;          (rN    0   0 sg))))
+;; 8. (sg 2
+;;      (sg 1
+;;        (sg 0
+;;          (rN    0   0 sg))))
+;; 8. (sg 2
+;;      (sg 1
+;;        (sg 0    0)))
+;; 9. (sg 2 (sg 1 (+ (add1 0) 0)))
+;; A. (sg 2 (sg 1 1))
+;; B. (sg 2 (+ (add1 1) 1))
+;; C. (sg 2 3)
+;; D. (+ (add1 2) 3)
+;; E. 6
 
 
 ;;   ___ _              _             _ _
@@ -158,7 +245,8 @@
 ;;                |_|
 
 
-;; (claim foo (-> A D))  page 98:  ~"-> is not up to the job"~
+;; (claim foo (→ A D))
+;; page 98:  ~" → is not up to the job "~
 
 
 ;; -+-+-+-+-
@@ -168,7 +256,7 @@
 
 (claim flip
        (Π ((A U) (D U))
-          (-> (Pair A D)
+          (→ (Pair A D)
               (Pair D A))))
 
 (define flip
@@ -185,8 +273,8 @@
 
 (claim elim-Pair
        (Π ((A U) (D U) (X U))
-          (-> (Pair A D)
-              (-> A D X)
+          (→ (Pair A D)
+              (→ A D X)
               X)))
 
 (define elim-Pair
@@ -203,7 +291,7 @@ elim-Pair
 
 
 (claim kar
-       (-> (Pair Nat Nat) Nat))
+       (→ (Pair Nat Nat) Nat))
 
 (define kar
   (λ (p)
@@ -217,7 +305,7 @@ kar
 
 
 (claim kdr
-       (-> (Pair Nat Nat) Nat))
+       (→ (Pair Nat Nat) Nat))
 
 (define kdr
   (λ (pn)
@@ -238,7 +326,7 @@ kar
 
 (claim twin
        (Π ((Y U))
-          (-> Y (Pair Y Y))))
+          (→ Y (Pair Y Y))))
 
 (define twin
   (λ (Y)
@@ -277,7 +365,7 @@ kar
 
 (claim step-length
        (Π ((E U))
-          (-> E (List E) Nat
+          (→ E (List E) Nat
               Nat)))
 
 (define step-length
@@ -288,7 +376,7 @@ kar
 
 (claim length
        (Π ((E U))
-          (-> (List E)
+          (→ (List E)
               Nat)))
 
 (define length
@@ -301,7 +389,7 @@ kar
 
 
 (claim length-Atom
-       (-> (List Atom) Nat))
+       (→ (List Atom) Nat))
 
 (define length-Atom
   (length Atom))
@@ -317,7 +405,7 @@ kar
 
 (claim step-append
        (Π ((E U))
-          (-> E (List E) (List E)
+          (→ E (List E) (List E)
               (List E))))
 
 (define step-append
@@ -328,7 +416,7 @@ kar
 
 (claim append
        (Π ((E U))
-          (-> (List E) (List E)
+          (→ (List E) (List E)
               (List E))))
 
 (define append
@@ -341,7 +429,7 @@ kar
 
 
 (claim append-Nat
-       (-> (List Nat) (List Nat)
+       (→ (List Nat) (List Nat)
            (List Nat)))
 
 (define append-Nat
@@ -360,7 +448,7 @@ kar
 
 (claim snoc
        (Π ((E U))
-          (-> (List E) E
+          (→ (List E) E
               (List E))))
 
 (define snoc
@@ -376,7 +464,7 @@ kar
 
 (claim step-reverse
        (Π ((E U))
-          (-> E (List E) (List E)
+          (→ E (List E) (List E)
               (List E))))
 
 (define step-reverse
@@ -387,7 +475,7 @@ kar
 
 (claim reverse
        (Π ((E U))
-          (-> (List E) (List E))))
+          (→ (List E) (List E))))
 
 ;; I first wrote the "nil" below without peeking at the answer.
 ;; But they snuck one in on me, too clever by half!
@@ -426,7 +514,7 @@ kar
 
 (claim first-of-one
        (Π ((E U))
-          (-> (Vec E 1) E)))
+          (→ (Vec E 1) E)))
 
 (define first-of-one
   (λ (E)
@@ -456,7 +544,7 @@ kar
 (claim first
        (Π ((E U)
            (ℓ Nat))
-          (-> (Vec E (add1 ℓ)) E)))
+          (→ (Vec E (add1 ℓ)) E)))
 
 (define first
   (λ (E ℓ)
@@ -521,7 +609,7 @@ kar
 (claim last
        (Π ((E U)
            (ℓ-1 Nat))
-          (-> (Vec E (add1 ℓ-1)) E)))
+          (→ (Vec E (add1 ℓ-1)) E)))
 
 (define last
   (λ (E ℓ-1)
