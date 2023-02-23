@@ -857,15 +857,26 @@ kar
 
 ;; (define peas
 ;;   (λ (how-many-peas)
-;;     (rec-Nat how-many-peas ; target
-;;              vecnil        ; base: type?
-;;              (λ (ℓ-1_ peas_ℓ-1) ; uh-oh
+;;     (rec-Nat how-many-peas           ; target
+;;           ;  ------v------
+;;           ;    ____^_____
+;;           ; == (add1 ℓ-1)
+;;              vecnil                  ; base: type?
+;;              (λ (ℓ-1_ peas_ℓ-1)      ; step: uh-oh
 ;;                (vec:: 'pea peas_ℓ-1)))))  ; type?
 
 
 ;; `peas` does not have a consistent type. rec-Nat
-;; requires the type of `base` to be the same as that
-;; of `peas_ℓ-1`.
+;; requires the type of `base` to be the same as
+;; that of `peas_ℓ-1`. But, the type of base is
+;;
+;;   (Vec Atom 0),
+;;
+;; and the type of peas_ℓ-1 is
+;;
+;;   (Vec Atom ℓ-1)
+;;
+;; and ℓ-1 could be anything >= 0.
 
 
 ;; Any ___motive___ for types that depend on Nat has
@@ -873,32 +884,39 @@ kar
 
 
 ;; "The motive explains _why_ the target is to be
-;; eliminated."
+;; eliminated." The motive, when applied to a Nat,
+;; returns a type. Every type but U itself is a U.
 
 
-;; I would say "how it is to be destructured"
+;; I would say "how is the target destructured?"
 ;; because I like to distinguish destructuring and
-;; elimination. Why? because it helps me name my
+;; elimination. Why? because it helps me to name my
 ;; variables. If I point out that n is destructured
 ;; into (add1 n-1), then it's clear that the result
 ;; of elimination, n-1, can be zero whilst n can't
 ;; and they both remain Nats.
 
 
-;; Here is a shorthand synopsis for ind-Nat.
+;; Here is a shorthand synopsis for ind-Nat, which
+;; does forward-rewriting by adding 1 to the input
+;; step.
+
+
 ;; Letting iN be ind-Nat and a1 be add1:
 ;; claim mot (→ Nat U)
 ;; claim b   (mot zero)                   base
-;; claim s (Π ((n-1 Nat))                 step
-;;            (→ (mot    n-1)             explicit ...
-;;               (mot (a1 n-1))))         destructuring
-;; claim iN ...
+;; claim s   (Π ((n-1 Nat))               step
+;;              (→ (mot    n-1)            forward ...
+;;                 (mot (a1 n-1))))       rewriting
+;;
+;; claim iN ... target mot base step ... type is WIP
 ;;
 ;; (iN      0     m b s) ~~> b == (m 0)
 ;; (iN (add1 ℓ-1) m b s) ~~>
 ;;   (s ℓ-1 (iN ℓ-1 m b s)) == (m (add1 ℓ-1))
 
 
+;; -----------------------------------------------
 (claim mot-peas
        (→ Nat U))
 
@@ -906,6 +924,15 @@ kar
   (λ (k) (Vec Atom k)))
 
 
+;; -----------------------------------------------
+(claim base-peas
+       (Vec Atom 0))
+
+(define base-peas
+  vecnil)
+
+
+;; -----------------------------------------------
 (claim step-peas
        (Π ((ℓ-1 Nat))
           (→ (mot-peas ℓ-1)
@@ -917,6 +944,7 @@ kar
       (vec:: 'pea peas_ℓ-1))))
 
 
+;; -----------------------------------------------
 (claim peas
        (Π ((ℓ Nat))
           (Vec Atom ℓ)))
@@ -925,7 +953,7 @@ kar
   (λ (ℓ)
     (ind-Nat ℓ
              mot-peas
-             (the (Vec Atom 0) vecnil)
+             base-peas
              step-peas)))
 
 
@@ -938,9 +966,9 @@ kar
 
 
 ;; I made up the following exercise for myself.
-;; Check my type-calculations by defining a function
-;; that's the same as ind-Nat. Looks like I don't
-;; have enough tools, yet, to define this:
+;; Check type-fu by defining a function that's the
+;; same as ind-Nat. Looks like I don't have enough
+;; tools, yet, to define this:
 ; Expected
 ;   (m 0)
 ; but given E
@@ -1017,33 +1045,32 @@ kar
 ;; -+-+-+-+-
 
 
-(claim last
-       (Π ((E U)
-           (ℓ-1 Nat))
-          ;; a vector with at least one element
-          (→ (Vec E (add1 ℓ-1))
-             E)))
+;; -----------------------------------------------
+;;
+;; Frame 7.38, pg. 152 (fifth printing)
+;;
 
 
-(claim base-last
-       (Π ((E U))
-          ;; if you've got an element, cough it up!
-          (→ (Vec E (add1 zero))
-             E)))
-
-(define base-last
-  (λ (E)
-    (λ (es)
-      (head es))))
+;; Motives are functions that return types. "The
+;; motive applied to zero should be the type of the
+;; base." The type of the base of `last` is
+;;
+;;     (→ (Vec E (add1 zero)) E)
+;;
+;; that is, a function of a singleton Vec that
+;; returns the sole element of that Vec.
 
 
 (claim mot-last
-       ;; extra type argument
+       ;; extra type argument at the front:
        (→ U Nat U))
 
 (define mot-last
-  (λ (E k)
-    (→ (Vec E (add1 k)) E)))
+  (λ (E k-1)
+    ;; Return a function from a singleton vec
+    (→ (Vec E (add1 k-1))
+       ;; Return a type:
+       E)))
 
 
 (mot-last Atom zero)
@@ -1053,18 +1080,55 @@ kar
 (the (Vec U zero) vecnil)               ; instance
 
 
+;; -----------------------------------------------
+(claim base-last
+       (Π ((E U))
+          ;; The result is the type of a function
+          ;; that coughs up the sole element of a
+          ;; singleton Vec.
+          (→ (Vec E (add1 zero))
+             E)))
+
+(define base-last
+  (λ (E)
+    (λ (singleton-vec)
+      (head singleton-vec))))
+
+
+;; -----------------------------------------------
 (claim step-last
        (Π ((E U)
            (ℓ-1 Nat))
-          (→ (mot-last E ℓ-1)
+          ;; The result is the type of a function
+          ;; that converts a motive of E and ℓ-1 to
+          ;; a motive of E and ℓ == (add1 ℓ-1).
+          (→ (mot-last E       ℓ-1 )
              (mot-last E (add1 ℓ-1)))))
+
+;; Recall that these motives are functions from Vecs
+;; to elements.
 
 (define step-last
   (λ (E ℓ-1)
-    (λ (mot-ℓ-1)
+    (λ (mot-of-ℓ-1) ;; convert this bad boy ...
+      ;; into a new function of a Vec, which
+      ;; applies the motive to the tail of the
+      ;; Vec:
       (λ (es)
-        (mot-ℓ-1 (tail es))))))
+        (mot-of-ℓ-1 (tail es))))))
 
+
+;; -----------------------------------------------
+(claim last
+       (Π ((E   U  )
+           (ℓ-1 Nat))
+          ;; The result is the type of a function
+          ;; from a vector of at least one element
+          ;; to an element:
+          (→ (Vec E (add1 ℓ-1))
+             E)))
+
+;; We can cons-up `last` almost blindly:
 
 (define last
   (λ (E ℓ-1)
@@ -1073,9 +1137,122 @@ kar
              (base-last E)
              (step-last E))))
 
+;; and unit-test it:
+
 (last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
 (last Atom 0 (vec:: 'b vecnil))
+
+
+;; Due to totality, we can't even write an
+;; expression that gets the last element of an empty
+;; Vec.
+
 
 ;; -+-+-+-+-+-+-+-+-+-
 ;;  d r o p - l a s t
 ;; -+-+-+-+-+-+-+-+-+-
+
+
+;; -----------------------------------------------
+;;
+;; Frame 7.64
+;;
+
+
+(claim mot-drop-last
+       ;; extra type argument
+       (→ U Nat U))
+
+(define mot-drop-last
+  (λ (E ℓ-1)
+    ;; From a longer Vec ...
+    (→ (Vec E (add1 ℓ-1 ))
+       ;; return the type of a shorter Vec:
+       (Vec E       ℓ-1 ))))
+
+
+(mot-drop-last Atom zero)
+(mot-drop-last Atom 1)
+
+
+;; -----------------------------------------------
+;;
+;; Frame 7.61
+;;
+
+
+(claim base-drop-last
+       (Π ((E U))
+          ;; If you've got one element, drop it!
+          (→ (Vec E (add1 zero))
+             ;; Return the type of an empty Vec:
+             (Vec E       zero ))))
+
+(define base-drop-last
+  (λ (E)
+    (λ (es_)
+      ;; Might be overkill to spell out the type.
+      ;; Might write just vecnil. Maybe pie can
+      ;; reckon the type.
+      (the (Vec E zero) vecnil))))
+
+
+;; -----------------------------------------------
+;;
+;; Frames 7.66-67
+;;
+
+
+;; (claim step-drop-last
+;;        (Π ((E   U  )
+;;            (ℓ-1 Nat))
+;;           ;; From a type of mot applied to E and a Nat,
+;;           ;; a Nat that might be zero ...
+;;           (→ (mot-drop-last E       ℓ-1 )
+;;              ;; return a type of mot applied to a
+;;              ;; Nat greater by one.
+;;              (mot-drop-last E (add1 ℓ-1)))))
+
+;; (define step-drop-last
+;;   (λ (E ℓ-1)
+;;     (λ (mot-of-ℓ-1)
+;;       (λ (es)
+;;         (mot-ℓ-1 (tail es))))))
+
+
+;; -----------------------------------------------
+;; (claim drop-last
+;;        (Π ((E U)
+;;            (ℓ-1 Nat))
+;;           ;; a vector with at least one element
+;;           (→ (Vec E (add1 ℓ-1))
+;;              E)))
+
+;; (define drop-last
+;;   (λ (E ℓ-1)
+;;     (ind-Nat ℓ-1
+;;              (mot-drop-last E)
+;;              (base-drop-last E)
+;;              (step-drop-last E))))
+
+
+(last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
+(last Atom 0 (vec:: 'b vecnil))
+
+
+;;   ___ _              _             ___
+;;  / __| |_  __ _ _ __| |_ ___ _ _  ( _ )
+;; | (__| ' \/ _` | '_ \  _/ -_) '_| / _ \
+;;  \___|_||_\__,_| .__/\__\___|_|   \___/
+;;                |_|
+
+
+;; The Four Forms of Judgment:
+;;
+;; 1. ____ is a ____.
+;;
+;; 2. ____ is the same ____ as ____.
+;;
+;; 3. ____ is a type.
+;;
+;; 4. ____ and ____ are the same type.
