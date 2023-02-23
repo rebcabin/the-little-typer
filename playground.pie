@@ -844,11 +844,153 @@ kar
 ;;                (vec:: 'pea peas_ℓ-1)))))  ; type?
 
 
-;; -peas- does not have a consistent type. rec-Nat
-;; requires the type of `base` to be the
+;; `peas` does not have a consistent type. rec-Nat
+;; requires the type of `base` to be the same as that
+;; of `peas_ℓ-1`.
 
 
-;; Frame 7.28
+;; Any ___motive___ for types that depend on Nat has
+;; type (→ Nat U).
+
+
+;; "The motive explains _why_ the target is to be
+;; eliminated."
+
+
+;; I would say "how it is to be destructured"
+;; because I like to distinguish destructuring and
+;; elimination. Why? because it helps me name my
+;; variables. If I point out that n is destructured
+;; into (add1 n-1), then it's clear that the result
+;; of elimination, n-1, can be zero whilst n can't
+;; and they both remain Nats.
+
+
+;; Here is a shorthand synopsis for ind-Nat.
+;; Letting iN be ind-Nat and a1 be add1:
+;; claim mot (→ Nat U)
+;; claim b   (mot zero)                   base
+;; claim s (Π ((n-1 Nat))                 step
+;;            (→ (mot    n-1)             explicit ...
+;;               (mot (a1 n-1))))         destructuring
+;; claim iN ...
+;;
+;; (iN      0     m b s) ~~> b == (m 0)
+;; (iN (add1 ℓ-1) m b s) ~~>
+;;   (s ℓ-1 (iN ℓ-1 m b s)) == (m (add1 ℓ-1))
+
+
+(claim mot-peas
+       (→ Nat U))
+
+(define mot-peas
+  (λ (k) (Vec Atom k)))
+
+
+(claim step-peas
+       (Π ((ℓ-1 Nat))
+          (→ (mot-peas ℓ-1)
+             (mot-peas (add1 ℓ-1)))))
+
+(define step-peas
+  (λ (ℓ-1)
+    (λ (peas_ℓ-1)
+      (vec:: 'pea peas_ℓ-1))))
+
+
+(claim peas
+       (Π ((ℓ Nat))
+          (Vec Atom ℓ)))
+
+(define peas
+  (λ (ℓ)
+    (ind-Nat ℓ
+             mot-peas
+             (the (Vec Atom 0) vecnil)
+             step-peas)))
+
+
+;; M-C-x on these after loading the file via C-c C-c.
+
+
+(peas 0)
+(peas 1)
+(peas 3)
+
+
+;; I made up the following exercise for myself.
+;; Check my type-calculations by defining a function
+;; that's the same as ind-Nat. Looks like I don't
+;; have enough tools, yet, to define this:
+; Expected
+;   (m 0)
+; but given E
+;   Source locations:
+;   ../playground.pie:942:7
+
+
+;; (claim iN (Π ((E U))
+;;              (→ Nat               ; target
+;;                 (→ Nat U)         ; mot, m
+;;                 E                 ; base, (m 0)
+;;                 (→ Nat E E)       ; step
+;;                 E)))              ; result, (m ℓ)
+
+;; (define iN
+;;   (λ (E)
+;;     (λ (t m b s)
+;;       (ind-Nat
+;;        t
+;;        m
+;;        b
+;;        s))))
+
+
+;; The [official documentation for pie](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
+;; shows that I got it mostly right:
+
+
+;; (ind-Nat target motive base step) → (motive target)
+;; target : Nat
+;; motive : (-> Nat U)
+;; base   : (motive zero)
+;; step	 	:	(Π ((n Nat))
+;;            (-> (motive n)
+;;            (motive (add1 n))))
+
+
+;; I don't have any tools (maybe, yet) for writing
+;; this type, and its type does not appear in the
+;; book. It might be one of those types that are
+;; _expressible but not denotable_ within the type
+;; system we've defined.
+
+
+;; See https://racket.discourse.group/t/the-type-of-ind-nat-in-the-pie-language/1733
+
+
+;; Frame 7.27
+
+
+;; rec-Nat can act like ind-Nat when ind-Nat doesn't
+;; use its motive, because the types don't change.
+
+
+(claim also-rec-Nat
+       (Π ((E U))
+          (→ Nat                        ; target
+             E                          ; base
+             (→ Nat E E)                ; step
+             E)))                       ; result
+
+(define also-rec-Nat
+  (λ (E)
+    (λ (t b s)
+      (ind-Nat
+       t                                ; target
+       (λ (k) E)                        ; motive
+       b                                ; base
+       s))))                            ; step
 
 
 (claim base-last
