@@ -1074,7 +1074,7 @@ kar
              (step-last E))))
 
 (last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
-
+(last Atom 0 (vec:: 'b vecnil))
 
 ;; -+-+-+-+-+-+-+-+-+-
 ;;  d r o p - l a s t
