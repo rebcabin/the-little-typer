@@ -15,10 +15,31 @@
 ;; CIDER in Clojure-mode.
 
 
+;; Alternatively, if you don't want to set up Emacs
+;; for racket, load this file into DrRacket and play
+;; around. DrRacket comes for free with [the racket
+;; distribution](https://download.racket-lang.org/).
+;; Install the distribution, type `raco kg install
+;; pie` at the terminal, launch `DrRacket` and party
+;; on. DrRacket is a fine IDE if you can stand
+;; imperfect Emacs key-binding emulation (I can't;
+;; too many decades of muscle memory!)
+
+
+;; Mostly, I leave two blank lines between things. I
+;; leave one blank line between a `claim` and its
+;; matching `define`. Writing these pairs _feels
+;; like_ writing Haskell. I also sometimes leave a
+;; single blank line between a definition and its
+;; unit tests. I'm not religious about any of that.
+
+
 'spinach
+
 
 (the (Pair Atom Atom)
   (cons 'spinach 'cauliflower))
+
 
 (the Atom (the Atom 'pie))
 
@@ -966,36 +987,48 @@ kar
 
 
 ;; I made up the following exercise for myself.
+
+
 ;; Check type-fu by defining a function that's the
-;; same as ind-Nat. Looks like I don't have enough
-;; tools, yet, to define this:
-; Expected
-;   (m 0)
-; but given E
-;   Source locations:
-;   ../playground.pie:942:7
+;; same as ind-Nat.
 
 
-;; (claim iN (Π ((E U))
-;;              (→ Nat               ; target
-;;                 (→ Nat U)         ; mot, m
-;;                 E                 ; base, (m 0)
-;;                 (→ Nat E E)       ; step
-;;                 E)))              ; result, (m ℓ)
+(claim iN
+       (Π ((t   Nat)                    ; target
+           (m   (→ Nat U))              ; motive
+           (b   (m 0))                  ; base
+           (s   (Π ((n-1 Nat))          ; step
+                   (→ (m n-1)
+                      (m (add1 n-1))))))
+          (m t)))
 
-;; (define iN
-;;   (λ (E)
-;;     (λ (t m b s)
-;;       (ind-Nat
-;;        t
-;;        m
-;;        b
-;;        s))))
+(define iN
+  (λ (t m b s)
+    (ind-Nat
+     t
+     m
+     b
+     s)))
+
+;; unit tests
+
+(claim peas-ex
+       (Π ((ℓ Nat))
+          (Vec Atom ℓ)))
+
+(define peas-ex
+  (λ (ℓ)
+    (iN ℓ
+        mot-peas
+        base-peas
+        step-peas)))
+
+(peas-ex 0)
+(peas-ex 1)
+(peas-ex 2)
 
 
 ;; The [official documentation for pie](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
-;; shows that I got it mostly right:
-
 
 ;; (ind-Nat target motive base step) → (motive target)
 ;; target : Nat
@@ -1006,13 +1039,7 @@ kar
 ;;            (motive (add1 n))))
 
 
-;; I don't have any tools (maybe, yet) for writing
-;; this type, and its type does not appear in the
-;; book. It might be one of those types that are
-;; _expressible but not denotable_ within the type
-;; system we've defined.
-
-
+;; I got some help on this homework problem.
 ;; See https://racket.discourse.group/t/the-type-of-ind-nat-in-the-pie-language/1733
 
 
@@ -1264,8 +1291,64 @@ kar
              (base-drop-last E)
              (step-drop-last E))))
 
+;; unit-tests (M-C-x to see results in the REPL):
+
 (drop-last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
 (drop-last Atom 0 (vec:: 'b vecnil))
+
+
+;; Again, due to totality, we can't write or compile
+;; an application of drop-last to an empty vector
+
+
+;; (drop-last Atom 42 vecnil)
+;  vecnil requires that the length be zero, not
+;   43
+
+
+;;  ___     _
+;; |_ _|_ _| |_ ___ _ _ _ __  ___ _________
+;;  | || ' \  _/ -_) '_| '  \/ -_)_ /_ / _ \
+;; |___|_||_\__\___|_| |_|_|_\___/__/__\___/
+
+
+;; Pages 165-168 (fifth printing) are not in any
+;; chapter. We know they're not in Chapter 7 because
+;; the frame numbers start at 1, and the last frame
+;; in Chapter 7 is 73. Plus there is a nice picture
+;; on page 164 called "one piece at a time."
+
+
+;; The frames on these pages are notes on
+;; interactive syntax and display format.
+
+
+;; Because ["the racket REPL is
+;; hopeless,"](https://github.com/racket/racket/wiki/The-toplevel-is-hopeless)
+;; we can't directly do in Emacs most of the things
+;; recommended in the intermezzo. I also verified
+;; that they don't work in DrRacket. We can do a
+;; little, though, and the results are instructive.
+
+
+;; I'm commenting them out because the REPL resets
+;; the cursor to the output of the TODO lines,
+;; forcing me to change buffers and reset the
+;; cursor to the end. That's undesirable because
+;; I reload this buffer (C-c C-c) frequently.
+
+
+;; (claim peas-i
+;;        (Pi ((n Nat))
+;;            (Vec Atom n)))
+
+;; (define peas-i
+;;   (λ (n)
+;;     (ind-Nat n
+;;              (λ (k) (Vec Atom k))       ; motive
+;;              vecnil                     ; base
+;;              (λ (n-1 ps-1)              ; step
+;;                (vec:: TODO TODO)))))
 
 
 ;;   ___ _              _             ___
@@ -1273,6 +1356,127 @@ kar
 ;; | (__| ' \/ _` | '_ \  _/ -_) '_| / _ \
 ;;  \___|_||_\__,_| .__/\__\___|_|   \___/
 ;;                |_|
+
+
+;; Normal form of (+ 1) -- partial application of +
+;; to 1 == (add1 zero). Recall:
+
+
+;; (define +
+;;   (λ (n j) ;; Don't use the name n-1 here.
+;;     ;;        target base  step  ; the pattern
+;;     ;;       |------|----|-------|
+;;     (iter-Nat    n     j   step-+)))
+
+
+;; (+ 1)
+;; (+ (add1 zero))                        destructuring
+;; (λ (j)
+;;   (iter-Nat (add1 zero) j step-+))     subst. def
+;; (λ (j)
+;;   (step-+
+;;     (iter-Nat   zero                   elimination
+;;                 j step-+)))
+;; (λ (j)
+;;   (add1                                subst. def
+;;     (iter-Nat   zero j step-+)))
+;; (λ (j) (add1 j))                       subst. def
+
+
+(claim incr (→ Nat Nat))
+
+(define incr
+  (λ (n)
+    (iter-Nat n                         ; target
+              1                         ; base
+              (+ 1))))                  ; step
+
+
+;; Note that pie doesn't let us write add1 in place
+;; of (+ 1), above. Must be that add1 isn't a
+;; function?
+
+
+;;add1
+; ...: add1: expected valid Pie name
+;   at: add1
+;   in: add1
+
+
+;; But
+
+
+;; playground.pie> (+ 1)
+;; (the (→ Nat
+;;         Nat)
+;;      (λ (j)
+;;        (add1 j)))
+
+
+;; The book makes the point that the normal forms
+;; of the expressions (+ 1) and incr are not the
+;; same. Save some hand calculation by letting
+;; the REPL compute the normal forms:
+
+
+;; playground.pie> (+ 1)
+;; (the (→ Nat
+;;         Nat)
+;;      (λ (j)
+;;        (add1 j)))
+;;
+;; playground.pie> incr
+;; (the (→ Nat
+;;         Nat)
+;;      (λ (n)
+;;        (iter-Nat n
+;;                  (the Nat 1)
+;;                  (λ (j)
+;;                    (add1 j)))))
+
+
+;; "Even though they are not the same, the fact that
+;; they always find the same answer can be written
+;; as a type.
+;;    "Sameness is indeed a judgment. But, with a
+;; new type constructor, types can express a new
+;; idea called _equality_."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f   =
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; "An expression
+;;
+;;     (= X _from_ _to_)
+;;
+;; is a type if X is a type, _from_ is an X, and
+;; _to_ is an X."
+
+
+;; FROM and TO need not be types, but they must be
+;; of type X. Therefore, an (= ...) is a dependent
+;; type because it depends on things that might not,
+;; themselves, be types.
+
+
+(= Nat (+ 6 7) 13)
+;; (the U
+;;      (= Nat 13 13))
+
+
+;; Frames 8.15-18. There is a lot going on here:
+;; Bertrand Russell and lots more.
+
+
+;; "Types can be read as _statements_."
+
+
+;; The one above says "6 + 7 equals 13," a
+;; statement. "6+7 is the same Nat as 7" is a
+;; _judgment_, one of form 2.
 
 
 ;; The Four Forms of Judgment:
@@ -1284,3 +1488,54 @@ kar
 ;; 3. ____ is a type.
 ;;
 ;; 4. ____ and ____ are the same type.
+
+
+;; Judgments are for humans; statements are for
+;; computers; more precisely, for computer
+;; theorem-provers.
+
+
+;; Frame 8.21
+
+
+;; "'6+7 equals 13' is a type" is a judgment of
+;; form 1.
+
+
+;; Π-expressions are universal quantifications, i.e,
+;; "for-every," ∀, statements.
+
+
+;; Frame 8.23
+
+
+(Π ((n Nat))
+   (= Nat (+ 1 n) (add1 n)))
+;; (the U
+;;      (Π ((n Nat))
+;;         (= Nat
+;;            (add1 n)
+;;            (add1 n))))
+
+
+;; I made up the following exercise.
+
+
+;; Oh, LOOK! The normal forms converged! Is that
+;; fact significant? No, because the normal form
+;; of (+ 1) is add1. How about this:
+
+
+(Π ((n Nat))
+   (= Nat (+ 1 n) (incr n)))
+;; (the U
+;;      (Π ((n Nat))
+;;         (= Nat
+;;            (add1 n)
+;;            (iter-Nat n
+;;                      (the Nat 1)
+;;                      (λ (j)
+;;                        (add1 j))))))
+
+
+;; ... much more meaty!
