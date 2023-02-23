@@ -58,7 +58,7 @@
 
 
 ;; A parameter is a name for an argument. What is
-;; the name of a parameter (you answer)?
+;; the name of a parameter (your answer)?
 
 
 ;; SPOILER: Parameters inhabit a space of symbolic
@@ -95,8 +95,8 @@
 
 
 ;; The book writes _ignored arguments_ in dim font.
-;; I think we don't need to bother much about that.
-;; But we might sometimes write _ or foo_ with a _
+;; I think one need not bother much about that. But
+;; one might sometimes write _ or foo_ with a _
 ;; suffix for ignored arguments. Lots of programming
 ;; languages follow that convention, sometimes
 ;; allowing multiple instances of _ without
@@ -199,9 +199,9 @@
 ;; eliminates -- the value constructor add1.
 ;; Selection (which-Nat), iteration (iter-Nat), and
 ;; recursion (rec-Nat) occur in a backwards kind of
-;; way, by eliminating toward zero. We say
-;; "backwards" because your prior experience with
-;; recursion and iteration probably has you starting
+;; way, by eliminating toward zero. One says
+;; "backwards" because one's prior experience with
+;; recursion and iteration probably has one starting
 ;; with some big Nat and _subtracting_ 1 from it by
 ;; an arithmetic process before recursing. Here, in
 ;; The Little Typer, we instead destructure larger
@@ -377,10 +377,10 @@
 
 ;; This chapter is mostly about the miniature
 ;; calculus on types, a calculus effected by Π. I
-;; assume this is easy for you, so I don't talk
-;; much, just show some examples. In Emacs, type
-;; M-C-x with the cursor in an example to see its
-;; value in the pie/racket interpreter.
+;; assume this is easy, so I don't talk much, just
+;; show some examples. In Emacs, type M-C-x with the
+;; cursor in an example to see its value in the
+;; pie/racket interpreter.
 
 
 ;; (claim foo (→ A D))
@@ -430,9 +430,9 @@ elim-Pair
 
 ;; These kar and kdr functions are specialized for
 ;; Nats. kar and kdr are probably lousy names for
-;; them, but we'll go with them just to exit the
-;; chapter. `elim-pair` is not specialized, so we
-;; bracket the function-calls appropriately.
+;; them, but go with them just to exit the chapter.
+;; `elim-pair` is not specialized, so bracket the
+;; function-calls appropriately.
 
 
 (claim kar
@@ -803,16 +803,35 @@ kar
 ;; (Vec E (add1 ℓ-1)) tells the whole story!
 
 
+;; Note from the shorthand on page 138 (fifth
+;; printing), one might just as well write
+
+
 (claim first
        (Π ((E U)
-           (ℓ-1 Nat))
-          (→ (Vec E (add1 ℓ-1))
-             E)))
+           (ℓ-1 Nat)
+           (es (Vec E (add1 ℓ-1))))
+          E))
 
 (define first
-  (λ (E ℓ-1)
-    (λ (es)
-      (head es))))
+  (λ (E_ ℓ_ es)
+    (head es)))
+
+
+;; As what I originally wrote (without peeking):
+
+
+;; (claim first
+;;        (Π ((E U)
+;;            (ℓ-1 Nat))
+;;           (→ (Vec E (add1 ℓ-1))
+;;              E)))
+
+;; (define first
+;;   (λ (E ℓ-1)
+;;     (λ (es)
+;;       (head es))))
+
 
 (first Atom 2 (vec:: 'a (vec:: 'b (vec:: 'c vecnil))))
 (first Atom 0 (vec:: 'a vecnil))
@@ -988,14 +1007,29 @@ kar
     (λ (t b s)
       (ind-Nat
        t                                ; target
-       (λ (k) E)                        ; motive
+       (λ (k) E)                        ; motive_
        b                                ; base
        s))))                            ; step
 
 
+;; -+-+-+-+-
+;;  l a s t
+;; -+-+-+-+-
+
+
+(claim last
+       (Π ((E U)
+           (ℓ-1 Nat))
+          ;; a vector with at least one element
+          (→ (Vec E (add1 ℓ-1))
+             E)))
+
+
 (claim base-last
        (Π ((E U))
-          (→ (Vec E (add1 zero)) E)))
+          ;; if you've got an element, cough it up!
+          (→ (Vec E (add1 zero))
+             E)))
 
 (define base-last
   (λ (E)
@@ -1004,6 +1038,7 @@ kar
 
 
 (claim mot-last
+       ;; extra type argument
        (→ U Nat U))
 
 (define mot-last
@@ -1014,8 +1049,8 @@ kar
 (mot-last Atom zero)
 
 
-(Vec U zero)
-(the (Vec U zero) vecnil)
+(Vec U zero)                            ; type
+(the (Vec U zero) vecnil)               ; instance
 
 
 (claim step-last
@@ -1026,15 +1061,10 @@ kar
 
 (define step-last
   (λ (E ℓ-1)
-    (λ (last-ℓ-1)
+    (λ (mot-ℓ-1)
       (λ (es)
-        (last-ℓ-1 (tail es))))))
+        (mot-ℓ-1 (tail es))))))
 
-
-(claim last
-       (Π ((E U)
-           (ℓ-1 Nat))
-          (→ (Vec E (add1 ℓ-1)) E)))
 
 (define last
   (λ (E ℓ-1)
@@ -1044,3 +1074,8 @@ kar
              (step-last E))))
 
 (last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
+
+
+;; -+-+-+-+-+-+-+-+-+-
+;;  d r o p - l a s t
+;; -+-+-+-+-+-+-+-+-+-
