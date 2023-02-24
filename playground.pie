@@ -1539,3 +1539,104 @@ kar
 
 
 ;; ... much more meaty!
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f   s a m e
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; The expression (same e) is an (= X e e) if e is
+;; an X.
+
+
+;; Frame 8.37
+
+
+;; _internalizing_ judgment
+
+
+(claim twelve
+       (= Nat (+ 1 11) (incr 11)))
+
+(define twelve
+  (same 12))
+
+
+;; Frame 8.38
+
+
+(claim +1=add1
+       (Π ((n Nat))
+          (= Nat (+ 1 n) (add1 n))))
+
+(define +1=add1
+  (λ (n) (same (add1 n))))
+
+
+(claim incr=add1
+       (Π ((n Nat))
+          (= Nat (incr n) (add1 n))))
+
+;; (define incr=add1
+;;   (λ (n) (same (iter-Nat n
+;;                          1
+;;                          (add1 1)))))
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N o r m a l   F o r m s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; "Given a type, every expression described by that
+;; type has a normal form, which the most direct way
+;; of writing it. Iff two expressions are the same
+;; [according to some type], then they have
+;; identical normal forms."
+
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N o r m a l   F o r m s   a n d   T y p e s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+;; "Sameness is always according to a type, so
+;; normal forms are also described by a type.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   F i r s t   C o m m a n d m e n t
+;;  o f   c o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; "Two cons-expressions are the same (Pair A D) if
+;; their cars are the same A and their cdrs are the
+;; same D. Here, A and D stand for any type[s]."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N o r m a l   F o r m s   O F   T y p e s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+;; "Every expression that IS a type has a normal
+;; form, which is the most direct way of writing
+;; that type. Iff two expressions ARE the same type,
+;; then they have identical normal forms." (empases
+;; mine).
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  L a w s   a n d   C o m m a n d m e n t s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; from page xiii in the Preface:
+
+
+;; "Laws describe which expressions are meaningful
+;; and commandment describe which expressions are
+;; the same as others [, with 'same's having a
+;; technical meaning that is spelled out in the
+;; Commandments.]
