@@ -247,9 +247,24 @@
 
 ;; The process of noticing that n == (add1 n-1) is
 ;; "destructuring," a term not in The Little Typer.
-;; I borrowed it from Clojure. It defines the
-;; argument n-1 by setting up later elimination of
-;; n-1 from (add1 n-1).
+;; I borrowed it from Clojure. One might think it
+;; should be called "structuring" because it
+;; substitutes a value like (add1 n-1), with a
+;; constructor up top, for an expression like n.
+;; However, I always pair destructuring with a
+;; following elimination, so it's more a partner of
+;; elimination than it is a stand-alone operation.
+;; Also, I wanted to mimic the meaning from Clojure,
+;; which uses destructuring to unpack argument
+;; expressions into value forms, typically with
+;; Clojure keywords taking the role of Pie's
+;; constructors.
+
+
+;; Destructuring, in our example, defines the
+;; argument n-1 by setting up the value (add1 n-1)
+;; [constructor add1 up top, as if a Clojure
+;; keyword] for later elimination to n-1.
 
 
 ;; (iter-Nat target base step) == base if
@@ -930,7 +945,14 @@ kar
 ;;              (→ (mot    n-1)            forward ...
 ;;                 (mot (a1 n-1))))       rewriting
 ;;
-;; claim iN ... target mot base step ... type is WIP
+;; claim iN
+;; (Π ((t   Nat)                    ; target
+;;     (m   (→ Nat U))              ; motive
+;;     (b   (m 0))                  ; base
+;;     (s   (Π ((n-1 Nat))          ; step
+;;             (→ (m n-1)
+;;                (m (add1 n-1))))))
+;;    (m t))
 ;;
 ;; (iN      0     m b s) ~~> b == (m 0)
 ;; (iN (add1 ℓ-1) m b s) ~~>
@@ -1397,10 +1419,10 @@ kar
 ;; function?
 
 
-;;add1
-; ...: add1: expected valid Pie name
-;   at: add1
-;   in: add1
+;; playground.pie> add1
+;  ...: add1: expected valid Pie name
+;    at: add1
+;    in: add1
 
 
 ;; But
@@ -1450,10 +1472,10 @@ kar
 
 ;; "An expression
 ;;
-;;     (= X _from_ _to_)
+;;     (= X from to)
 ;;
-;; is a type if X is a type, _from_ is an X, and
-;; _to_ is an X."
+;; is a type if X is a type, from is an X, and
+;; to is an X."
 
 
 ;; FROM and TO need not be types, but they must be
@@ -1463,8 +1485,8 @@ kar
 
 
 (= Nat (+ 6 7) 13)
-;; (the U
-;;      (= Nat 13 13))
+; (the U
+;      (= Nat 13 13))
 
 
 ;; Frames 8.15-18. There is a lot going on here:
@@ -1479,8 +1501,12 @@ kar
 ;; _judgment_, one of form 2.
 
 
-;; The Four Forms of Judgment:
-;;
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   F o u r   F o r m s
+;;  o f   J u d g m e n t
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
 ;; 1. ____ is a ____.
 ;;
 ;; 2. ____ is the same ____ as ____.
@@ -1492,14 +1518,14 @@ kar
 
 ;; Judgments are for humans; statements are for
 ;; computers; more precisely, for computer
-;; theorem-provers.
+;; theorem-provers or proof assistants.
 
 
 ;; Frame 8.21
 
 
 ;; "'6+7 equals 13' is a type" is a judgment of
-;; form 1.
+;; form 1, a [j1].
 
 
 ;; Π-expressions are universal quantifications, i.e,
@@ -1511,11 +1537,11 @@ kar
 
 (Π ((n Nat))
    (= Nat (+ 1 n) (add1 n)))
-;; (the U
-;;      (Π ((n Nat))
-;;         (= Nat
-;;            (add1 n)
-;;            (add1 n))))
+; (the U
+;      (Π ((n Nat))
+;         (= Nat
+;            (add1 n)
+;            (add1 n))))
 
 
 ;; I made up the following exercise.
@@ -1528,14 +1554,14 @@ kar
 
 (Π ((n Nat))
    (= Nat (+ 1 n) (incr n)))
-;; (the U
-;;      (Π ((n Nat))
-;;         (= Nat
-;;            (add1 n)
-;;            (iter-Nat n
-;;                      (the Nat 1)
-;;                      (λ (j)
-;;                        (add1 j))))))
+; (the U
+;      (Π ((n Nat))
+;         (= Nat
+;            (add1 n)
+;            (iter-Nat n
+;                      (the Nat 1)
+;                      (λ (j)
+;                        (add1 j))))))
 
 
 ;; ... much more meaty!
@@ -1546,8 +1572,8 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; The expression (same e) is an (= X e e) if e is
-;; an X.
+;; "The expression (same e) is an (= X e e) if e is
+;; an X."
 
 
 ;; Frame 8.37
@@ -1584,25 +1610,109 @@ kar
 ;;                          (add1 1)))))
 
 
+;; Frames 8.48-8.49, Page 181: the normal form
+;; (iter-Nat n 1 (+ 1)) is neutral because 1. it is
+;; not a value (no constructor up top) and 2. it
+;; cannot yet be evaluated due to the variable n.
+
+
+;; Frame 8.49: "... if the target of an eliminator
+;; expression is neutral, then the entire expression
+;; is neutral."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N e u t r a l   E x p r e s s i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 182: "Variables that are not defined are
+;; neutral. If the target of an eliminator
+;; expression is neutral, then the eliminator
+;; expression is neutral. Therefore, values are not
+;; neutral."
+
+
+;; This implication is not obvious to me. Let's see
+;; if we can pick it apart.
+
+
+;;   ___ _             _     ___ _            _
+;;  / __| |_  ___ __ _| |_  / __| |_  ___ ___| |_
+;; | (__| ' \/ -_) _` |  _| \__ \ ' \/ -_) -_)  _|
+;;  \___|_||_\___\__,_|\__| |___/_||_\___\___|\__|
+
+
+;; All page numbers refer to the Fifth Printing.
+;; I've gathered together edited transcriptions of
+;; the boxed definitions, laws, and commandments
+;; according to my own needs. My edits are clearly
+;; marked, as are direct quotations from the book.
+;; This is a good point to review them all because
+;; chapter 8 goes into the weeds with neutral
+;; expressions and normal forms.
+
+
+;; -+-+-+-+-+-+-
+;;  V a l u e s
+;; -+-+-+-+-+-+-
+
+
+;; Page 22: "An expression with a constructor [up]
+;; top is called a _value_."
+
+
+;; (add1 0) is a value but (+ 1 0) is not.
+
+
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-
 ;;  N o r m a l   F o r m s
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; "Given a type, every expression described by that
-;; type has a normal form, which the most direct way
-;; of writing it. Iff two expressions are the same
-;; [according to some type], then they have
-;; identical normal forms."
+;; Page 13: "Given a type, every expression
+;; described by that type has a normal form, which
+;; the most direct way of writing it. Iff two
+;; expressions are the same [according to some
+;; type], then they have identical normal forms."
 
+
+;; This is how Mathematica works: keep rewriting
+;; expressions until Mathematica's notion of the
+;; normal form is achieved and the expression does
+;; not change its syntactical structure by applying
+;; any more rules.
+
+
+;; Frame 1.97, Page 25: "A normal expression has no
+;; remaining opportunities for evaluation."
+
+
+;; I believe this implies that normal forms are
+;; unique and that the fact is called The Confluence
+;; Theorem.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  V a l u e s   a n d   N o r m a l   F o r m s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 24: "Not every value is a normal form. This
+;; is because the arguments [of] a constructor need
+;; not be normal. Each expression has only one
+;; normal form, but it is sometimes possible to
+;; write it as a value[, with a constructor up top,]
+;; in more than one way."
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ;;  N o r m a l   F o r m s   a n d   T y p e s
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
-;; "Sameness is always according to a type, so
-;; normal forms are also described by a type.
+;; Frame 1.44, Page 12; also Page 14: "Sameness is
+;; always according to a type, so normal forms are
+;; also described by a type."
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1611,20 +1721,28 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; "Two cons-expressions are the same (Pair A D) if
-;; their cars are the same A and their cdrs are the
-;; same D. Here, A and D stand for any type[s]."
+;; Page 15: "Two cons-expressions are the same (Pair
+;; A D) if their cars are the same A and their cdrs
+;; are the same D. Here, A and D stand for any
+;; type[s]."
+
+
+;; One judges sameness according to a type by
+;; writing "two expressions e1 and e2 are the same
+;; X," where A is a type. This is a minor variation
+;; of a judgment of form 4 (see circa Line 1509).
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ;;  N o r m a l   F o r m s   O F   T y p e s
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
-;; "Every expression that IS a type has a normal
-;; form, which is the most direct way of writing
-;; that type. Iff two expressions ARE the same type,
-;; then they have identical normal forms." (empases
-;; mine).
+
+;; Page 16: "Every expression that IS a type has a
+;; normal form, which is the most direct way of
+;; writing that type. Iff two expressions ARE the
+;; same type, then they have identical normal
+;; forms." (emphasis mine).
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1632,11 +1750,454 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; from page xiii in the Preface:
+;; Page xiii in the Preface: "Laws describe which
+;; expressions are meaningful and commandment
+;; describe which expressions are the same as others
+;; [, with 'same''s having a technical meaning that
+;; is spelled out in the Commandments.]"
 
 
-;; "Laws describe which expressions are meaningful
-;; and commandment describe which expressions are
-;; the same as others [, with 'same's having a
-;; technical meaning that is spelled out in the
-;; Commandments.]
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  C l a i m s   b e f o r e   D e f i n i t i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  E v a l u a t i o n   &   E x p r e s s i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 25: "In Pie, values are also expressions.
+;; Evaluation in Pie finds an expression, not some
+;; other kind of thing."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   C o m m a n d m e n t   o f   z e r o
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 26: "zero is the same Nat as zero."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   C o m m a n d m e n t   o f   a d d 1
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 26: "If n is the same Nat as k, then (add1
+;; n) is the same Nat as (add1 k)."
+
+;; Frame 100, Page 26: "Two Nat expressions, that
+;; are not values, are the same if their values are
+;; the same.."
+
+
+;; This statement implies that evaluation can reduce
+;; an expression like (+ 1 0) that is not a value
+;; can be reduced to a value like (add1 0).
+
+
+;; This statement also implies that sameness
+;; pertains to expressions, some of which might not
+;; be values.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  D e f i n i t i o n s   a r e   F o r e v e r
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Aka, _immutable_.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  C o n s t r u c t o r s   a n d
+;;  E l i m i n a t o r s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 33: "Constructors build values [expressions
+;; with a constructor up top], and eliminators take
+;; apart values built by constructors."
+
+
+;; I usually pair elimination with a preceding
+;; destructuring. See comments near Line 250 in this
+;; file.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  E l i m i n a t i n g   F u n c t i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 34: "Applying a function to arguments _is_
+;; the eliminator for functions."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   I n i t i a l   L a w
+;;  o f   A p p l i c a t i o n
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 38: "If f is an (→ Y X) and arg is a Y, then
+;; (f arg) is an X."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   I n t e r m e d i a t e   L a w
+;;  o f   A p p l i c a t i o n
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 100: "
+;; If f is a
+;;   (Π (( Y U ))
+;;     X)
+;; and Z is a U, then
+;;   (f Z)
+;; is an X, where every Y has been consistently
+;; replaced by Z."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   F i n a l   L a w
+;;  o f   A p p l i c a t i o n
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 139: "
+;; If f is a
+;;   (Π (( y Y ))
+;;     X)
+;; and Z is a Y, then
+;;   (f z)
+;; is an X, where every y has been consistently
+;; replaced by z."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   F i n a l   L a w   o f   λ
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 139: "
+;; If x is an X when y is a Y, then
+;;   (λ (y) x)
+;; is a
+;;   (Π (( y Y ))
+;;     X)."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   Final
+;;  F i r s t   C o m m a n d m e n t   o f   λ
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 139: "
+;; If two λ-expressions can be made the same
+;;   (Π (( y Y ))
+;;     X)
+;; by consistently renaming their variables,
+;; then they are the same."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   I n i t i a l
+;;  F i r s t   C o m m a n d m e n t   o f   λ
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 38: "Two λ-expressions that expect the same
+;; number of arguments are the same if their bodies
+;; are the same after consistently renaming their
+;; variables."
+
+
+;; "Consistent renaming" is a lot more subtle than
+;; it sounds because preventing collisions of free
+;; and bound variable names in deep expressions is
+;; error-prone. Errors have occurred in archival
+;; papers by great authors. Look up ["de Bruijn
+;; Index"](https://en.wikipedia.org/wiki/De_Bruijn_index)
+;; for more info.
+
+
+;; The Little Typer book sweeps the topic of
+;; consistent renaming under the rug of "occur" The
+;; Initial Second Commandment of λ below and in The
+;; Law of Renaming Variables. We don't need to worry
+;; about it much, here, but if one is implements Pie
+;; or the λ-calculus, one must be wary.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   I n i t i a l
+;;  S e c o n d   C o m m a n d m e n t   o f   λ
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 38: "If f is an (→ Y X) then f is the same
+;; (→ Y X) as (λ (y) (f y)) [so] long as y does not
+;; occur in f [at any level]."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f
+;;  R e n a m i n g   V a r i a b l e s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 39: "Consistently renaming variables can't
+;; change the meaning of anything."
+
+
+;; This law is a requirement, but doesn't give an
+;; algorithm, let alone an efficient one, for
+;; consistent renaming. The article cited above on
+;; de Bruijn Indices introduces some algorithms for
+;; consistent renaming.
+
+
+;;    _  __         __           __
+;;   / |/ /__ __ __/ /________ _/ /
+;;  /    / -_) // / __/ __/ _ `/ /
+;; /_/|_/\__/\_,_/\__/_/  \_,_/_/
+;;    ____                           _
+;;   / __/_ __ ___  _______ ___ ___ (_)__  ___  ___
+;;  / _/ \ \ // _ \/ __/ -_|_-<(_-</ / _ \/ _ \(_-<
+;; /___//_\_\/ .__/_/  \__/___/___/_/\___/_//_/___/
+;;          /_/
+
+
+;; This deserves a big heading because it's critical
+;; to Chapter 8.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   C o m m a n d m e n t   o f
+;;  N e u t r a l   E x p r e s s i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 42: "Neutral expressions ... written
+;; identically are the same, _no matter their
+;; type_."
+
+
+;; We must learn about neutral expressions. Rewind
+;; to Chapter 2.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N e u t r a l   E x p r e s s i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Frame 2.26, Page 40: "Expressions that are not
+;; values and cannot yet be evaluated due to a
+;; variable are called _neutral_."
+
+
+;; This means that (cdr y) is a neutral expression
+;; because it is not a value because cdr is not a
+;; constructor, but an eliminator. However (λ (y)
+;; (cdr y)) is not a neutral expression because it
+;; IS a value because λ is a constructor.
+
+
+;; Frame 2.27, Page 40: "... two occurrences of a
+;; variable cannot be replaced by values that are
+;; not the same."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   a n d   C o m m a n d m e n t
+;;  o f   d e f i n e
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 43: "Following
+;;   (claim _name_ X) and (define _name_ _expr_)
+;; if
+;;   _expr_ is an X                     ; judg. 1
+;; then
+;;   _name_ is an X                     ; judg. 1
+;; and
+;;   _name_ is the same X as _expr_     ; judg. 2
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   S e c o n d   C o m m a n d m e n t
+;;  o f   c o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 44: "If p is a (Pair A D) [j1] then it is
+;; the same (Pair A D) as (cons (car p) (cdr p))
+;; [j2]."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N a m e s   i n   D e f i n i t i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 46: "In Pie, only names that are not already
+;; used, whether for constructors, eliminators, or
+;; previous definitions, can be used with _claim_ or
+;; _define_."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-
+;;  T y p e   V a l u e s
+;; -+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 53: "An expression that is described by a
+;; type is a value when it has a constructor [up]
+;; top. Similarly, an expression that IS a type is a
+;; value when it has a type constructor [up] top."
+
+
+;; Type constructors are things like Nat, Atom, Pair,
+;; →, and U.
+
+
+;; (claim foo54 U)
+; cons requires a Pair or Σ type, but was used as a U
+
+(claim foo54 (Pair U U))
+
+(define foo54 (cons Atom Atom))
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  E v e r y   U   i s   a   T y p e
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 55: "Every expression described by U is a
+;; type, but not every type is described by U."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   C o m m a n d m e n t   o f   t h e
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 66: "If X is a type and e is an X, then
+;;   (the X e)
+;; is the same X as e."
+
+
+;; -+-+-+-+-+-+-+-+-
+;;  S a m e n e s s
+;; -+-+-+-+-+-+-+-+-
+
+
+;; Page 70: "If a 'same-as' chart could show that
+;; two expressions are the same, then this fact can
+;; be used anywhere without further justification.
+;; 'Same-As' charts are only to help build
+;; understanding."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T o t a l   F u n c t i o n s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 71: "A function that always assigns a value
+;; to _every_ possible argument is called a _total
+;; function_.
+
+
+;; Skipping iter-Nat, rec-Nat, which-Nat, rec-List.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f   L i s t
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 110: "If E is a type, then (List E) is a
+;; type."
+
+
+;; Page 120: "All ... entries in a list must have
+;; the same type."
+
+
+;; Skipping Page 131.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f   Π
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 136: "
+;; The expression
+;;   (Π (( y Y ))
+;;     X)
+;; is a type when Y is a type, and X is a type if y
+;; is a Y."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  U s e   a   M o r e   S p e c i f i c   T y p e
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 137: "Make a function total by using a more
+;; specific type to rule out unwanted arguments."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  U s e   i n d - N a t
+;;  f o r   D e p e n d e n t   T y p e s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 145: "Use ind-Nat instead of rec-Nat when
+;; the [type of the] rec-Nat or ind-Nat expression
+;; depends on the target Nat. The [type of the]
+;; ind-Nat expression is the motive applied to the
+;; target."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f   i n d - N a t
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; See also "claim iN" around line 948 above.
+
+
+;; Page 147: "
+;; If target is a Nat, mot is an
+;;   (→ Nat U)
+;; base is a (mot zero) and step is a
+;;   (Π ((n-1 Nat))
+;;     (→ (mot n-1)
+;;     (mot (add1 n-1))))
+;; then
+;;   (ind-Nat target mot base step)
+;; is a
+;;   (mot target)."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  I n d u c t i o n
+;;  o n   N a t u r a l   N u m b e r s
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 149: "Building a value for any natural
+;; number by giving a value for zero and a way to
+;; transform a value for [n-1 into a value for n] is
+;; called _induction on natural numbers."
