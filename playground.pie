@@ -49,9 +49,24 @@
 ;; -+-+-+-+-+-+-+-+-+-
 
 
+;; TODO: Understand why this type signature fails.
+
+
+(claim wN
+       (Π ((E      U        )
+           (target Nat      )
+           (base   E        )
+           (step   (→ Nat E)))
+          (→ U U U ;target base step
+             E)))
+
+
 ;; which-Nat has type
-;; (Π ((E U))
-;;   (→ target:N base:E step:(→ N E) E))
+;; (Π ((E      U)
+;;     (target N)
+;;     (base   E)
+;;     (step   (→ N E)))
+;;   (→ target base step E))
 ;;
 ;; or, less noisily
 ;;
@@ -1470,12 +1485,12 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; "An expression
+;; Page 174: "An expression
 ;;
-;;     (= X from to)
+;;     (= X FROM TO)
 ;;
-;; is a type if X is a type, from is an X, and
-;; to is an X."
+;; is a type if X is a type, FROM is an X, and
+;; TO is an X."
 
 
 ;; FROM and TO need not be types, but they must be
@@ -1528,8 +1543,8 @@ kar
 ;; form 1, a [j1].
 
 
-;; Π-expressions are universal quantifications, i.e,
-;; "for-every," ∀, statements.
+;; Π-expressions are statements of universal
+;; quantifications, i.e, "for-every," ∀, statements.
 
 
 ;; Frame 8.23
@@ -1564,7 +1579,7 @@ kar
 ;                        (add1 j))))))
 
 
-;; ... much more meaty!
+;; ... a much more meaty statement about normal forms!
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1572,8 +1587,12 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; "The expression (same e) is an (= X e e) if e is
-;; an X."
+;; My edits after incorporating Frame 8.37, Page 179.
+
+
+;; The expression (same e3) is an (= X e1 e2) if e1,
+;; e2, and e3 are each an X and e1 is the same as
+;; e2.
 
 
 ;; Frame 8.37
@@ -1586,10 +1605,16 @@ kar
        (= Nat (+ 1 11) (incr 11)))
 
 (define twelve
-  (same 12))
+  (same (incr (incr 10))))  ;; proof of "twelve"
 
 
 ;; Frame 8.38
+
+
+;; "By combining Π with =, we car write statements
+;; that are true for arbitrary Nats, while could
+;; only make judgments about particular Nats. Here's
+;; an example:"
 
 
 (claim +1=add1
@@ -1600,9 +1625,43 @@ kar
   (λ (n) (same (add1 n))))
 
 
+;; ... proves the statement that for every Nat n, (+
+;; 1 n) equals (add1 n). Equals, here is the type
+;; constructor =.
+
+
 (claim incr=add1
        (Π ((n Nat))
           (= Nat (incr n) (add1 n))))
+
+
+;; (define incr=add1
+;;   (λ (n)
+;;     (same (add1 n))))
+
+
+;; ... does not work as a proof of the claim because
+;; the normal forms of (incr n) and (add1 n) don't
+;; match.
+
+
+;; The normal form of (incr n) is
+;;   (iter-Nat n 1 (+ 1 n))
+;; (See line 1425).
+
+
+;; This normal form is neutral, because it's not a
+;; value and it cannot (yet) be evaluated because of
+;; the variable n.
+
+
+;; Frame 8.49, Page 182: "... if the target of an
+;; eliminator expression is neutral, then the entire
+;; expression is neutral."
+
+
+;; The normal form of (add1 n) is (add1 n)
+
 
 ;; (define incr=add1
 ;;   (λ (n) (same (iter-Nat n
@@ -1614,11 +1673,6 @@ kar
 ;; (iter-Nat n 1 (+ 1)) is neutral because 1. it is
 ;; not a value (no constructor up top) and 2. it
 ;; cannot yet be evaluated due to the variable n.
-
-
-;; Frame 8.49: "... if the target of an eliminator
-;; expression is neutral, then the entire expression
-;; is neutral."
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1633,8 +1687,175 @@ kar
 ;; neutral."
 
 
-;; This implication is not obvious to me. Let's see
-;; if we can pick it apart.
+;; This implication is not obvious to me.
+;; https://racket.discourse.group/t/the-little-typer-implicattion-that-values-are-not-neutral/1737
+
+
+;; ++++++++++++++++++++++++++++++++++++++++++
+;; Neutral Expressions are Not Always Normal.
+;; ++++++++++++++++++++++++++++++++++++++++++
+
+
+;; Frames 8.50-8.55:
+
+
+;; Phaedrus: "Are neutral expressions normal?"
+
+
+;; Socrates: "Not always. Some types have ways of
+;; making neutral expressions into values, and in
+;; these cases, the neutral expression is not
+;; considered normal because it can be made into a
+;; value.
+
+
+;; Soc: "A neutral expression whose type has Π up
+;; top is not normal. This is because a neutral
+;; expression f is the same as (λ (x) (f x)), which
+;; is a value."
+
+
+;; Phae: "Why does this mean that f is not normal?
+;; If two expressions are the same, then they have
+;; identical normal forms."
+
+
+;; Soc: "By the Final 2nd Cmdmt of λ (p. 140), f is
+;; the same as (λ (x) (f x)), but they are not
+;; written identically.
+;;
+;;     "At most one of them can be the normal form.
+;; The one wrapped in λ is the normal form. Because
+;; expressions with a λ up top are values, they are
+;; not neutral. This normal form is not neutral.
+;;
+;;     "For another example, the only normal forms
+;; for pairs have _cons_ up top, so they're not
+;; neutral.
+;;
+;;     "Neutral expressions, like (incr n)'s normal
+;; form, (iter-Nat 1 n (+ 1)), occur frequently when
+;; =-expressions mention argument names in
+;; Π-expressions. That neutral expression is also a
+;; normal form."
+
+
+;; [It could be that the entire point of this
+;; digression is simply to clarify that some neutral
+;; expressions are not normal and vice versa. We
+;; don't have that case here.
+
+
+;; Phae: "How can we find a definition for incr=add1?
+;; `same` doesn't do the job (because the normal forms
+;; don't match up) and incr=add1's type has a neutral
+;; expression in it?"
+
+
+(claim base-incr=add1
+       (= Nat (incr 0) (add1 zero)))
+
+(define base-incr=add1
+  (same (add1 zero)))
+
+
+(claim mot-incr=add1
+       (→ Nat U))
+
+(define mot-incr=add1
+  (λ (k)
+    (= Nat (incr k) (add1 k))))
+
+
+;; (claim step-incr=add1
+;;        (Π (( n-1 Nat ))
+;;           (→ (mot-incr=add1 n-1)
+;;              (mot-incr=add1 (add1 n-1)))))
+
+;; (claim step-incr=add1
+;;        (Π (( n-1 Nat ))
+;;           (→ (= Nat
+;;                 (incr n-1)
+;;                 (add1 n-1))
+;;              (= Nat
+;;                 (incr (add1 n-1))
+;;                 (add1 (add1 n-1))))))
+
+(claim step-incr=add1
+       (Π (( n-1 Nat ))
+          (→ (= Nat
+                (incr n-1)
+                (add1 n-1))
+             (= Nat
+                (add1 (incr n-1))
+                (add1 (add1 n-1))))))
+
+
+;; cong is an eliminator for =.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f   c o n g
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 190: If f is an (→ X Y)
+;; and target is an (= X from to), then
+;; then (cong target f) is an (= Y (f from) (f to)).
+
+
+;; In our example, we must transform
+;;    (= Nat
+;;       (incr n-1)
+;;       (add1 n-1))
+;; into
+;;    (= Nat
+;;       (add1 (incr n-1))
+;;       (add1 (add1 n-1))))
+
+
+(define step-incr=add1
+  (λ (n-1)
+    (λ (incr=add_n-1)
+      (cong incr=add_n-1 (+ 1)))))
+
+
+(define incr=add1
+  (λ (n)
+    (ind-Nat n
+             mot-incr=add1
+             base-incr=add1
+             step-incr=add1)))
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   C o m m a n d m e n t   o f   c o n g
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 194: If x is an X and f is an (→ X Y),
+;; then (cong (same x) f) is the same
+;;   (= Y (f x) (f x))
+;; as
+;;   (same (f x))
+
+
+;; Frame 8.89, Page 195
+
+
+;; Soc: "The interplay between judging sameness and
+;; stating equality is at the heart of dependent
+;; types. This taste only scratches the surface."
+
+
+;;   ___ _              _             ___
+;;  / __| |_  __ _ _ __| |_ ___ _ _  / _ \
+;; | (__| ' \/ _` | '_ \  _/ -_) '_| \_, /
+;;  \___|_||_\__,_| .__/\__\___|_|    /_/
+;;                |_|
+
+
+
 
 
 ;;   ___ _             _     ___ _            _
@@ -1943,6 +2164,28 @@ kar
 ;; Page 38: "If f is an (→ Y X) then f is the same
 ;; (→ Y X) as (λ (y) (f y)) [so] long as y does not
 ;; occur in f [at any level]."
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   F i n a l
+;;  S e c o n d   C o m m a n d m e n t   o f   λ
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Page 140: "
+;; If f is a
+;;   (Π ((y Y))
+;;     X)
+;; and y does not occur [at any level] in f, then
+;; f is the same as
+;;   (λ (y)
+;;     (f y))."
+
+
+;; Page 183: "Commandments such as this one are often
+;; called η-rules. These normal forms in which all
+;; possible η-rules have been applied to make values
+;; are called _η-long normal forms.'"
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
