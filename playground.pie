@@ -65,19 +65,6 @@
    (λ (t b s) (which-Nat t b s))))
 
 
-;; which-Nat has type
-;; (Π ((E      U)
-;;     (target N)
-;;     (base   E)
-;;     (step   (→ N E)))
-;;   (→ target base step E))
-;;
-;; or, less noisily
-;;
-;; (Π ((E U))
-;;   (→ N E (→ N E) E))
-
-
 ;; The base and the output of step must have the same
 ;; type (E U). E can be anything -- Atom or Nat, for
 ;; instance, but it must be the same on both branches
@@ -139,12 +126,12 @@
 ;; one might sometimes write _ or foo_ with a _
 ;; suffix for ignored arguments. Lots of programming
 ;; languages follow that convention, sometimes
-;; allowing multiple instances of _ without
-;; collision.
+;; allowing multiple instances of _ in an argument
+;; list without collision.
 
 
-;; Later, we'll see that by step's ignoring one of
-;; its arguments, namely r, the recursive
+;; Later, one will see that by step's ignoring one
+;; of its arguments, namely r, the recursive
 ;; computation, rec-Nat simulates iter-Nat.
 
 
@@ -158,7 +145,7 @@
 ;; Frame 3.23
 
 
-;; All these functions follow a pattern, with
+;; All the functions above follow a pattern, with
 ;; parameters target, base, and step.
 
 
@@ -169,8 +156,11 @@
 
 ;; Discovery about pie (the language of this file).
 ;; Can't go to point-free form, i.e., cannot use
-;; add1 for (λ (k) (add1 k)).
-;;
+;; add1 for (λ (k) (add1 k)). Later, one finds the
+;; reason: `add1` is not a function; it's a
+;; constructor.
+
+
 ;; (iter-Nat 5 3 add1) ;
 ;; .../the-little-typer/playground.pie:17:14:
 ;; add1: expected valid Pie name
@@ -185,7 +175,8 @@
 ;; target == 0 else if target == n == (add1 n-1)
 ;; then iter-Nat ==
 ;; (step
-;;    (iter-Nat n-1 base step))
+;;    (iter-Nat
+;;      n-1 base step))
 
 
 ;; iter-Nat has type
@@ -202,6 +193,7 @@
 ;; (+ 2 3) ;; ; Unknown variable +
 
 
+;; -----------------------------------------------
 (claim step-+
        (→ Nat Nat))
 
@@ -209,13 +201,14 @@
   (λ (n-1) (add1 n-1)))
 
 
+;; -----------------------------------------------
 (claim + (→ Nat Nat Nat))
 
 (define +
   (λ (n j) ;; Don't use the name n-1 here.
     ;;        target base  step  ; the pattern
     ;;       |------|----|-------|
-    (iter-Nat    n     j   step-+)))
+    (iter-Nat    n     j   step-+ )))
 
 
 ;; Frame 3.28, sort-of
@@ -249,14 +242,14 @@
 ;; out the _addition_ that "must have taken place."
 ;; The effect is the same, but preserves type
 ;; information here. This kind of reckoning is
-;; probably best in any implementation of a type
+;; probably best in any implementation of any type
 ;; system.
 
 
 ;; Sequential deconstruction and elimination *build
-;; up* an expression of smaller Nats. The expression
-;; that is eventually evaluated to the unique normal
-;; form -- the "most direct" form.
+;; up* expressions of smaller Nats. The final
+;; expression is eventually evaluated to the unique
+;; normal form -- the "most direct" form.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -277,7 +270,10 @@
 ;; which uses destructuring to unpack argument
 ;; expressions into value forms, typically with
 ;; Clojure keywords taking the role of Pie's
-;; constructors.
+;; constructors. It might better be called _pattern
+;; matching_, but The Little Typer has a section in
+;; an Appendix on pattern matching and I don't want
+;; to collide names with that section.
 
 
 ;; Destructuring, in our example, defines the
@@ -297,9 +293,12 @@
 ;;    (iter-Nat    n-1    base step))
 
 
-;; Here is a "same-chart" for "(+ 2 3)." I assume we
-;; understand "subst.", i.e., substitution, without
-;; further explanation:
+;; Iter-Nat is [an "eliminator" for Nats](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._iter-.Nat%29%29).
+
+
+;; Here is a "same-chart" for "(+ 2 3)." I assume
+;; one understands "subst.", i.e., substitution,
+;; without further explanation:
 
 
 (+ 2 3) ; 1. ...                          how? why?
@@ -328,6 +327,8 @@
 ;; (step n-1                              nota bene
 ;;    (rec-Nat n-1 base step))            elimination
 
+
+;; -----------------------------------------------
 (claim sr+
        (→ Nat Nat Nat))
 
@@ -361,6 +362,7 @@
 ;; arguments that rec-Nat gives it:
 
 
+;; -----------------------------------------------
 (claim step-gauss
        (→ Nat Nat
           Nat))
@@ -447,6 +449,7 @@
 ;; -+-+-+-+-
 
 
+;; -----------------------------------------------
 (claim flip
        (Π ((A U) (D U))
           (→ (Pair A D)
@@ -464,6 +467,7 @@
 ((flip Nat Nat) (cons 2 3))
 
 
+;; -----------------------------------------------
 (claim elim-Pair
        (Π ((A U) (D U) (X U))
           (→ (Pair A D)
@@ -490,6 +494,7 @@ elim-Pair
 ;; function-calls appropriately.
 
 
+;; -----------------------------------------------
 (claim kar
        (→ (Pair Nat Nat) Nat))
 
@@ -504,6 +509,7 @@ kar
 (kar (cons 2 3))
 
 
+;; -----------------------------------------------
 (claim kdr
        (→ (Pair Nat Nat) Nat))
 
@@ -524,6 +530,7 @@ kar
 ;; -+-+-+-+-
 
 
+;; -----------------------------------------------
 (claim twin
        (Π ((Y U))
           (→ Y (Pair Y Y))))
@@ -546,11 +553,14 @@ kar
 ;; Frame 5.31
 
 
+;; -----------------------------------------------
 (claim toppings (List Atom))
 
 (define toppings
   (:: 'potato (:: 'butter nil)))
 
+
+;; -----------------------------------------------
 (claim condiments (List Atom))
 
 (define condiments
@@ -587,6 +597,7 @@ kar
 ;; (rl (:: e es) b s) ~~> (s e es (rL es b s))
 
 
+;; -----------------------------------------------
 (claim step-length
        (Π ((E U))
           (→ E
@@ -600,6 +611,7 @@ kar
       (add1 length-es))))
 
 
+;; -----------------------------------------------
 (claim length
        (Π ((E U))
           (→ (List E)
@@ -611,9 +623,22 @@ kar
       (rec-List es 0 (step-length E)))))
 
 
+(length Nat nil)                        ; ~~> (the Nat 0)
+(length Atom nil)                       ; ~~> (the Nat 0)
+
+
+(length Nat (:: 42 nil))                ; ~~> (the Nat 1)
+(length Atom (:: 'foo (:: 'bar nil)))   ; ~~> (the Nat 2)
+
+
+(the (List Atom) nil)                   ; typed empty list
+(the (List Nat)  nil)                   ; typed empty list
+
+
 ;; Frame 5.42
 
 
+;; -----------------------------------------------
 (claim length-Atom
        (→ (List Atom) Nat))
 
@@ -634,6 +659,7 @@ kar
 ;; rec-Nat.
 
 
+;; -----------------------------------------------
 (claim step-append
        (Π ((E U))
           (→ E
@@ -647,6 +673,7 @@ kar
       (:: e append-es))))
 
 
+;; -----------------------------------------------
 (claim append
        (Π ((E U))
           (→ (List E)
@@ -663,6 +690,7 @@ kar
 (append Nat nil nil) ; Everything's curried.
 
 
+;; -----------------------------------------------
 (claim append-Nat
        (→ (List Nat)
           (List Nat)
@@ -682,6 +710,7 @@ kar
 ;; -+-+-+-+-+-+-+-
 
 
+;; -----------------------------------------------
 (claim snoc
        (Π ((E U))
           (→ (List E) ; start
@@ -704,6 +733,7 @@ kar
 (snoc Nat (:: 1 nil) 2)
 
 
+;; -----------------------------------------------
 (claim step-reverse
        (Π ((E U))
           (→ E
@@ -722,17 +752,17 @@ kar
       (snoc E reversed e))))
 
 
+;; -----------------------------------------------
 (claim reverse
        (Π ((E U))
           (→ (List E)
              (List E))))
 
-
 ;; I first wrote the "nil" below without peeking at
 ;; the answer. But they snuck one in on me, too
 ;; clever by half! "nil" must be explicitly typed,
-;; here.
-
+;; here. Not sure why type inference in Pie fails
+;; in this case. The book is not clear about it.
 
 (define reverse
   (λ (E)
