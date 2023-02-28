@@ -15,6 +15,12 @@
 ;; CIDER in Clojure-mode.
 
 
+;; I tried to do this whole thing in a Jupyter
+;; notebook, but found that the racket kernel for
+;; Jupyter was not up to the job on my Mac Book Pro
+;; M1.
+
+
 ;; Alternatively, if you don't want to set up Emacs
 ;; for racket, load this file into DrRacket and play
 ;; around. DrRacket comes for free with [the racket
@@ -441,7 +447,7 @@
 
 
 ;; (claim foo (→ A D))
-;; page 98:  ~" → is not up to the job "~
+;; Page 98:  ~" → is not up to the job "~
 
 
 ;; -+-+-+-+-
@@ -769,7 +775,7 @@ kar
     (λ (es)
       (rec-List es
                 (the (List E) nil)
-                ;; See sneaky footnote page 125!
+                ;; See sneaky footnote on Page 125!
                 (step-reverse E)))))
 
 (reverse Nat nil)
@@ -784,11 +790,11 @@ kar
 ;;                |_|
 
 
-;; two type expressions:
+;; two expressions that produce types ("subtypes" of U):
 
 
-(Vec Atom zero)
-(Vec Atom (add1 zero))
+(Vec Atom zero)                         ; (the U (Vec Atom 0))
+(Vec Atom (add1 zero))                  ; (the U (Vec Atom 1))
 
 
 ;; Vec is like a list that carries its length along
@@ -804,7 +810,7 @@ kar
 ;; value that is not, itself, a type):
 
 
-(the (Vec Atom zero) vecnil)
+(the (Vec Atom zero) vecnil)            ; ~~> itself
 
 
 ;; Frame 6.21
@@ -815,6 +821,7 @@ kar
 
 
 (head (the (Vec Atom 1) (vec:: 'a vecnil)))
+                                        ; ~~> (the Atom 'a)
 
 
 ;; (head (vec:: 'a vecnil))
@@ -825,8 +832,10 @@ kar
 
 
 (tail (the (Vec Atom 1) (vec:: 'a vecnil)))
+                                        ; ~~> (the (Vec Atom 0) vecnil
 
 
+;; -----------------------------------------------
 (claim first-of-one
        (Π ((E U))
           (→ (Vec E 1) E)))
@@ -870,12 +879,13 @@ kar
 ;; This version of `first` requires a Nat argument,
 ;; ℓ-1, that is one fewer than the length of the
 ;; Vec. The argument must be one fewer than the
-;; length so that `first` be a total function; so
-;; that neither its input nor its output may ever be
-;; vecnil, that is, the sole (Vec E 0). `First`
+;; length so that `first` may be a total function;
+;; so that neither its input nor its output may ever
+;; be vecnil, that is, the sole (Vec E 0). `First`
 ;; guarantees totality by destructuring ℓ-1 into
 ;; (add1 ℓ-1), which may never be zero, then
-;; eliminating add1 to yield ℓ-1, which can be zero.
+;; eliminating add1 to yield ℓ-1, which _can_ be
+;; zero.
 
 
 ;; The requirement that all functions be total gives
@@ -883,15 +893,16 @@ kar
 ;; might diverge, i.e., be non-terminating or empty.
 
 
-;; First must be total, so its base type must be
+;; _First_ must be total, so its base type must be
 ;; some Vec with at least one element. The _type_
 ;; (Vec E (add1 ℓ-1)) tells the whole story!
 
 
-;; Note from the shorthand on page 138 (fifth
-;; printing), one might just as well write
+;; Note from the shorthand on Page 138 (Fifth
+;; Printing), one might just as well write
 
 
+;; -----------------------------------------------
 (claim first
        (Π ((E U)
            (ℓ-1 Nat)
@@ -903,7 +914,9 @@ kar
     (head es)))
 
 
-;; As what I originally wrote (without peeking):
+;; As what I originally wrote (without peeking).
+;; It's equivalent, but aggressively names the Nat
+;; argument ℓ to ℓ-1.
 
 
 ;; (claim first
@@ -919,12 +932,13 @@ kar
 
 
 (first Atom 2 (vec:: 'a (vec:: 'b (vec:: 'c vecnil))))
-(first Atom 0 (vec:: 'a vecnil))
+                                        ; ~~> (the Atom 'a)
+(first Atom 0 (vec:: 'a vecnil))        ; ~~> (the Atom 'a)
 
 
 ;; The book captures the lesson about totality in
 ;; the slogan "Use a More Specific Type ... to weed
-;; out unwanted arguments" on page 137.
+;; out unwanted arguments" on Page 137.
 
 
 ;; The rest of Chapter 6 seems to me just to
@@ -965,12 +979,12 @@ kar
 
 
 ;; Any ___motive___ for types that depend on Nat has
-;; type (→ Nat U).
+;; type (→ Nat U). That is, _motive_ produces a type
+;; ("subtype" of U) from a Nat.
 
 
 ;; "The motive explains _why_ the target is to be
-;; eliminated." The motive, when applied to a Nat,
-;; returns a type. Every type but U itself is a U.
+;; eliminated."
 
 
 ;; I would say "how is the target destructured?"
@@ -984,7 +998,9 @@ kar
 
 ;; Here is a shorthand synopsis for ind-Nat, which
 ;; does forward-rewriting by adding 1 to the input
-;; step.
+;; step. Backwards rewriting is done by elimination
+;; on `(add1 n-1)`; that elimination amounts to
+;; subtraction.
 
 
 ;; Letting iN be ind-Nat and a1 be add1:
@@ -1061,9 +1077,11 @@ kar
 
 
 ;; Check type-fu by defining a function that's the
-;; same as ind-Nat.
+;; same as ind-Nat (by technical meaning of "the
+;; same?" TODO.)
 
 
+;; -----------------------------------------------
 (claim iN
        (Π ((target   Nat)               ; target
            (motive   (→ Nat U))         ; motive
@@ -1081,8 +1099,11 @@ kar
      base
      step)))
 
+
 ;; unit tests
 
+
+;; -----------------------------------------------
 (claim peas-ex
        (Π ((ℓ Nat))
           (Vec Atom ℓ)))
@@ -1099,7 +1120,7 @@ kar
 (peas-ex 2)
 
 
-;; The [official documentation for pie](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
+;; The [official documentation for ind-Nat is here](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
 
 ;; (ind-Nat target motive base step) → (motive target)
 ;; target : Nat
@@ -1110,8 +1131,8 @@ kar
 ;;            (motive (add1 n))))
 
 
-;; I got some help on this homework problem.
-;; See https://racket.discourse.group/t/the-type-of-ind-nat-in-the-pie-language/1733
+;; I got some help on this self-inflicted "homework"
+;; problem. [See here](https://racket.discourse.group/t/the-type-of-ind-nat-in-the-pie-language/1733).
 
 
 ;; Frame 7.27
@@ -1121,6 +1142,7 @@ kar
 ;; use its motive, because the types don't change.
 
 
+;; -----------------------------------------------
 (claim also-rec-Nat
        (Π ((E U))
           (→ Nat                        ; target
@@ -1145,7 +1167,7 @@ kar
 
 ;; -----------------------------------------------
 ;;
-;; Frame 7.38, pg. 152 (fifth printing)
+;; Frame 7.38, pg. 152 (Fifth Printing)
 ;;
 
 
@@ -1160,6 +1182,7 @@ kar
 ;; returns the sole element of that Vec.
 
 
+;; -----------------------------------------------
 (claim mot-last
        ;; extra type argument at the front:
        (→ U Nat U))
@@ -1172,7 +1195,11 @@ kar
        E)))
 
 
-(mot-last Atom zero)
+;; The following returns the type of a function that
+;; extracts the sole element of a singleton list.
+
+
+(mot-last Atom zero)  ; ~~> (the U (→ (Vec Atom 1) Atom))
 
 
 (Vec U zero)                            ; type
@@ -1184,7 +1211,7 @@ kar
        (Π ((E U))
           ;; The result is the type of a function
           ;; that coughs up the sole element of a
-          ;; singleton Vec.
+          ;; singleton Vec. It's (mot-last Atom 0).
           (→ (Vec E (add1 zero))
              E)))
 
@@ -1200,12 +1227,14 @@ kar
            (ℓ-1 Nat))
           ;; The result is the type of a function
           ;; that converts a motive of E and ℓ-1 to
-          ;; a motive of E and ℓ == (add1 ℓ-1).
+          ;; a motive of E and ℓ == (add1 ℓ-1) by
+          ;; "forward rewriting" (my terminology).
           (→ (mot-last E       ℓ-1 )
              (mot-last E (add1 ℓ-1)))))
 
-;; Recall that these motives, applied to E and a
-;; Nat, are functions from Vecs to elements.
+;; Recall that these motives, after application to E
+;; and a Nat, are the types of functions from Vecs
+;; to elements.
 
 (define step-last
   (λ (E ℓ-1)
@@ -1236,10 +1265,13 @@ kar
              (base-last E)
              (step-last E))))
 
+
 ;; and unit-test it:
 
+
 (last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
-(last Atom 0 (vec:: 'b vecnil))
+                                        ; ~~> (the Atom 'b)
+(last Atom 0 (vec:: 'b vecnil))         ; ~~> (the Atom 'b)
 
 
 ;; Due to totality, we can't even write, let alone
@@ -1262,7 +1294,7 @@ kar
 
 ;; -----------------------------------------------
 ;;
-;; Frame 7.64, pg. 160 (fifth printing)
+;; Frame 7.64, pg. 160 (Fifth Printing)
 ;;
 
 
@@ -1276,6 +1308,7 @@ kar
 ;;        (Vec E     zero   ))
 
 
+;; -----------------------------------------------
 (claim mot-drop-last
        ;; extra type argument at the front:
        (→ U Nat U))
@@ -1285,10 +1318,19 @@ kar
     (→ (Vec E (add1 ℓ-1 ))
        (Vec E       ℓ-1 ))))
 
+
 ;; unit tests:
 
-(mot-drop-last Atom zero)  ;; (the U (→ v1 v0))
-(mot-drop-last Atom 1)     ;; (the U (→ v2 v1))
+
+(mot-drop-last Atom zero)
+;; ~~> (the U
+;;        (→ (Vec Atom 1)
+;;           (Vec Atom 0)))
+
+(mot-drop-last Atom 1)
+;; ~~> (the U
+;;        (→ (Vec Atom 2)
+;;           (Vec Atom 1)))
 
 
 ;; -----------------------------------------------
@@ -1301,6 +1343,7 @@ kar
 ;; returns an empty Vec:
 
 
+;; -----------------------------------------------
 (claim base-drop-last
        (Π ((E U))
           (→ (Vec E (add1 zero))
@@ -1325,10 +1368,11 @@ kar
 ;; function that converts a motive of E and ℓ-1 to a
 ;; motive of E and ℓ == (add1 ℓ-1). Except for
 ;; names, the claimed type of `step-drop-last` is
-;; the same as the type for `step-last`, but the
-;; implementation differs.
+;; the same as the claimed type for `step-last`, but
+;; the implementation differs.
 
 
+;; -----------------------------------------------
 (claim step-drop-last
        (Π ((E   U  )
            (ℓ-1 Nat))
@@ -1344,8 +1388,11 @@ kar
         (vec:: (head es)
                (mot-of-E-and-ℓ-1 (tail es)))))))
 
+
 ;; We can blindly write the final function:
 
+
+;; -----------------------------------------------
 (claim drop-last
        (Π ((E   U  )
            (ℓ-1 Nat))
@@ -1362,14 +1409,21 @@ kar
              (base-drop-last E)
              (step-drop-last E))))
 
+
 ;; unit-tests (M-C-x to see results in the REPL):
 
+
 (drop-last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
+;; ~~> (the (Vec Atom 1)
+;;          (vec:: 'a vecnil))
 (drop-last Atom 0 (vec:: 'b vecnil))
+;; ~~> (the (Vec Atom 0)
+;;          vecnil)
 
 
 ;; Again, due to totality, we can't write or compile
-;; an application of drop-last to an empty vector
+;; or interpret (at run time!) an application of
+;; drop-last to an empty vector
 
 
 ;; (drop-last Atom 42 vecnil)
@@ -1383,11 +1437,11 @@ kar
 ;; |___|_||_\__\___|_| |_|_|_\___/__/__\___/
 
 
-;; Pages 165-168 (fifth printing) are not in any
+;; Pages 165-168 (Fifth Printing) are not in any
 ;; chapter. We know they're not in Chapter 7 because
 ;; the frame numbers start at 1, and the last frame
 ;; in Chapter 7 is 73. Plus there is a nice picture
-;; on page 164 called "one piece at a time."
+;; on Page 164 called "one piece at a time."
 
 
 ;; The frames on these pages are notes on
@@ -1430,14 +1484,17 @@ kar
 
 
 ;; Normal form of (+ 1) -- partial application of +
-;; to 1 == (add1 zero). Recall:
+;; to 1 == (add1 zero).
+
+
+;; Recall:
 
 
 ;; (define +
 ;;   (λ (n j) ;; Don't use the name n-1 here.
 ;;     ;;        target base  step  ; the pattern
 ;;     ;;       |------|----|-------|
-;;     (iter-Nat    n     j   step-+)))
+;;     (iter-Nat    n     j   step-+ )))
 
 
 ;; (+ 1)
@@ -1454,6 +1511,11 @@ kar
 ;; (λ (j) (add1 j))                       subst. def
 
 
+;; That's the Normal Form of (+ 1). Remember or
+;; bookmark it.
+
+
+;; -----------------------------------------------
 (claim incr (→ Nat Nat))
 
 (define incr
@@ -1464,8 +1526,15 @@ kar
 
 
 ;; Note that pie doesn't let us write add1 in place
-;; of (+ 1), above. Must be that add1 isn't a
-;; function?
+;; of (+ 1), above; add1 isn't a function. Because
+;; the normal form of (+ 1) is (λ (j) (add1 j)).
+;; This is exactly like the common pattern of
+;; writing function wrappers for macros in C and
+;; Lisp. We must often do that so that we can pass
+;; around the functions. Macros are not values, but
+;; functions _are_ because they have the
+;; constructor λ up top; that's the definition of
+;; a value -- it has a constructor up top.
 
 
 ;; playground.pie> add1
@@ -1484,9 +1553,9 @@ kar
 ;;        (add1 j)))
 
 
-;; The book makes the point that the normal forms
-;; of the expressions (+ 1) and incr are not the
-;; same. Save some hand calculation by letting
+;; The book makes the point that the normal forms of
+;; the expressions `(+ 1)` and `incr` are not the
+;; __same__. Save some hand calculation by letting
 ;; the REPL compute the normal forms:
 
 
@@ -1506,6 +1575,15 @@ kar
 ;;                    (add1 j)))))
 
 
+;; They are not __the same__ because two expressions
+;; are the same iff their normal forms are
+;; identical.
+
+
+;; Frame 8.10, Page 173 (Fifth Printing):
+
+
+;; Socrates (Left Column):
 ;; "Even though they are not the same, the fact that
 ;; they always find the same answer can be written
 ;; as a type.
@@ -1521,16 +1599,22 @@ kar
 
 ;; Page 174: "An expression
 ;;
-;;     (= X FROM TO)
+;;     (= X from to)
 ;;
-;; is a type if X is a type, FROM is an X, and
-;; TO is an X."
+;; is a type if X is a type, _from_ is an X, and
+;; _to_ is an X."
 
 
-;; FROM and TO need not be types, but they must be
-;; of type X. Therefore, an (= ...) is a dependent
-;; type because it depends on things that might not,
-;; themselves, be types.
+;; When discussing an = type, we call the second
+;; argument the FROM of the expression and the third
+;; argument the TO of the expression, with the words
+;; FROM and TO in all-caps.
+
+
+;; The FROM and TO might be types or not, but they
+;; must be of type X. Therefore, an (= ...) is a
+;; dependent type because it might depend on things
+;; that might not, themselves, be types.
 
 
 (= Nat (+ 6 7) 13)
@@ -1539,7 +1623,7 @@ kar
 
 
 ;; Frames 8.15-18. There is a lot going on here:
-;; Bertrand Russell and lots more.
+;; Bertrand Russell and  more.
 
 
 ;; "Types can be read as _statements_."
@@ -1689,9 +1773,9 @@ kar
 ;; the variable n.
 
 
-;; Frame 8.49, Page 182: "... if the target of an
-;; eliminator expression is neutral, then the entire
-;; expression is neutral."
+;; Frame 8.49, Page 182 (Fifth Printing): "... if
+;; the target of an eliminator expression is
+;; neutral, then the entire expression is neutral."
 
 
 ;; The normal form of (add1 n) is (add1 n)
@@ -1703,10 +1787,11 @@ kar
 ;;                          (add1 1)))))
 
 
-;; Frames 8.48-8.49, Page 181: the normal form
-;; (iter-Nat n 1 (+ 1)) is neutral because 1. it is
-;; not a value (no constructor up top) and 2. it
-;; cannot yet be evaluated due to the variable n.
+;; Frames 8.48-8.49, Page 181 (Fifth Printing): the
+;; normal form (iter-Nat n 1 (+ 1)) is neutral
+;; because 1. it is not a value (no constructor up
+;; top) and 2. it cannot yet be evaluated due to the
+;; variable n.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1714,11 +1799,11 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Page 182: "Variables that are not defined are
-;; neutral. If the target of an eliminator
-;; expression is neutral, then the eliminator
-;; expression is neutral. Therefore, values are not
-;; neutral."
+;; Page 182 (Fifth Printing): "Variables that are
+;; not defined are neutral. If the target of an
+;; eliminator expression is neutral, then the
+;; eliminator expression is neutral. Therefore,
+;; values are not neutral."
 
 
 ;; This implication is not obvious to me.
@@ -1833,9 +1918,9 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Page 190: If f is an (→ X Y)
-;; and target is an (= X from to), then
-;; then (cong target f) is an (= Y (f from) (f to)).
+;; Page 190 (Fifth Printing): If f is an (→ X Y) and
+;; target is an (= X from to), then then (cong
+;; target f) is an (= Y (f from) (f to)).
 
 
 ;; In our example, we must transform
@@ -1867,14 +1952,12 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Page 194: If x is an X and f is an (→ X Y),
-;; then (cong (same x) f) is the same
-;;   (= Y (f x) (f x))
-;; as
-;;   (same (f x))
+;; Page 194 (Fifth Printing): If x is an X and f is
+;; an (→ X Y), then (cong (same x) f) is the same (=
+;; Y (f x) (f x)) as (same (f x))
 
 
-;; Frame 8.89, Page 195
+;; Frame 8.89, Page 195 (Fifth Printing):
 
 
 ;; Soc: "The interplay between judging sameness and
@@ -1999,7 +2082,7 @@ kar
 ;; One judges sameness according to a type by
 ;; writing "two expressions e1 and e2 are the same
 ;; X," where A is a type. This is a minor variation
-;; of a judgment of form 4 (see circa Line 1509).
+;; of a judgment of form 4 (see circa Line 1643).
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -2092,8 +2175,8 @@ kar
 
 
 ;; I usually pair elimination with a preceding
-;; destructuring. See comments near Line 250 in this
-;; file.
+;; destructuring. See comments near Line 262 in this
+;; document.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
