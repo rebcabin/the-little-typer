@@ -37,11 +37,11 @@
 'spinach
 
 
-(the (Pair Atom Atom)
-  (cons 'spinach 'cauliflower))
+(the (Pair Atom Atom)                       ; type
+  (cons 'spinach 'cauliflower))             ; instance
 
 
-(the Atom (the Atom 'pie))
+(the Atom (the Atom 'pie))                  ; instance only
 
 
 ;; -+-+-+-+-+-+-+-+-+-
@@ -49,7 +49,8 @@
 ;; -+-+-+-+-+-+-+-+-+-
 
 
-;; TODO: Understand why this type signature fails.
+;; Here is my clone of which-Nat and its type
+;; signature.
 
 
 (claim wN
@@ -57,8 +58,11 @@
            (target Nat      )
            (base   E        )
            (step   (→ Nat E)))
-          (→ U U U ;target base step
-             E)))
+          E))
+
+(define wN
+  (λ (E)
+   (λ (t b s) (which-Nat t b s))))
 
 
 ;; which-Nat has type
@@ -958,7 +962,7 @@ kar
 ;; claim b   (mot zero)                   base
 ;; claim s   (Π ((n-1 Nat))               step
 ;;              (→ (mot    n-1)            forward ...
-;;                 (mot (a1 n-1))))       rewriting
+;;                 (mot (a1 n-1))))       ... rewriting
 ;;
 ;; claim iN
 ;; (Π ((t   Nat)                    ; target
@@ -1031,21 +1035,21 @@ kar
 
 
 (claim iN
-       (Π ((t   Nat)                    ; target
-           (m   (→ Nat U))              ; motive
-           (b   (m 0))                  ; base
-           (s   (Π ((n-1 Nat))          ; step
-                   (→ (m n-1)
-                      (m (add1 n-1))))))
-          (m t)))
+       (Π ((target   Nat)               ; target
+           (motive   (→ Nat U))         ; motive
+           (base     (motive 0))        ; base
+           (step     (Π ((n-1 Nat))     ; step
+                        (→ (motive n-1)
+                           (motive (add1 n-1))))))
+          (motive target)))
 
 (define iN
-  (λ (t m b s)
+  (λ (target motive base step)
     (ind-Nat
-     t
-     m
-     b
-     s)))
+     target
+     motive
+     base
+     step)))
 
 ;; unit tests
 
@@ -1858,10 +1862,24 @@ kar
 
 
 
+
+
+
+
 ;;   ___ _             _     ___ _            _
 ;;  / __| |_  ___ __ _| |_  / __| |_  ___ ___| |_
 ;; | (__| ' \/ -_) _` |  _| \__ \ ' \/ -_) -_)  _|
 ;;  \___|_||_\___\__,_|\__| |___/_||_\___\___|\__|
+
+
+;; [The Ultimate Cheat Sheet is
+;; here](https://docs.racket-lang.org/pie/#%28part._top%29).
+;; It's the official pie documentation. It's
+;; refreshingly short and useful.
+
+
+;; The rest of this Cheat Sheet is my gleanings from
+;; "The Little Typer."
 
 
 ;; All page numbers refer to the Fifth Printing.
