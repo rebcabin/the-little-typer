@@ -2228,7 +2228,17 @@ kar
 ;; step-incr=add1. See Page 188 (Fifth Printing) for
 ;; a lengthy calculation. This form makes the use of
 ;; `cong` obvious by applying the pseudo-function
-;; `add1`.
+;; `add1`: Letting
+;;
+;; target be (= Nat
+;;              (incr n-1)
+;;              (add1 n-1))
+;;
+;; and `f` "be" `add1`, `(cong target f)` is
+;;
+;; (= Nat
+;;    (add1 (incr n-1))
+;;    (add1 (add1 n-1)))
 
 
 (claim step-incr=add1
