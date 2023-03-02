@@ -1483,12 +1483,54 @@ kar
 ;;                |_|
 
 
-;; This is a difficult Chapter because it's not
+;; This is a challenging chapter because it's not
 ;; clear at the start where it's going. I figured it
-;; out, and will write my notes accordingly.
+;; out by reading it and writing about it several
+;; times, and the notes below are my current
+;; iteration.
 
 
-;; Start with a proof that:
+;; We'll prove that `(+ 1)` _equals_ `add1`, and
+;; then that `incr` _equals_ `add1`. `Equals`, here,
+;; is not the same as "the same as," which we
+;; already know about from judgments:
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   F o u r   F o r m s
+;;  o f   J u d g m e n t
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; 1. ____ is a ____.
+;;
+;; 2. ____ is the same ____ as ____.
+;;
+;; 3. ____ is a type [as opposed to an instance]
+;;
+;; 4. ____ and ____ are the same type.
+
+
+;; Judgments are for humans; formal statements and
+;; proofs of statements are for computers. "Formal"
+;; means "machine-checkable." We write a formal
+;; statement as a `claim` and a formal proof as a
+;; `define`, that is, by exhibiting an instance or
+;; witness of the claim. Claims, implicitly, are
+;; statements that something exists, so showing an
+;; instance is a good proof of a claim like that.
+
+
+;; To say formally what we mean by `equals`, we
+;; introduce a type constructor, `=`, its companion
+;; value constructor `same`, and some eliminators
+;; for `=`. See [the
+;; documentation](https://docs.racket-lang.org/pie/#%28part._.Equality%29)
+;; for more.
+
+
+;; The first claim and proof of equality will look
+;; like this:
 
 
 ;; (claim +1=add1
@@ -1496,44 +1538,66 @@ kar
 ;;           (= Nat (+ 1 n) (add1 n)))) ; ...
 
 ;; (define +1=add1                      ; Proof by constructing
-;;   (λ (n) (same (add1 n))))           ; a "same" expr for it
+;;   (λ (n) (same (add1 n))))           ; a "same" value for it.
 
 
-;; Work up to a proof that incr=add1. We'll define
-;; _incr_ as we go along.
+;; We'll work up to a proof that `incr` equals
+;; `add1`. We'll define `incr` as we go along.
 
 
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  P r o v i n g   t h a t   + 1   = =   a d d 1
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;; Bottoming out in `add1` is a good idea because
+;; it's a built-in.
 
 
-;; We'll show that the normal forms of (+ 1) and
-;; add1 are identical (up to consistent renaming of
-;; variables), thus "the same" by the definition of
-;; sameness on Page 13 (Fifth Printing):
+;; We'll use "same as" judgments as human
+;; motivations along the way. Remember that two
+;; expressions are the same, according to some type,
+;; if and only if (iff) their normal forms are
+;; identical, up to consistent renaming of their
+;; variables.
 
 
-;; "Given a type, every expression described by that
-;; type has a normal form, which the most direct way
-;; of writing it. Iff two expressions are the same
-;; [according to some type], then they have
-;; identical normal forms."
+;; We now have three similar notions in the air: (1)
+;; "identical," which is machine checkable, even
+;; with consistent renaming of variables [footnote];
+;; (2) "same," which we check by judgments and which
+;; sometimes means "identical," so can be checked by
+;; machine; and (3) "equals," which we are going to
+;; show now, but solves problems that checking for
+;; identical normal forms cannot solve.
 
 
-;; Being the same, we'll declare a proof by defining
-;; it as a _same_ expression, with _same_'s being
-;; the value constructor for type =.
+;; footnote:: Checking that two expressions are
+;; identical up to consistent renaming is
+;; surprisingly tricky, and the greats have
+;; published mistakes about it. See [de Bruijn
+;; Index](https://en.wikipedia.org/wiki/De_Bruijn_index).
 
 
-;; https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._same%29%29
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  P r o v i n g   t h a t   + 1   E q u a l s   a d d 1
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Normal form of (+ 1) -- partial application of +
-;; to 1 == (add1 zero).
+;; We start by showing that the normal forms of
+;; `(+ 1)` and `add1` are identical (up to
+;; consistent renaming of variables). That means
+;; they're "the same." Then we'll write that fact up
+;; via `=` and `same`, showing that they're `equal`.
 
 
-;; Recall the definition of +:
+;; The later proof that `incr` equals `add1`
+;; requires new eliminators for `=`, namely `cong`
+;; and `replace`, because the normal forms for these
+;; two are not identical (up to consistent renaming
+;; of variables).
+
+
+;; Start with the normal form of `(+ 1)`, which is
+;; partial application of `+` to `1`:
+
+
+;; Recall the definition of `+`:
 
 
 ;; (define +
@@ -1543,120 +1607,155 @@ kar
 ;;     (iter-Nat    n     j   step-+ )))
 
 
-;; Calculate the normal form of (+ 1)
+;; where `(define step-+ (λ (n-1) (add1 n-1)))`
+;; bottoms out at the built-in `add1`.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N o r m a l   F o r m   o f   ( +   1 )
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; Calculate the normal form of `(+ 1)`:
 
 
 ;; (+ 1)
 ;; (+ (add1 zero))                        destructuring
 ;; (λ (j)
 ;;   (iter-Nat (add1 zero) j step-+))     subst. def
-;; (λ (j)
-;;   (step-+
+;; (λ (j)      -----v-----
+;;   (step-+       _^__
 ;;     (iter-Nat   zero    j step-+))     elimination
 ;; (λ (j)
-;;   (add1                                subst. def
+;;   (add1 ,------- n-1 -------.          subst. def of step-+
 ;;     (iter-Nat   zero j step-+)))
-;; (λ (j) (add1 j))                       subst. def
+;;                     /
+;;                ----
+;;               /
+;; (λ (j) (add1 j))                       elimination
 
 
-;; That's the normal form of (+ 1). Remember or
+;; That's the normal form of `(+ 1)`. Remember or
 ;; bookmark it.
 
 
-;; Now consider the definition of _incr_:
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  N o r m a l   F o r m   o f   a d d 1
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; The normal form of `(+ 1) is identical to the
+;; normal form of `add1` if we wrap `add1` in a
+;; minimal function, and we must. The Pie REPL
+;; reveals that a naked `add1` doesn't have a normal
+;; form:
+
+
+;; add1  ; <-- REPL input ~~> REPL response -->
+; ../playground.pie:11:0: add1: expected valid Pie name
+;   at: add1
+;   in: add1
+
+
+;; But the wrapped `add1` is fine (with a type hint)
+;; and is already in normal form -- the Pie REPL
+;; can't reduce it any more:
+
+
+;; (the (→ Nat Nat) (λ (n) (add1 n)))   ; input to REPL
+;  (the (→ Nat                          ; response from REPL
+;          Nat)
+;       (λ (n)
+;         (add1 n)))
+
+
+;; If `add1` were a function, we could use the Final
+;; Law of Application (Page 139, Fifth Printing), or
+;; even the Initial Law of Application (Page 38,
+;; Fifth Printing) to show that `add1` is "the same"
+;; as `(λ (n) (add1 n))`.
+
+
+;; This pattern of wrapping `add1` is exactly like
+;; the common need to wrap macros with functions in
+;; C and Lisp. We must often do that so we can pass
+;; around the functions as values. Macros are not
+;; values, but functions _are_ values because they
+;; have the constructor λ up top; that's the
+;; definition of a value -- it has a constructor up
+;; top.
+
+
+;; Let's call it a day: `(λ (n) (add1 n))` _is_ "the
+;; normal form of `add1`". The easiest way to write
+;; something that the REPL reduces to the normal
+;; form is `(+ 1)`. You can't present a naked `add1`
+;; to the REPL.
+
+
+;; We've now shown that `(+ 1)` and `add1` have
+;; identical normal forms (up to renaming), so
+;; they're "the same" by Big Box on Page 13. That
+;; doesn't mean they're `equal`. So let's write
+;; `equal` as a statement -- a `claim` or a type --
+;; and its proof as a `define`.
+
+
+;; Frame 8.23, Page 177 (Fifth Printing):
+
+
+;; Here is a type that _states_ the equality of
+;; `(+ 1 n)` and `(add1 n)`. The statement boils
+;; down to stating that the normal forms are
+;; identical, hence the same. That's not a proof of
+;; equality, but a precise statement of it. We'll
+;; need a witness, conveniently packaged in a
+;; `define`.
+
+
+(Π ((n Nat))                            ; input to REPL
+   (= Nat (+ 1 n) (add1 n)))
+; (the U                                ; response from REPL
+;      (Π ((n Nat))
+;         (= Nat
+;            (add1 n)
+;            (add1 n))))
+
+
+;; The REPL converged the normal forms to
+;; `(add1 n)`! They're "the same" by construction.
+;; So we can write the formal proof of the equality
+;; statement by defining something that constructs a
+;; value by the sole constructor for =, namely
+;; _same_.
 
 
 ;; -----------------------------------------------
-(claim incr (→ Nat Nat))
+(claim +1=add1
+       (Π ((n Nat))  ; For every Nat, n, ...
+          (= Nat (+ 1 n) (add1 n))))
 
-(define incr
-  (λ (n)
-    (iter-Nat n                         ; target
-              1                         ; base
-              (+ 1))))                  ; step
-
-
-;; Note that pie doesn't let us write add1 in place
-;; of (+ 1), above; add1 isn't a function. But the
-;; normal form of (+ 1) is (λ (j) (add1 j)) is a
-;; function. If we pretend that (+ 1) is a function
-;; of type (Π ((y Nat)) Nat), then we can judge it
-;; to be "the same" as (λ (j) (add1 j)) by "The
-;; Final Second Commandment of λ" on Page 140 (Fifth
-;; Printing):
+(define +1=add1
+  (λ (n) (same (add1 n))))
 
 
-;; Page 140: "
-;; If f is a
-;;   (Π ((y Y))
-;;     X)
-;; and y does not occur [at any level] in f, then
-;; f is the same as
-;;   (λ (y)
-;;     (f y))."
+;; Really, just the fact that the definition
+;; satisfies the claim _is_ the proof! Here is the
+;; whole magillah without `claim` or `define`, just
+;; a type and a witness, with the type streamlined a
+;; bit ("defines are never necessary!" Page 58,
+;; Fifth Printing).
 
 
-;; This pattern is exactly like the common need to
-;; write function wrappers for macros in C and Lisp.
-;; We must often do that so that we can pass around
-;; the functions as values. Macros are not values,
-;; but functions _are_ because they have the
-;; constructor λ up top; that's the definition of a
-;; value -- it has a constructor up top. _add1_ acts
-;; like a macro and doesn't have a value, as shown
-
-
-
-;; playground.pie> add1
-;  ...: add1: expected valid Pie name
-;    at: add1
-;    in: add1
-
-
-;; I'm sure you've run into that kind of error in
-;; C or Lisp or Clojure.
-
-
-;; The book takes a twisty road to make the point
-;; that the normal forms of the expressions `(+ 1)`
-;; and `incr` are not "the same."
-
-
-;; Save some hand calculation by letting the REPL
-;; compute the normal forms:
-
-
-;; playground.pie> (+ 1)
-;; (the (→ Nat
-;;         Nat)
-;;      (λ (j)
-;;        (add1 j)))
-;;
-;; playground.pie> incr
-;; (the (→ Nat
-;;         Nat)
-;;      (λ (n)
-;;        (iter-Nat n
-;;                  (the Nat 1)
-;;                  (λ (j)
-;;                    (add1 j)))))
-
-
-;; They are not "the same" because the two
-;; expressions are not identical (Page 13, Fifth
-;; Printing).
-
-
-;; Frame 8.10, Page 173 (Fifth Printing):
-
-
-;; Socrates (Left Column):
-;; "Even though they are not the same, the fact that
-;; they always find the same answer can be written
-;; as a type.
-;;    "Sameness is indeed a judgment. But, with a
-;; new type constructor, types can express a new
-;; idea called _equality_."
+(the (Π ((n Nat))                       ; input to REPL
+        (= Nat (+ 1 n) (add1 n)))
+     (λ (n) (same (add1 n))))
+; (the (Π ((n Nat))                     ; response from REPL
+;         (= Nat
+;            (add1 n)
+;            (add1 n)))
+;      (λ (n)
+;        (same (add1 n))))
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1664,7 +1763,7 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Page 174: "An expression
+;; Page 174 (Fifth Printing): "An expression
 ;;
 ;;     (= X from to)
 ;;
@@ -1684,101 +1783,66 @@ kar
 ;; that might not, themselves, be types.
 
 
-;; Some examples of = for describing equality:
+;; Some examples of = types for describing equality
+;; -- remember, types _describe_ values, but they
+;; are also propositions in logic that _state_ that
+;; a value satisfying the type exists.
 
 
-(= Nat (+ 6 7) 13)
-; (the U
+(= Nat (+ 6 7) 13)                      ; input to REPL
+; (the U                                ; response from REPL
 ;      (= Nat 13 13))
 
 
-;; These types are statements that we can prove by
-;; constructing values. These proofs are the
-;; computable (formal) reflections of judgments.
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  P r o o f   t h a t   i n c r   E q u a l s   a d d 1
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Frames 8.15-18.
-
-
-;; "Types can be read as _statements_."
-
-
-;; The one above says "6 + 7 equals 13," a
-;; statement. "6+7 is the same Nat as 7" is a
-;; _judgment_, one of form 2.
-
-
-;; Reminder:
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   F o u r   F o r m s
-;;  o f   J u d g m e n t
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; 1. ____ is a ____.
-;;
-;; 2. ____ is the same ____ as ____.
-;;
-;; 3. ____ is a type.
-;;
-;; 4. ____ and ____ are the same type.
-
-
-;; Judgments are for humans; formal proofs of
-;; statements are for computers; more precisely, for
-;; computer type-systems, theorem-provers, or proof
-;; assistants.
-
-
-;; Frame 8.21
-
-
-;; "'6+7 equals 13' is a type" is a judgment of
-;; form 1, a [j1].
-
-
-;; Frame 8.23
-
-
-;; Here is a type that states the sameness of
-;;   (+ 1 n)
-;; and
-;;   (add1 n).
-
-
-(Π ((n Nat))
-   (= Nat (+ 1 n) (add1 n)))
-; (the U
-;      (Π ((n Nat))
-;         (= Nat
-;            (add1 n)
-;            (add1 n))))
-
-
-;; The normal forms converged! They're "the same" by
-;; construction. So we can write the formal proof of
-;; the equality statement by defining something that
-;; constructs a value by the sole constructor for =,
-;; namely _same_.
+;; Here is `incr`:
 
 
 ;; -----------------------------------------------
-(claim +1=add1
-       (Π ((n Nat))
-          (= Nat (+ 1 n) (add1 n))))
+(claim incr (→ Nat Nat))
 
-(define +1=add1
-  (λ (n) (same (add1 n))))
+(define incr
+  (λ (n)
+    (iter-Nat n                         ; target
+              1                         ; base
+              (+ 1))))                  ; step
 
 
-;; I made up the following exercise:
+;; The normal forms of `(+ 1)` and `incr` are not
+;; "the same." We'll show so by showing that their
+;; normal forms are not identical (up to renaming).
+;; Check your hand calculation by computing the
+;; normal forms in the REPL:
+
+
+;; playground.pie> (+ 1)                ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (j)
+;        (add1 j)))
+;
+;; playground.pie> incr                 ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (n)
+;        (iter-Nat n
+;                  (the Nat 1)
+;                  (λ (j)
+;                    (add1 j)))))
+
+
+;; I made up the following exercise to express the
+;; claim -- the statement, the type -- that they're
+;; equal, though not the same.
 
 
 (Π ((n Nat))
-   (= Nat (+ 1 n) (incr n)))
-; (the U
+   (= Nat (+ 1 n) (incr n)))            ; input to REPL
+; (the U                                ; response from REPL
 ;      (Π ((n Nat))
 ;         (= Nat
 ;            (add1 n)
@@ -1786,12 +1850,6 @@ kar
 ;                      (the Nat 1)
 ;                      (λ (j)
 ;                        (add1 j))))))
-
-
-;; ... a much more meaty statement about equality of
-;; normal forms! They're not "the same" by Page 13,
-;; so we need another way to formally prove
-;; equality.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1804,36 +1862,21 @@ kar
 
 ;; The expression (same e3) is an (= X e1 e2) if e1,
 ;; e2, and e3 are each an X and e1 is the same as e2
-;; (identical normal forms). We see that (+ 1 n) and
-;; (add1 n) are the same but (+ 1 n) and (incr n)
-;; are not the same.
+;; (identical normal forms). We've seen that (+ 1 n)
+;; and (add1 n) are the same but (+ 1 n) and
+;; (incr n) are not the same.
 
 
-;; Frame 8.37
-
-
-;; Writing a formal proof of sameness is called
-;; _internalizing_ judgment
-
-
-;; Here is an example that shows twelve, written as
-;; (+ 1 11) and as (incr 11) are the same even
-;; though (+ 1 n) and (incr 1) are not the same.
-
-
-;; -----------------------------------------------
-(claim twelve
-       (= Nat (+ 1 11) (incr 11)))
-
-(define twelve
-  (same (incr (incr 10))))              ; proof of "twelve"
-
-
-;; Frame 8.38
+;; Writing a formal type-witness proof of sameness
+;; is called _internalizing_ a sameness judgment.
 
 
 ;; Π-expressions are statements of universal
-;; quantifications, i.e, "for-every," ∀, statements.
+;; quantifications, i.e, "for-every," ∀, statements
+;; (Page 187, Fifth Printing). (→ Y X) is a
+;; shorthand for (Π ((y Y)) X) when the name of Y's
+;; instance, y, is not needed in X (Page 138, Fifth
+;; Printing).
 
 
 ;; "By combining Π with =, we can write statements
@@ -1842,8 +1885,8 @@ kar
 ;; an example:"
 
 
-;; The following is a commented copy of the formal
-;; proof of +1=add1 above.
+;; Here is a commented-out copy of the formal proof
+;; of +1=add1 above just to remind us.
 
 
 ;; -----------------------------------------------
@@ -1855,13 +1898,14 @@ kar
 ;;   (λ (n) (same (add1 n))))
 
 
-;; ... proves the statement that for every Nat n,
-;; (+ 1 n) equals (add1 n). Equals, here is the type
-;; constructor =.
+;; ... proves the statement that for every Nat n, (+
+;; 1 n) equals (add1 n). Equals, here is via the
+;; type constructor =.
 
 
 ;; But incr=add1 doesn't prove so easily, as noted.
-;; Here is a statement of the proposition:
+;; Here is a statement of the proposition, copied
+;; from above and attached to a name via `claim`.
 
 
 ;; -----------------------------------------------
@@ -1871,15 +1915,13 @@ kar
 
 
 ;; This is _harder_ to prove because the normal
-;; forms of (incr n) and (add1 n) are not identical
-;; -- these two expressions are not "the same" by
-;; Page 13.
+;; forms of (incr n) and (add1 n) are not identical.
 
 
 ;; (define incr=add1
 ;;   (λ (n)
-;;     (same (add1 n))))
-; The expressions                       ; response from Pie
+;;     (same (add1 n))))                ; input to REPL
+; The expressions                       ; response from REPL
 ; (iter-Nat n
 ;           (the Nat 1)
 ;           (λ (j)                      ; same as (+ 1)
@@ -1889,18 +1931,13 @@ kar
 ; are not the same Nat
 
 
-;; ... does not work as a proof of the claim because
-;; the normal forms of (incr n) and (add1 n) are not
-;; identical (Page 13, noting the "iff -- if and
-;; only if."
-
-
 ;; The normal form of (incr n) is
-;;   (iter-Nat n 1 (+ 1):
+;; (iter-Nat n 1 (+ 1) (we must add a type hint for
+;; Pie):
 
 
-;; (the (→ Nat Nat) (λ (n) (incr n)))
-; (the (→ Nat                           ; response from Pie
+(the (→ Nat Nat) (λ (n) (incr n)))      ; input to REPL
+; (the (→ Nat                           ; response from REPL
 ;         Nat)
 ;      (λ (n)
 ;        (iter-Nat n
@@ -1916,8 +1953,9 @@ kar
 ;;                                    /___/
 
 
-;; The book drags in the concept of neutrality,
-;; here, to make observations about normal forms.
+;; The book goes on a long discourse about
+;; neutrality, here, to make needed observations
+;; about normal forms.
 
 
 ;; This normal form of (incr n),
@@ -1937,28 +1975,29 @@ kar
 ;; neutral_."
 
 
-;; This implication is not obvious to me.
-;; https://racket.discourse.group/t/the-little-typer-implicattion-that-values-are-not-neutral/1737,
-;; but I take it on faith so as not to get stuck.
+;; This implication needed [a little
+;; clarification](https://racket.discourse.group/t/the-little-typer-implicattion-that-values-are-not-neutral/1737)
+;; for me. The gist is that neutral variables and
+;; neutrally targeted eliminator expressions are
+;; _the only_ kinds of neutral expressions. No value
+;; can be of either kind. `(add1 n)` though
+;; seemingly neutral, is not a neutral expression by
+;; a convenient definition, or perhaps because its
+;; normal form, `(λ (j) (add1 j))`, reported by Pie,
+;; is a value with a λ constructor up top.
 
 
 ;; Now, we're going to do a lot of talking about
 ;; whether neutral expressions are normal. This is
-;; the most tricky bit of reasoning in the book so
-;; far, but we shall exhibit neutral expressions
-;; that are not normal because some neutral
-;; expressions reduce to values and values can never
-;; be neutral.
+;; the most tricky bit of reasoning in the book
+;; through Chapter 8, but we shall exhibit neutral
+;; expressions that are not normal because they
+;; reduce to values and values can never be neutral.
 
 
 ;; Frame 2.26, Page 40: "Expressions that are not
 ;; values and cannot yet be evaluated due to a
 ;; variable are called _neutral_."
-
-
-;; That frame asserts the conclusion above, the
-;; conclusion that I don't yet believe as a
-;; syllogism. Moving on ...
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1967,10 +2006,11 @@ kar
 
 
 ;; Frames 8.48-8.49, Page 181 (Fifth Printing): the
-;; normal form (iter-Nat n 1 (+ 1)) is neutral
-;; because 1. it is not a value (no constructor up
-;; top) and 2. it cannot yet be evaluated due to the
-;; variable n. This is normal and neutral.
+;; normal form of `(incr n)`, namely
+;; (iter-Nat n 1 (+ 1)), is neutral because (1) it
+;; is not a value (no constructor up top) and (2) it
+;; cannot yet be evaluated due to the variable n.
+;; This is normal and neutral.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1978,13 +2018,20 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; (λ (x) (add1 x)) is not neutral because it is a
-;; value -- it has the function constructor λ up
-;; top. This is normal but not neutral.
+;; (λ (x) (add1 x)) is not neutral because it's
+;; already in normal form, and it's avalue with the
+;; function constructor λ up top, therefore not
+;; neutral. This is normal but not neutral.
 
 
-(the (→ Nat Nat) (λ (x) (add1 x)))
-; ~~> itself; normal but not neutral
+(the (→ Nat Nat) (λ (x) (add1 x)))      ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (x)
+;        (add1 x)))
+
+
+;; itself; normal but not neutral
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1992,17 +2039,25 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-(+ 1)  ; ~~> neither neutral nor normal; its normal
-; form is (the (→ Nat Nat) (λ (x) (add1 x))), as above.
-;; (+ 1)
-; (the (→ Nat                           ; response from Pie
+(+ 1)
+
+
+;; neither neutral nor normal; its normal form is a
+;; value, (the (→ Nat Nat) (λ (x) (add1 x))), as
+;; above, thus not neutral.
+
+
+;; (+ 1)                                ; input to REPL
+; (the (→ Nat                           ; response from REPL
 ;         Nat)
 ;      (λ (j)
 ;        (add1 j)))
 
 
-;; (add1 x) is not neutral because it is a value --
-;; has the Nat constructor add1 up top.
+;; `(add1 x)` is not neutral by definition, or, if
+;; you prefer because its normal form
+;; `(λ (j) (add1 j))` is not neutral because it has
+;; λ up top.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -2014,15 +2069,20 @@ kar
 
 
 ;; the neutral expression (the (→ Nat Nat) f) is
-;; "the same as" (λ (n) (f n)) when n does not occur
-;; in f. (λ (n) (f n)) is not neutral because it is
-;; a value. So f is reckoned "neutral but not
-;; normal."
+;; "the same" as (λ (n) (f n)) (by the Laws of λ)
+;; when n does not occur in f. (λ (n) (f n)) is not
+;; neutral because it is a value. So f is reckoned
+;; "neutral but not normal."
 
 
 ;; Page 184, Fifth Printing: Likewise, any neutral
 ;; (Pair A D), p, is not normal because its normal
 ;; form, (cons (car p) (cdr p)) is not neutral.
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
+;;  B a c k   t o   W o r k
+;; -+-+-+-+-+-+-+-+-+-+-+-+-
 
 
 ;; Remember our claim:
@@ -2037,38 +2097,8 @@ kar
 
 
 ;; (define incr=add1
-;;   (λ (n) (same (iter-Nat n 1 (+ 1)))))
-
-
-;; This fails because the normal form of (+ 1),
-;; namely (λ (n) (add1 n)),
-
-
-(the (→ Nat Nat) (λ (n) (add1 n)))
-; (the (→ Nat
-;         Nat)
-;      (λ (n)
-;        (add1 n)))
-
-
-;; is not neutral because it's a value, but
-;; (iter-Nat n 1 (+ 1)) is neutral even thought it's
-;; normal.
-
-
-(the (→ Nat Nat) (λ (n) (iter-Nat n 1 (+ 1))))
-; (the (→ Nat                           ; response from Pie
-;         Nat)
-;      (λ (n)
-;        (iter-Nat n
-;                  (the Nat 1)
-;                  (λ (j)
-;                    (add1 j)))))
-
-
-;; (define incr=add1
-;;   (λ (n) (same (iter-Nat n 1 (+ 1)))))
-; The expressions                       ; response from Pie
+;;   (λ (n) (same (iter-Nat n 1 (+ 1)))))  ; input to REPL
+; The expressions                       ; response from REPL
 ;   (add1 n)
 ; and
 ;   (iter-Nat n
@@ -2078,13 +2108,19 @@ kar
 ; are not the same Nat
 
 
+;; This fails because the normal form of `(add1 n)`,
+;; namely `(λ (n) (add1 n))`, is not neutral because
+;; it's a value, but `(iter-Nat n 1 (+ 1))` is
+;; neutral even thought it's normal.
+
+
 ;; Check it a couple of more ways:
 
 
 ;; (check-same (→ Nat Nat)
 ;;             (λ (n) (iter-Nat n 1 (+ 1)))
-;;             (λ (n) (add1 n)))
-; The expressions
+;;             (λ (n) (add1 n)))        ; input to REPL
+; The expressions                       ; response from REPL
 ;   (λ (n)
 ;     (iter-Nat n
 ;        (the Nat 1)
@@ -2096,13 +2132,12 @@ kar
 ; are not the same
 ;   (→ Nat
 ;     Nat)
-
 
 
 ;; (check-same (→ Nat Nat)
 ;;             (λ (n) (iter-Nat n 1 (+ 1)))
-;;             (λ (n) (+ 1 n)))
-; The expressions
+;;             (λ (n) (+ 1 n)))         ; input to REPL
+; The expressions                       ; response from REPL
 ;   (λ (n)
 ;     (iter-Nat n
 ;        (the Nat 1)
@@ -2116,63 +2151,18 @@ kar
 ;     Nat)
 
 
-;; ++++++++++++++++++++++++++++++++++++++++++
-;; Neutral Expressions are Not Always Normal.
-;; ++++++++++++++++++++++++++++++++++++++++++
+;; Socrates, on the left-hand side of every frame,
+;; says "try ind-Nat." We'll need a target, a base,
+;; a motive, and a step.
 
 
-;; Frames 8.50-8.55:
+;; -+-+-+-+-
+;;  b a s e
+;; -+-+-+-+-
 
 
-;; Phaedrus (on the right of each frame): "Are
-;; neutral expressions normal?"
-
-
-;; Socrates (on the left of each frame): "Not
-;; always. Some types have ways of making neutral
-;; expressions into values, and in these cases, the
-;; neutral expression is not considered normal
-;; because it can be made into a value.
-
-
-;; Soc: "A neutral expression whose type has Π up
-;; top is not [considered] normal. This is because a
-;; neutral expression f is the same as (λ (x) (f
-;; x)), which is a value."
-
-
-;; Phae: "Why does this mean that f is not normal?
-;; If two expressions are the same, then they have
-;; identical normal forms."
-
-
-;; Soc: "By the Final 2nd Cmdmt of λ (p. 140), f is
-;; the same as (λ (x) (f x)), but they are not
-;; written identically.
-;;
-;;     "At most one of them can be the normal form.
-;; The one wrapped in λ is the normal form. Because
-;; expressions with a λ up top are values, they are
-;; not neutral. This normal form is not neutral.
-;;
-;;     "For another example, the only normal forms
-;; for pairs have _cons_ up top, so they're not
-;; neutral.
-;;
-;;     "Neutral expressions, like (incr n)'s normal
-;; form, (iter-Nat 1 n (+ 1)), occur frequently when
-;; =-expressions mention argument names in
-;; Π-expressions. That neutral expression is also a
-;; normal form."
-
-
-;; Phae: "How can we find a definition for incr=add1?
-;; `same` doesn't do the job (because the normal forms
-;; don't match up) and incr=add1's type has a neutral
-;; expression in it?"
-
-
-;; Soc: use int-Nat.
+;; Here is a base case that makes an `=` statement
+;; about `zero`:
 
 
 ;; -----------------------------------------------
@@ -2181,6 +2171,15 @@ kar
 
 (define base-incr=add1
   (same (add1 zero)))
+
+
+;; -+-+-+-+-+-+-
+;;  m o t i v e
+;; -+-+-+-+-+-+-
+
+
+;; Here is a motive that makes an `=` statement
+;; about any Nat:
 
 
 ;; -----------------------------------------------
@@ -2192,14 +2191,26 @@ kar
     (= Nat (incr k) (add1 k))))
 
 
+;; -+-+-+-+-
+;;  s t e p
+;; -+-+-+-+-
+
+
+;; The step must move us from an `=` statement about
+;; Nat k to an `=` statement about `(add1 k)`:
+
+
 ;; The following attempt works, but it considered
-;; not ideal for reasons to-be-revealed
+;; not ideal for reasons to-be-revealed:
 
 
 ;; (claim step-incr=add1
 ;;        (Π (( n-1 Nat ))
 ;;           (→ (mot-incr=add1 n-1)
 ;;              (mot-incr=add1 (add1 n-1)))))
+
+
+;; Git rid of the references to the motive:
 
 
 ;; (claim step-incr=add1
@@ -2215,7 +2226,9 @@ kar
 ;; The following claim is considered ideal because
 ;; it pulls the add1 up top in the output of
 ;; step-incr=add1. See Page 188 (Fifth Printing) for
-;; a lengthy calculation.
+;; a lengthy calculation. This form makes the use of
+;; `cong` obvious by applying the pseudo-function
+;; `add1`.
 
 
 (claim step-incr=add1
@@ -2252,7 +2265,11 @@ kar
 ;;    (= Nat
 ;;       (incr n-1)
 ;;       (add1 n-1))
+
+
 ;; into
+
+
 ;;    (= Nat
 ;;       (add1 (incr n-1))
 ;;       (add1 (add1 n-1))))
