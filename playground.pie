@@ -89,10 +89,10 @@
    (λ (t b s) (which-Nat t b s))))
 
 
-;; The base and the output of step must have the same
-;; type (E U). E can be anything -- Atom or Nat, for
-;; instance, but it must be the same on both branches
-;; of which-Nat.
+;; The base and the output of step must have the
+;; same type `(E U)`. `E` can be anything -- `Atom`
+;; or `Nat`, for instance, but it must be the same
+;; on both branches of `which-Nat`.
 
 
 ;; Here is pseudocode for which-Nat:
@@ -224,14 +224,14 @@
 
 ;; `iter-Nat` has type
 ;;
-;; (Π ((E U))
-;;   (→ N E (→ N E) E))
-;;      ^ ^  \_ _/  ^
-;;       \ \   v     \
-;;        \ \   \     type of return value
-;;         \ \   type of `step`
-;;          \ type of `base`
-;;           type of `target`
+;;     (Π ((E U))
+;;       (→ N E (→ N E) E))
+;;          ^ ^  \_ _/  ^
+;;           \ \   v     \
+;;            \ \   \     type of return value
+;;             \ \   type of `step`
+;;              \ type of `base`
+;;               type of `target`
 ;;
 ;; same as the type of `which-Nat`. The difference
 ;; between the two is that `iter-Nat` calls
@@ -968,7 +968,8 @@ kar
 ;;                |_|
 
 
-;; two expressions that produce types ("subtypes" of U):
+;; two expressions that produce types -- instances
+;; of type `U`:
 
 
 (Vec Atom zero)                         ; (the U (Vec Atom 0))
@@ -1098,16 +1099,16 @@ kar
 ;; argument from `ℓ` to `ℓ-1`.
 
 
-;; (claim first
-;;        (Π ((E U)
-;;            (ℓ-1 Nat))
-;;           (→ (Vec E (add1 ℓ-1))
-;;              E)))
+;;     (claim first
+;;            (Π ((E U)
+;;                (ℓ-1 Nat))
+;;               (→ (Vec E (add1 ℓ-1))
+;;                  E)))
 
-;; (define first
-;;   (λ (E ℓ-1)
-;;     (λ (es)
-;;       (head es))))
+;;     (define first
+;;       (λ (E ℓ-1)
+;;         (λ (es)
+;;           (head es))))
 
 
 (first Atom 2 (vec:: 'a (vec:: 'b (vec:: 'c vecnil))))
@@ -1186,24 +1187,24 @@ kar
 
 
 ;; Letting iN be ind-Nat and a1 be add1:
-;; claim mot (→ Nat U)
-;; claim b   (mot zero)                   base
-;; claim s   (Π ((n-1 Nat))               step
-;;              (→ (mot    n-1)            forward ...
-;;                 (mot (a1 n-1))))       ... rewriting
+;;     claim mot (→ Nat U)
+;;     claim b   (mot zero)             ; base
+;;     claim s   (Π ((n-1 Nat))         ; step
+;;                  (→ (mot    n-1)     ;  forward ...
+;;                     (mot (a1 n-1)))) ; ... rewriting
 ;;
-;; claim iN
-;; (Π ((t   Nat)                    ; target
-;;     (m   (→ Nat U))              ; motive
-;;     (b   (m 0))                  ; base
-;;     (s   (Π ((n-1 Nat))          ; step
-;;             (→ (m n-1)
-;;                (m (add1 n-1))))))
-;;    (m t))
+;;     claim iN
+;;     (Π ((t   Nat)                    ; target
+;;         (m   (→ Nat U))              ; motive
+;;         (b   (m 0))                  ; base
+;;         (s   (Π ((n-1 Nat))          ; step
+;;                 (→ (m n-1)
+;;                    (m (add1 n-1))))))
+;;        (m t))
 ;;
-;; (iN      0     m b s) ~~> b == (m 0)
-;; (iN (add1 ℓ-1) m b s) ~~>
-;;   (s ℓ-1 (iN ℓ-1 m b s)) == (m (add1 ℓ-1))
+;;     (iN      0     m b s) ~~> b == (m 0)
+;;     (iN (add1 ℓ-1) m b s) ~~>
+;;       (s ℓ-1 (iN ℓ-1 m b s)) == (m (add1 ℓ-1))
 
 
 ;; -----------------------------------------------
@@ -1278,12 +1279,12 @@ kar
 ;; The [official documentation for ind-Nat is here](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
 
 ;; (ind-Nat target motive base step) → (motive target)
-;; target : Nat
-;; motive : (-> Nat U)
-;; base   : (motive zero)
-;; step	 	:	(Π ((n Nat))
-;;            (-> (motive n)
-;;            (motive (add1 n))))
+;;     target : Nat
+;;     motive : (-> Nat U)
+;;     base   : (motive zero)
+;;     step	 	:	(Π ((n Nat))
+;;                (-> (motive n)
+;;                (motive (add1 n))))
 
 
 ;; I got some help on this self-inflicted "homework"
@@ -1386,10 +1387,15 @@ kar
 ;; Can we be more specific?
 
 
-;; (claim mot-last
-;;        ;; extra type argument at the front:
-;;        (Π ((E U))
-;;           (the U (→ (Vec E Nat) E))))
+;;     (claim mot-last
+;;            ;; extra type argument at the front:
+;;            (Π ((E U))
+;;               (the U (→ (Vec E Nat) E))))
+
+
+;; Doesn't work, so we can't easily be more
+;; specific! Let's see why it doesn't work:
+
 
 (define mot-last
   (λ (E k-1)
@@ -1434,14 +1440,15 @@ kar
 
 
 ;; The motive must be able to return multiple
-;; different types!
+;; different types! Each is reckoned just as a type,
+;; a type of type `U`.
 
 
 ;; Why would we want a more specific types? Because
 ;; having two `U`s in the type of the motive makes
 ;; us kind-of seasick. But, I don't see a way around
-;; it! The return value must be "any type" and the
-;; first input must be "any type."
+;; it! The return value must be of "any type" and
+;; the first input must be of "any type."
 
 
 ;; -----------------------------------------------
@@ -1690,17 +1697,17 @@ kar
 ;; I reload this buffer (C-c C-c) frequently.
 
 
-;; (claim peas-i
-;;        (Pi ((n Nat))
-;;            (Vec Atom n)))
+;;     (claim peas-i
+;;            (Pi ((n Nat))
+;;                (Vec Atom n)))
 
-;; (define peas-i
-;;   (λ (n)
-;;     (ind-Nat n
-;;              (λ (k) (Vec Atom k))       ; motive
-;;              vecnil                     ; base
-;;              (λ (n-1 ps-1)              ; step
-;;                (vec:: TODO TODO)))))
+;;     (define peas-i
+;;       (λ (n)
+;;         (ind-Nat n
+;;                  (λ (k) (Vec Atom k))    ; motive
+;;                  vecnil                  ; base
+;;                  (λ (n-1 ps-1)           ; step
+;;                    (vec:: TODO TODO)))))
 
 
 ;;   ___ _              _             ___
@@ -1729,13 +1736,19 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; 1. ____ is a ____.
+;; 1. __instance__ is a __type__.
 ;;
-;; 2. ____ is the same ____ as ____.
+;; 2. __instance__ is the same __type__ as __instance__.
 ;;
-;; 3. ____ is a type [as opposed to an instance]
+;; 3. __type__ is a type [as opposed to an instance]
 ;;
-;; 4. ____ and ____ are the same type.
+;; 4. __type__ and __type__ are the same type.
+
+
+;; Types are values, too. `same` is one constructor
+;; for instances (values) of types. `same` is the
+;; constructor that creates instances of the `=`
+;; type.
 
 
 ;; Judgments are for humans; formal statements and
@@ -1748,11 +1761,17 @@ kar
 ;; instance is a good proof of a claim like that.
 
 
+;; This reminds me of [constructive mathematics](https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf),
+;; [a view supported here](https://en.wikipedia.org/wiki/Constructivism_(philosophy_of_mathematics)#The_place_of_constructivism_in_mathematics).
+;; I'm sure this is no news to type theorists. I am
+;; not a type theorist, but a practical programmer
+;; and a curious, eager learner.
+
+
 ;; To say formally what we mean by `equals`, we
 ;; introduce a type constructor, `=`, its companion
 ;; value constructor `same`, and some eliminators
-;; for `=`. See [the
-;; documentation](https://docs.racket-lang.org/pie/#%28part._.Equality%29)
+;; for `=`. See [the documentation](https://docs.racket-lang.org/pie/#%28part._.Equality%29)
 ;; for more.
 
 
@@ -1762,14 +1781,13 @@ kar
 
 ;; (claim +1=add1
 ;;        (Π ((n Nat))                  ; Read: for every Nat n,
-;;           (= Nat (+ 1 n) (add1 n)))) ; ... this equals that.
+;;           (= Nat (+ 1 n) (add1 n)))) ; ... FROM equals TO.
 
 ;; (define +1=add1                      ; Prove by constructing
 ;;   (λ (n) (same (add1 n))))           ; a "same" value for it.
 
 
-;; We'll work up to a proof that `incr` equals
-;; `add1`. We'll define `incr` as we go along.
+;; We'll define `incr` as we go along.
 
 
 ;; Bottoming out in `add1` is a good idea because
@@ -1788,10 +1806,11 @@ kar
 ;; "identical," which is machine checkable, even
 ;; with consistent renaming of variables [footnote];
 ;; (2) "same," which we check by judgments and which
-;; sometimes means "identical," so can be checked by
+;; sometimes (always?) means "identical, up to
+;; consistent renaming," so can be checked by
 ;; machine; and (3) "equals," which we are going to
-;; show now, but solves problems that checking for
-;; identical normal forms cannot solve.
+;; develop now. Equals solves problems that checking
+;; for identical normal forms cannot solve.
 
 
 ;; footnote:: Checking that two expressions are
@@ -1799,6 +1818,12 @@ kar
 ;; surprisingly tricky, and the greats have
 ;; published mistakes about it. See [de Bruijn
 ;; Index](https://en.wikipedia.org/wiki/De_Bruijn_index).
+
+
+;; We're going to prove that `incr` equals `add1` in
+;; stages. The first stage is to prove that `(+ 1)`,
+;; i.e., our existing `+` partially evaluated on
+;; `1`, equals `add1`.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -1810,17 +1835,18 @@ kar
 ;; `(+ 1)` and `add1` are identical (up to
 ;; consistent renaming of variables). That means
 ;; they're "the same." Then we'll write that fact up
-;; via `=` and `same`, showing that they're `equal`.
+;; via `=` and `same`, showing that they're also
+;; `equal`.
 
 
-;; The later proof that `incr` equals `add1`
+;; Later, the proof that `incr` equals `add1`
 ;; requires new eliminators for `=`, namely `cong`
-;; and `replace`, because the normal forms for these
-;; two are not identical (up to consistent renaming
-;; of variables).
+;; and `replace`, because the normal forms for
+;; `incr` and `add1` are not identical (up to
+;; consistent renaming of variables).
 
 
-;; Start with the normal form of `(+ 1)`, which is
+;; Start with the normal form of `(+ 1)`
 ;; partial application of `+` to `1`:
 
 
@@ -1843,7 +1869,7 @@ kar
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Calculate the normal form of `(+ 1)`:
+;; Calculate the normal form of `(+ 1)` by hand:
 
 
 ;; (+ 1)
@@ -1900,7 +1926,8 @@ kar
 ;; Law of Application (Page 139, Fifth Printing), or
 ;; even the Initial Law of Application (Page 38,
 ;; Fifth Printing) to show that `add1` is "the same"
-;; as `(λ (n) (add1 n))`.
+;; as `(λ (n) (add1 n))`, and also that they have
+;; identical normal forms (up to renaming).
 
 
 ;; This pattern of wrapping `add1` is exactly like
@@ -1951,8 +1978,8 @@ kar
 ;; `(+ 1 n)` and `(add1 n)`. The statement boils
 ;; down to stating that the normal forms are
 ;; identical (up to renaming), hence the same.
-;; That's not a proof of equality, but a precise
-;; statement of it. We'll need a witness,
+;; That's not a proof of equality, but a precise and
+;; practical statement of it. We'll need a witness,
 ;; conveniently packaged in a `define`.
 
 
@@ -1969,8 +1996,10 @@ kar
 ;; `(add1 n)`! They're "the same" by Big Box, Page
 ;; 13. So we can write the formal proof of the
 ;; equality statement by defining something that
-;; constructs a value by the sole constructor for =,
-;; namely _same_.
+;; constructs a value by the sole constructor for
+;; `=`, namely `same`. It's a pun that the name of
+;; the constructor is identical to the word "same"
+;; that we employ for human judgments.
 
 
 ;; -----------------------------------------------
@@ -2000,6 +2029,10 @@ kar
 ;        (same (add1 n))))
 
 
+;; Let us write some prose for human judgment about
+;; `=`:
+
+
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-
 ;;  T h e   L a w   o f   =
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-
@@ -2013,6 +2046,9 @@ kar
 ;; _to_ is an X."
 
 
+;; That's a judgment of type 1, a "J1."
+
+
 ;; When discussing an `=` type expression, call the
 ;; second argument the FROM of the expression and
 ;; the third argument the TO of the expression, with
@@ -2020,21 +2056,28 @@ kar
 
 
 ;; The FROM and TO might be types or not, but they
-;; must be of type X (type X is a U). Therefore, an
-;; `(= ...)` is a dependent type because it might
-;; depend on things that might not, themselves, be
-;; types.
+;; must be of type `X` (type `X` is a `U`).
+;; Therefore, an `(= ...)` is a dependent type
+;; because it might depend on things that might not,
+;; themselves, be types.
 
 
-;; Some examples of `=` types for describing
+;; Here is an example of a `=` types for describing
 ;; equality -- remember, types _describe_ values,
 ;; but they are also propositions in logic that
 ;; _state_ that a value satisfying the type exists.
+;; We constructively prove the proposition by
+;; exhibiting an instance or witness.
 
 
 (= Nat (+ 6 7) 13)                      ; input to REPL
 ; (the U                                ; response from REPL
 ;      (= Nat 13 13))
+
+
+;; We now move to the meaty bit: proving that two
+;; expressions that are not "the same" are actually
+;; `=`.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -2052,7 +2095,7 @@ kar
   (λ (n)
     (iter-Nat n                         ; target
               1                         ; base
-              (+ 1))))                  ; step
+              (+ 1))))                  ; step, same as `add1`
 
 
 ;; The normal forms of `(+ 1)` and `incr` are not
@@ -2105,13 +2148,13 @@ incr                                    ; input to REPL
 
 ;; The expression (same e3) is an (= X e1 e2) if e1,
 ;; e2, and e3 are each an X and e1 is the same as
-;; e2.
+;; e2 [J1].
 
 
-;; We've seen that `(+ 1 n)` and `(add1 n)` are the
-;; same but `(+ 1 n)` and `(incr n)` are not
-;; identical. Can we exhibit a witness in a `same`
-;; constructor?
+;; We've seen that `(+ 1)` and `add1` are identical
+;; and therefore "the same" but that `(+ 1 n)` and
+;; `(incr n)` are not identical so not "the same."
+;; Can we exhibit a witness in a `same` constructor?
 
 
 ;; Writing a formal type-witness proof of sameness
@@ -2132,22 +2175,24 @@ incr                                    ; input to REPL
 ;; an example:"
 
 
-;; Here is a commented-out copy of the formal proof
-;; of `+1=add1` above just to remind us.
+;; Here is a commented-out reminder copy of the
+;; formal proof of `+1=add1` above.
 
 
 ;; -----------------------------------------------
-;; (claim +1=add1
-;;        (Π ((n Nat))
-;;           (= Nat (+ 1 n) (add1 n))))
+;;     (claim +1=add1
+;;            (Π ((n Nat))
+;;               (= Nat (+ 1 n) (add1 n))))
 
-;; (define +1=add1
-;;   (λ (n) (same (add1 n))))
+;;     (define +1=add1
+;;       (λ (n) (same (add1 n))))
 
 
 ;; ... proves the statement that for every Nat n,
-;; (+ 1 n) equals (add1 n). Equals, here is via the
-;; type constructor `=`.
+;; `(+ 1 n)` equals `(add1 n)`. Equals, here is via
+;; the type constructor `=` and the value
+;; constructor `same`, which creates an
+;; type-instance of the `=`
 
 
 ;; But `incr=add1` doesn't prove so easily, as
@@ -2164,7 +2209,7 @@ incr                                    ; input to REPL
 
 ;; This is _harder_ to prove because the normal
 ;; forms of `(incr n)` and `(add1 n)` are not
-;; identical.
+;; identical. Reminder:
 
 
 ;; (define incr=add1
@@ -2180,10 +2225,10 @@ incr                                    ; input to REPL
 ; are not the same Nat
 
 
-;; The normal form of (incr n) is
-;; (iter-Nat n 1 (+ 1) (we must add a type hint for
-;; Pie); _part of it_ is informally the same as
-;; `add1` or `(+ 1)`:
+;; The normal form of `(incr n)` is
+;; `(iter-Nat n 1 (+ 1)` (we must add a type hint
+;; for Pie); _part of `(iter-Nat n 1 (+ 1)` is
+;; informally the same as `add1` or `(+ 1)`:
 
 
 (the (→ Nat Nat) (λ (n) (incr n)))      ; input to REPL
@@ -2196,7 +2241,7 @@ incr                                    ; input to REPL
 ;                    (add1 j)))))       ; (+ 1)
 
 
-;; We must figure out how to fish out that part.
+;; We must figure out how to extract that part.
 
 
 ;;                  __           ___ __
@@ -2211,7 +2256,7 @@ incr                                    ; input to REPL
 ;; normal forms.
 
 
-;; This normal form of (incr n),
+;; This normal form of `(incr n)`,
 ;;
 ;;     (iter-Nat n 1 (+ 1))
 ;;
@@ -2223,7 +2268,7 @@ incr                                    ; input to REPL
 
 ;; "Variables that are not defined are neutral. If
 ;; the target of an eliminator expression [like
-;; iter-Nat] is neutral, then the eliminator
+;; `iter-Nat`] is neutral, then the eliminator
 ;; expression is neutral. _Thus values are not
 ;; neutral_."
 
@@ -2234,24 +2279,32 @@ incr                                    ; input to REPL
 ;; neutrally targeted eliminator expressions are
 ;; _the only_ kinds of neutral expressions. No value
 ;; can be of either kind. `(add1 n)` though
-;; seemingly neutral, is not a neutral expression by
+;; seemingly neutral, is not a neutral expression
 ;; because it's not a naked variable and is not a
 ;; targeted eliminator expression. Its normal form,
 ;; `(λ (j) (add1 j))`, reported by Pie, is a value
-;; with a λ constructor up top.
+;; with a λ constructor up top and thus not neutral.
 
 
 ;; Now, we're going to do a lot of talking about
-;; whether neutral expressions are normal. This is
-;; the most tricky bit of reasoning in the book
-;; through Chapter 8, but we shall exhibit neutral
-;; expressions that are not normal because they
-;; reduce to values and values can never be neutral.
+;; whether neutral expressions are normal and vice
+;; versa. This is the most tricky bit of reasoning
+;; in the book through Chapter 8, but we shall
+;; exhibit neutral expressions that are not normal
+;; because their normal forms are values and values
+;; can never be neutral.
 
 
 ;; Frame 2.26, Page 40: "Expressions that are not
 ;; values and cannot yet be evaluated due to a
-;; variable are called _neutral_."
+;; [stuck] variable are called _neutral_."
+
+
+;; There are four possibilities:
+;; 1. Normal and Neutral
+;; 2. Normal but not Neutral
+;; 3. Neither Normal nor Neutral
+;; 4. Neutral but not Normal
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -2261,11 +2314,11 @@ incr                                    ; input to REPL
 
 ;; Frames 8.48-8.49, Page 181 (Fifth Printing): the
 ;; normal form of `(incr n)`, namely
-;; (iter-Nat n 1 (+ 1)), is neutral because it is a
-;; neutrally targeted eliminator expression: (1) it
-;; is not a value (no constructor up top) and (2) it
-;; cannot yet be evaluated due to the variable n.
-;; This is normal and neutral.
+;; `(iter-Nat n 1 (+ 1))`, is neutral because it is
+;; a neutrally targeted eliminator expression: (1)
+;; it is not a value (no constructor up top) and (2)
+;; it cannot yet be evaluated due to the variable n.
+;; `(iter-Nat n 1 (+ 1))` is normal and neutral.
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -2273,8 +2326,8 @@ incr                                    ; input to REPL
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; (λ (x) (add1 x)), already normal, is not neutral
-;; because it's a value with the function
+;; `(λ (x) (add1 x))`, already normal, is not
+;; neutral because it's a value with the function
 ;; constructor λ up top
 
 
@@ -2293,8 +2346,8 @@ incr                                    ; input to REPL
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-(+ 1)
-; (the (→ Nat
+(+ 1)                                   ; input to REPL
+; (the (→ Nat                           ; response from REPL
 ;         Nat)
 ;      (λ (j)
 ;        (add1 j)))
@@ -2333,9 +2386,9 @@ incr                                    ; input to REPL
 ;; Remember our claim:
 
 
-;; (claim incr=add1
-;;        (Π ((n Nat))
-;;           (= Nat (incr n) (add1 n))))
+;;     (claim incr=add1
+;;            (Π ((n Nat))
+;;               (= Nat (incr n) (add1 n))))
 
 
 ;; Let's try
@@ -2357,7 +2410,7 @@ incr                                    ; input to REPL
 ;; This fails because the normal form of `(add1 n)`,
 ;; namely `(λ (n) (add1 n))`, is not neutral because
 ;; it's a value, but `(iter-Nat n 1 (+ 1))` is
-;; neutral even thought it's normal.
+;; neutral even though it's normal.
 
 
 ;; Check it a couple of more ways:
@@ -2366,6 +2419,7 @@ incr                                    ; input to REPL
 ;; (check-same (→ Nat Nat)
 ;;             (λ (n) (iter-Nat n 1 (+ 1)))
 ;;             (λ (n) (add1 n)))        ; input to REPL
+;;                    '------'          ; nota bene
 ; The expressions                       ; response from REPL
 ;   (λ (n)
 ;     (iter-Nat n
@@ -2383,6 +2437,7 @@ incr                                    ; input to REPL
 ;; (check-same (→ Nat Nat)
 ;;             (λ (n) (iter-Nat n 1 (+ 1)))
 ;;             (λ (n) (+ 1 n)))         ; input to REPL
+;;                    '-----'           ; nota bene
 ; The expressions                       ; response from REPL
 ;   (λ (n)
 ;     (iter-Nat n
@@ -2398,8 +2453,8 @@ incr                                    ; input to REPL
 
 
 ;; Socrates, on the left-hand side of every frame,
-;; says "try `ind-Nat`." We'll need a target, a
-;; base, a motive, and a step.
+;; says "try `ind-Nat`." We'll need target, base,
+;; motive, and step.
 
 
 ;; -+-+-+-+-
@@ -2408,7 +2463,8 @@ incr                                    ; input to REPL
 
 
 ;; Here is a base case that makes an `=` statement
-;; about `zero`:
+;; about `zero` and proves it with a `same`
+;; constructor:
 
 
 ;; -----------------------------------------------
@@ -2425,16 +2481,28 @@ incr                                    ; input to REPL
 
 
 ;; Here is a motive that makes an `=` statement
-;; about any Nat:
+;; about any Nat; that statement is a type:
 
 
 ;; -----------------------------------------------
 (claim mot-incr=add1                    ; standard
-       (→ Nat U))
+       (→ Nat U))                       ; makes an `=`,
+                                        ;   which is a `U`
+
+;; Remember for later that `=` statements are types,
+;; so they're of type `U`. It's difficult
+;; (impossible?) to be more specific in general
+;; cases.
+
 
 (define mot-incr=add1
   (λ (k)
     (= Nat (incr k) (add1 k))))
+
+
+;; Is `(mot-incr=add1 zero)` the same as
+;; `base-incr=add1`? Yes, by The Commandment of
+;; cong, below.
 
 
 ;; -+-+-+-+-
@@ -2450,23 +2518,24 @@ incr                                    ; input to REPL
 ;; not ideal for reasons to-be-revealed:
 
 
-;; (claim step-incr=add1
-;;        (Π (( n-1 Nat ))
-;;           (→ (mot-incr=add1 n-1)
-;;              (mot-incr=add1 (add1 n-1)))))
+;;     (claim step-incr=add1
+;;            (Π (( n-1 Nat ))
+;;               (→ (mot-incr=add1 n-1)
+;;                  (mot-incr=add1 (add1 n-1)))))
 
 
-;; Inline the references to the motive:
+;; To move it to a more ideal form, inline the
+;; references to the motive:
 
 
-;; (claim step-incr=add1
-;;        (Π (( n-1 Nat ))
-;;           (→ (= Nat
-;;                 (incr n-1)
-;;                 (add1 n-1))
-;;              (= Nat
-;;                 (incr (add1 n-1))
-;;                 (add1 (add1 n-1))))))
+;;     (claim step-incr=add1
+;;            (Π (( n-1 Nat ))
+;;               (→ (= Nat
+;;                     (incr n-1)
+;;                     (add1 n-1))
+;;                  (= Nat
+;;                     (incr (add1 n-1))
+;;                     (add1 (add1 n-1))))))
 
 
 ;; Works, but still considered ugly because of lack
@@ -2481,16 +2550,17 @@ incr                                    ; input to REPL
 ;; for a lengthy calculation. This form makes the
 ;; application of `cong` obvious, but only by
 ;; applying the pseudo-function `add1`: Letting
+;; target be
 ;;
-;; target be (= Nat
-;;              (incr n-1)
-;;              (add1 n-1))
+;;      (= Nat
+;;         (incr n-1)
+;;         (add1 n-1))
 ;;
 ;; and `f` "be" `add1`, `(cong target f)` is
 ;;
-;; (= Nat
-;;    (add1 (incr n-1))
-;;    (add1 (add1 n-1)))
+;;      (= Nat
+;;         (add1 (incr n-1))
+;;         (add1 (add1 n-1)))
 
 
 (claim step-incr=add1
@@ -2513,13 +2583,14 @@ incr                                    ; input to REPL
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Page 190 (Fifth Printing): If `f `is an `(→ X Y)`
-;; [even if only a macro like `add1`] and `target`
-;; is an `(= X from to)`, then `(cong target f)` is
-;; an `(= Y (f from) (f to))`.
+;; Page 190 (Fifth Printing):
+;; If `target` is an `(= X from to)`
+;; and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
+;; then              `(cong target f)` is
+;; an                `(= Y (f from) (f to))`.
 
 
-;; This looks like [The Yoneda Lemma](https://en.wikipedia.org/wiki/Yoneda_lemma) to my eyes.
+;; This looks like [The Yoneda Lemma](https://en.wikipedia.org/wiki/Yoneda_lemma) to my eyes. Is it?
 
 
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -2527,34 +2598,35 @@ incr                                    ; input to REPL
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; Show how `cong` eliminates `=`:
+;; Show how `cong` eliminates `=` by producing a
+;; `same`:
 
 
-;; Page 194 (Fifth Printing): If `x` is an `X` and
-;; `f` is an `(→ X Y)`, then
-;;
-;;     (cong (same x) f)
-;;
-;; is the same `(= Y (f x) (f x))` as `(same (f x))`
+;; If `x` is an      `X` and
+;; `f` is an         `(→ X Y)`, then
+;; then              `(cong (same x) f)`
+;; is the same       `(= Y (f x) (f x))` as
+;;                   `(same (f x))`
 
 
 ;; In our example, we must transform
 
 
-;;    (= Nat
-;;       (incr n-1)
-;;       (add1 n-1))
+;;     (= Nat
+;;        (incr n-1)
+;;        (add1 n-1))
 
 
 ;; into
 
 
-;;    (= Nat
-;;       (add1 (incr n-1))
-;;       (add1 (add1 n-1))))
+;;     (= Nat
+;;        (add1 (incr n-1))
+;;        (add1 (add1 n-1))))
 
 
-;; by eliminating =:
+;; which just moves the FROM and TO under `add`, by
+;; eliminating `=`:
 
 
 (define step-incr=add1
@@ -2589,7 +2661,229 @@ incr                                    ; input to REPL
 ;;                |_|
 
 
-;; TODO
+;; We'll first show a use of `replace` that's
+;; equivalent to the use of `cong` above.
+
+
+;; Page 199, Fifth Printing:
+
+
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+;;  T h e   L a w   o f   r e p l a c e
+;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+;; If `target` is an `(= X from to)`
+;; `mot` is an       `(→ X U)`
+;; and `base` is a   `(mot from)`
+;; then              `(replace target mot base)`
+;; is a              `(mot to)`.
+
+
+;; Reminders about `cong` so we can see the
+;; parallelism:
+
+
+;; If `target` is an `(= X from to)`
+;; and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
+;; then              `(cong target f)` is
+;; an                `(= Y (f from) (f to))`.
+
+
+;; If `x` is an      `X` and
+;; `f` is an         `(→ X Y)`, then
+;; then              `(cong (same x) f)`
+;; is the same       `(= Y (f x) (f x))` as
+;;                   `(same (f x))`
+
+
+;; Reminders:
+
+
+;; -----------------------------------------------
+;; (define incr=add1
+;;   (λ (n)
+;;     (ind-Nat n
+;;              mot-incr=add1
+;;              base-incr=add1
+;;              step-incr=add1)))
+;; -----------------------------------------------
+;; (define mot-incr=add1
+;;   (λ (k)
+;;     (= Nat (incr k) (add1 k))))
+;; -----------------------------------------------
+;; (define base-incr=add1
+;;   (same (add1 zero)))
+;; -----------------------------------------------
+;; (define step-incr=add1
+;;   (λ (n-1)
+;;     (λ (incr=add_n-1)
+;;     ;
+;;     ;           (mot n-1) ~~> (= Nat (incr n-1) (add1 n-1))
+;;     ;           '---.---'     same as by The Comm'dt of `cong`
+;;     ;               |         /
+;;     ;               |base    /
+;;     ;               |       /
+;;     ;       .-------^-------.
+;;     ;       (same (add1 n-1)) (→ Nat Nat)
+;;     ;       '--------.------' '----.----'
+;;     ;                |             |
+;;     ;                |target       |f = "add1"
+;;     ;                |             |
+;;     ;           .----^-----.     .-^-.
+;;       (cong     incr=add_n-1     (+ 1)  ) )))
+;;     ; '------------.------------------------'
+;;     ;              |
+;;     ;              |(cong target f)
+;;     ;              |
+;;     ; .------------^---------.
+;;     ; (same (add1 (incr n-1)))
+;;     ;
+;;     ;     by The Commandment of `cong`, same as
+;;     ;
+;;     ; (= Nat ((+ 1) (incr n-1)) ((+ 1) (incr n-1)))
+;;     ;
+;;     ;     normalizing:
+;;     ;
+;;     ; (= Nat (add1  (incr n-1)) (add1  (incr n-1)))
+
+
+;; Write it up with `replace`. We'll need a motive
+;; for `replace`:
+
+
+;; -----------------------------------------------
+(claim mot-step-incr=add1
+       (→ Nat Nat
+          U))
+
+(define mot-step-incr=add1
+  (λ (n-1 k)
+    (= Nat
+       (add1 (incr n-1))
+       (add1 k))))
+
+
+;; ... and a new `step` for `replace`, a `step` that
+;; uses the motive `mot-step-incr=add1`. This `step`
+;; employs `replace` instead of `cong`:
+
+
+;; -----------------------------------------------
+(claim step-incr=add1-2                 ; identical claim to
+       (Π (( n-1 Nat ))                 ;   the claim of
+          (→ (= Nat                     ;   step-incr=add1
+                (incr n-1)
+                (add1 n-1))
+             (= Nat
+                (add1 (incr n-1))
+                (add1 (add1 n-1))))))
+
+
+(define step-incr=add1-2                ; different from the
+  (λ (n-1)                              ;   definition of
+    (λ (incr=add_n-1)                   ;   step-incr=add1
+      (replace incr=add_n-1             ; target
+               (mot-step-incr=add1 n-1) ; motive
+               (same (add1 (incr n-1))) ; base
+               ))))
+
+
+;; -----------------------------------------------
+(claim incr=add1-2                      ; identical claim to
+       (Π ((n Nat))                     ;   the claim of
+          (= Nat (incr n) (add1 n))))   ;   incr=add1
+
+(define incr=add1-2                     ; Keeps `ind-Nat`, but
+  (λ (n)                                ;   employs the new `step`
+    (ind-Nat n                          ;   `step-incr=add1-2`.
+             mot-incr=add1              ; Uses the same old
+             base-incr=add1             ;   motive and base as
+             step-incr=add1-2)))        ;   before.
+
+
+;; Let's analyze the new `step-incr=add1-2`:
+
+
+;; `step-incr=add1` is
+;;
+;;     (λ (n-1)
+;;       (λ (incr=add_n-1)
+;;         (cong incr=add_n-1 (+ 1))))
+;;
+;; It puts `add1`, in its functional disguise as
+;; `(+ 1)`, up top of
+;;
+;;     (= Nat
+;;        (incr n-1)
+;;        (add1 n-1))
+
+
+;; Replace must do the identical thing. Let's see
+;; that. Here is the new `step-incr=add1-2`:
+
+
+;; (λ (n-1)
+;;   (λ (incr=add_n-1)
+;;     (replace incr=add_n-1             ; target
+;;              (mot-step-incr=add1 n-1) ; motive
+;;              (same (add1 (incr n-1))) ; base
+;;              )))
+
+
+;; Copying from The Law of `replace` and filling in
+;; the blanks:
+
+
+;; -- If `target` is an `(= X from to)`
+
+;;   It's `incr=add_n-1`, a parameter. How is it an
+;;   `(= X from to)`? `ind-Nat` feeds it to
+;;   `step-incr=add1-2`, and we recall that it
+;;   starts as `(same (add1 zero))`. That is a
+;;   witness for `(= Nat (add1 zero) (add1 zero)`,
+;;   so we are confident that `target` is an
+;;   `(= Nat (add1 zero) (add1 zero))`.
+
+;; -- `mot` is an       `(→ X U)`
+
+;;   `(mot n-1)`, the motive for `replace`, is a
+;;
+;;     (λ (k)
+;;       (= Nat
+;;          (add1 (incr n-1))
+;;          (add1 k)))
+;;
+;;   by currying. Remember that `=` expressions are
+;;   types of type `U`, so `(mot n-1)` is a
+;;   `(→ Nat U)`.
+
+;; -- and `base` is a `(mot from)`
+
+;;   `from` is `(add1 zero)`; `(mot from)` is an
+;;   `(= Nat (add1 (incr n-1)) (add1 k~~>(add1 zero)))`
+;;   `base` is, manifestly,
+;;   `(same_(add1_(incr_n-1)))`, so it's an
+;;   `(= Nat (add1 (incr n-1)) (add1 (add1 zero)))`
+;;   when `n-1` is zero.
+
+;; -- then              `(replace target mot base)`
+;; -- is a              `(mot to)`.
+
+;;   When `incr=add_n-1` is `(add1 n-1)` and not
+;;   just `(add1 zero)`, then `to` is an
+;;   `(= Nat (add1 (incr n-1)) (add1 (add1 n-1)))`.
+
+;;   QED.
+
+
+;;      __          __   __                   __  __         _
+;;  ___/ /__  __ __/ /  / /__   ___ ____  ___/ / / /__    __(_)______
+;; / _  / _ \/ // / _ \/ / -_) / _ `/ _ \/ _  / / __/ |/|/ / / __/ -_)
+;; \_,_/\___/\_,_/_.__/_/\__/  \_,_/_//_/\_,_/  \__/|__,__/_/\__/\__/
+
+
+
 
 
 ;;   ___ _             _     ___ _            _
@@ -2602,589 +2896,3 @@ incr                                    ; input to REPL
 ;; here](https://docs.racket-lang.org/pie/#%28part._top%29).
 ;; It's the official pie documentation. It's
 ;; refreshingly short and useful.
-
-
-;; The rest of this Cheat Sheet is my gleanings from
-;; "The Little Typer."
-
-
-;; All page numbers refer to the Fifth Printing.
-;; I've gathered together edited transcriptions of
-;; the boxed definitions, laws, and commandments
-;; according to my own needs. My edits are clearly
-;; marked, as are direct quotations from the book.
-;; This is a good point to review them all because
-;; chapter 8 goes into the weeds with neutral
-;; expressions and normal forms.
-
-
-;; -+-+-+-+-+-+-
-;;  V a l u e s
-;; -+-+-+-+-+-+-
-
-
-;; Page 22: "An expression with a constructor [up]
-;; top is called a _value_."
-
-
-;; (add1 0) is a value but (+ 1 0) is not.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-
-;;  N o r m a l   F o r m s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 13: "Given a type, every expression
-;; described by that type has a normal form, which
-;; the most direct way of writing it. Iff two
-;; expressions are the same [according to some
-;; type], then they have identical normal forms."
-
-
-;; This is how Mathematica works: keep rewriting
-;; expressions until Mathematica's notion of the
-;; normal form is achieved and the expression does
-;; not change its syntactical structure by applying
-;; any more rules.
-
-
-;; Frame 1.97, Page 25: "A normal expression has no
-;; remaining opportunities for evaluation."
-
-
-;; I believe this implies that normal forms are
-;; unique and that the fact is called The Confluence
-;; Theorem.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  V a l u e s   a n d   N o r m a l   F o r m s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 24: "Not every value is a normal form. This
-;; is because the arguments [of] a constructor need
-;; not be normal. Each expression has only one
-;; normal form, but it is sometimes possible to
-;; write it as a value[, with a constructor up top,]
-;; in more than one way."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  N o r m a l   F o r m s   a n d   T y p e s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-;; Frame 1.44, Page 12; also Page 14: "Sameness is
-;; always according to a type, so normal forms are
-;; also described by a type."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   F i r s t   C o m m a n d m e n t
-;;  o f   c o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 15: "Two cons-expressions are the same (Pair
-;; A D) if their cars are the same A and their cdrs
-;; are the same D. Here, A and D stand for any
-;; type[s]."
-
-
-;; One judges sameness according to a type by
-;; writing "two expressions e1 and e2 are the same
-;; X," where A is a type. This is a minor variation
-;; of a judgment of form 4 (see circa Line 1643).
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  N o r m a l   F o r m s   O F   T y p e s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 16: "Every expression that IS a type has a
-;; normal form, which is the most direct way of
-;; writing that type. Iff two expressions ARE the
-;; same type, then they have identical normal
-;; forms." (emphasis mine).
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  L a w s   a n d   C o m m a n d m e n t s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page xiii in the Preface: "Laws describe which
-;; expressions are meaningful and commandment
-;; describe which expressions are the same as others
-;; [, with 'same''s having a technical meaning that
-;; is spelled out in the Commandments.]"
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  C l a i m s   b e f o r e   D e f i n i t i o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  E v a l u a t i o n   &   E x p r e s s i o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 25: "In Pie, values are also expressions.
-;; Evaluation in Pie finds an expression, not some
-;; other kind of thing."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   C o m m a n d m e n t   o f   z e r o
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 26: "zero is the same Nat as zero."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   C o m m a n d m e n t   o f   a d d 1
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 26: "If n is the same Nat as k, then (add1
-;; n) is the same Nat as (add1 k)."
-
-;; Frame 100, Page 26: "Two Nat expressions, that
-;; are not values, are the same if their values are
-;; the same.."
-
-
-;; This statement implies that evaluation can reduce
-;; an expression like (+ 1 0) that is not a value to
-;; a value like (add1 0).
-
-
-;; This statement also implies that sameness
-;; pertains to expressions, some of which might not
-;; be values.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  D e f i n i t i o n s   a r e   F o r e v e r
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Aka, _immutable_.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  C o n s t r u c t o r s   a n d
-;;  E l i m i n a t o r s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 33: "Constructors build values [expressions
-;; with a constructor up top], and eliminators take
-;; apart values built by constructors."
-
-
-;; I usually pair elimination with a preceding
-;; destructuring. See comments near Line 262 in this
-;; document.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  E l i m i n a t i n g   F u n c t i o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 34: "Applying a function to arguments _is_
-;; the eliminator for functions."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   I n i t i a l   L a w
-;;  o f   A p p l i c a t i o n
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 38: "If f is an (→ Y X) and arg is a Y, then
-;; (f arg) is an X."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   I n t e r m e d i a t e   L a w
-;;  o f   A p p l i c a t i o n
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 100: "
-;; If f is a
-;;   (Π (( Y U ))
-;;     X)
-;; and Z is a U, then
-;;   (f Z)
-;; is an X, where every Y has been consistently
-;; replaced by Z."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   F i n a l   L a w
-;;  o f   A p p l i c a t i o n
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 139: "
-;; If f is a
-;;   (Π (( y Y ))
-;;     X)
-;; and Z is a Y, then
-;;   (f z)
-;; is an X, where every y has been consistently
-;; replaced by z."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   F i n a l   L a w   o f   λ
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 139: "
-;; If x is an X when y is a Y, then
-;;   (λ (y) x)
-;; is a
-;;   (Π (( y Y ))
-;;     X)."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   Final
-;;  F i r s t   C o m m a n d m e n t   o f   λ
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 139: "
-;; If two λ-expressions can be made the same
-;;   (Π (( y Y ))
-;;     X)
-;; by consistently renaming their variables,
-;; then they are the same."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   I n i t i a l
-;;  F i r s t   C o m m a n d m e n t   o f   λ
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 38: "Two λ-expressions that expect the same
-;; number of arguments are the same if their bodies
-;; are the same after consistently renaming their
-;; variables."
-
-
-;; "Consistent renaming" is a lot more subtle than
-;; it sounds because preventing collisions of free
-;; and bound variable names in deep expressions is
-;; error-prone. Errors have occurred in archival
-;; papers by great authors. Look up ["de Bruijn
-;; Index"](https://en.wikipedia.org/wiki/De_Bruijn_index)
-;; for more info.
-
-
-;; The Little Typer book sweeps the topic of
-;; consistent renaming under the rug of "occur" The
-;; Initial Second Commandment of λ below and in The
-;; Law of Renaming Variables. We don't need to worry
-;; about it much, here, but if one is implements Pie
-;; or the λ-calculus, one must be wary.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   I n i t i a l
-;;  S e c o n d   C o m m a n d m e n t   o f   λ
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 38: "If f is an (→ Y X) then f is the same
-;; (→ Y X) as (λ (y) (f y)) [so] long as y does not
-;; occur in f [at any level]."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   F i n a l
-;;  S e c o n d   C o m m a n d m e n t   o f   λ
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 140: "
-;; If f is a
-;;   (Π ((y Y))
-;;     X)
-;; and y does not occur [at any level] in f, then
-;; f is the same as
-;;   (λ (y)
-;;     (f y))."
-
-
-;; Page 183: "Commandments such as this one are often
-;; called η-rules. These normal forms in which all
-;; possible η-rules have been applied to make values
-;; are called _η-long normal forms.'"
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   L a w   o f
-;;  R e n a m i n g   V a r i a b l e s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 39: "Consistently renaming variables can't
-;; change the meaning of anything."
-
-
-;; This law is a requirement, but doesn't give an
-;; algorithm, let alone an efficient one, for
-;; consistent renaming. The article cited above on
-;; de Bruijn Indices introduces some algorithms for
-;; consistent renaming.
-
-
-;;    _  __         __           __
-;;   / |/ /__ __ __/ /________ _/ /
-;;  /    / -_) // / __/ __/ _ `/ /
-;; /_/|_/\__/\_,_/\__/_/  \_,_/_/
-;;    ____                           _
-;;   / __/_ __ ___  _______ ___ ___ (_)__  ___  ___
-;;  / _/ \ \ // _ \/ __/ -_|_-<(_-</ / _ \/ _ \(_-<
-;; /___//_\_\/ .__/_/  \__/___/___/_/\___/_//_/___/
-;;          /_/
-
-
-;; This deserves a big heading because it's critical
-;; to Chapter 8.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   C o m m a n d m e n t   o f
-;;  N e u t r a l   E x p r e s s i o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 42: "Neutral expressions ... written
-;; identically are the same, _no matter their
-;; type_."
-
-
-;; We must learn about neutral expressions. Rewind
-;; to Chapter 2.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  N e u t r a l   E x p r e s s i o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Frame 2.26, Page 40: "Expressions that are not
-;; values and cannot yet be evaluated due to a
-;; variable are called _neutral_."
-
-
-;; This means that (cdr y) is a neutral expression
-;; because it is not a value because cdr is not a
-;; constructor, but an eliminator. However (λ (y)
-;; (cdr y)) is not a neutral expression because it
-;; IS a value because λ is a constructor.
-
-
-;; Frame 2.27, Page 40: "... two occurrences of a
-;; variable cannot be replaced by values that are
-;; not the same."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   L a w   a n d   C o m m a n d m e n t
-;;  o f   d e f i n e
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 43: "Following
-;;   (claim _name_ X) and (define _name_ _expr_)
-;; if
-;;   _expr_ is an X                     ; judg. 1
-;; then
-;;   _name_ is an X                     ; judg. 1
-;; and
-;;   _name_ is the same X as _expr_     ; judg. 2
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   S e c o n d   C o m m a n d m e n t
-;;  o f   c o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 44: "If p is a (Pair A D) [j1] then it is
-;; the same (Pair A D) as (cons (car p) (cdr p))
-;; [j2]."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  N a m e s   i n   D e f i n i t i o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 46: "In Pie, only names that are not already
-;; used, whether for constructors, eliminators, or
-;; previous definitions, can be used with _claim_ or
-;; _define_."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-
-;;  T y p e   V a l u e s
-;; -+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 53: "An expression that is described by a
-;; type is a value when it has a constructor [up]
-;; top. Similarly, an expression that IS a type is a
-;; value when it has a type constructor [up] top."
-
-
-;; Type constructors are things like Nat, Atom, Pair,
-;; →, and U.
-
-
-;; (claim foo54 U)
-; cons requires a Pair or Σ type, but was used as a U
-
-(claim foo54 (Pair U U))
-
-(define foo54 (cons Atom Atom))
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  E v e r y   U   i s   a   T y p e
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 55: "Every expression described by U is a
-;; type, but not every type is described by U."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   C o m m a n d m e n t   o f   t h e
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 66: "If X is a type and e is an X, then
-;;   (the X e)
-;; is the same X as e."
-
-
-;; -+-+-+-+-+-+-+-+-
-;;  S a m e n e s s
-;; -+-+-+-+-+-+-+-+-
-
-
-;; Page 70: "If a 'same-as' chart could show that
-;; two expressions are the same, then this fact can
-;; be used anywhere without further justification.
-;; 'Same-As' charts are only to help build
-;; understanding."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T o t a l   F u n c t i o n s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 71: "A function that always assigns a value
-;; to _every_ possible argument is called a _total
-;; function_.
-
-
-;; Skipping iter-Nat, rec-Nat, which-Nat, rec-List.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   L a w   o f   L i s t
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 110: "If E is a type, then (List E) is a
-;; type."
-
-
-;; Page 120: "All ... entries in a list must have
-;; the same type."
-
-
-;; Skipping Page 131.
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   L a w   o f   Π
-;; -+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 136: "
-;; The expression
-;;   (Π (( y Y ))
-;;     X)
-;; is a type when Y is a type, and X is a type if y
-;; is a Y."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  U s e   a   M o r e   S p e c i f i c   T y p e
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 137: "Make a function total by using a more
-;; specific type to rule out unwanted arguments."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  U s e   i n d - N a t
-;;  f o r   D e p e n d e n t   T y p e s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 145: "Use ind-Nat instead of rec-Nat when
-;; the [type of the] rec-Nat or ind-Nat expression
-;; depends on the target Nat. The [type of the]
-;; ind-Nat expression is the motive applied to the
-;; target."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  T h e   L a w   o f   i n d - N a t
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; See also "claim iN" around line 948 above.
-
-
-;; Page 147: "
-;; If target is a Nat, mot is an
-;;   (→ Nat U)
-;; base is a (mot zero) and step is a
-;;   (Π ((n-1 Nat))
-;;     (→ (mot n-1)
-;;     (mot (add1 n-1))))
-;; then
-;;   (ind-Nat target mot base step)
-;; is a
-;;   (mot target)."
-
-
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-;;  I n d u c t i o n
-;;  o n   N a t u r a l   N u m b e r s
-;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-
-
-;; Page 149: "Building a value for any natural
-;; number by giving a value for zero and a way to
-;; transform a value for [n-1 into a value for n] is
-;; called _induction on natural numbers."
