@@ -2574,7 +2574,7 @@ incr                                    ; input to REPL
 
 
 ;; To prove this claim, i.e., to produce a witness,
-;; we introduce `cong` ("congruent"). `cong` is an
+;; introduce `cong` ("congruent"). `cong` is an
 ;; eliminator for =.
 
 
@@ -2609,7 +2609,7 @@ incr                                    ; input to REPL
 ;;                   `(same (f x))`
 
 
-;; In our example, we must transform
+;; In our example, `step-incr=add1` must transform
 
 
 ;;     (= Nat
@@ -2625,7 +2625,7 @@ incr                                    ; input to REPL
 ;;        (add1 (add1 n-1))))
 
 
-;; which just moves the FROM and TO under `add`, by
+;; which just moves the FROM and TO under `add1`, by
 ;; eliminating `=`:
 
 
@@ -2642,7 +2642,7 @@ incr                                    ; input to REPL
   (λ (n)
     (ind-Nat n
              mot-incr=add1
-             base-incr=add1
+             base-incr=add1             ; (same (add1 zero))
              step-incr=add1)))
 
 
@@ -2673,7 +2673,7 @@ incr                                    ; input to REPL
 ;; -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 
-;; If `target` is an `(= X from to)`
+;; If `target` is an `(= X from to)`  [which is a `U`]
 ;; `mot` is an       `(→ X U)`
 ;; and `base` is a   `(mot from)`
 ;; then              `(replace target mot base)`
@@ -2684,7 +2684,7 @@ incr                                    ; input to REPL
 ;; parallelism:
 
 
-;; If `target` is an `(= X from to)`
+;; If `target` is an `(= X from to)`  [which is a `U`]
 ;; and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
 ;; then              `(cong target f)` is
 ;; an                `(= Y (f from) (f to))`.
