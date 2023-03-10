@@ -49,6 +49,12 @@ in Coq. I played around with it but came here for
 something smaller and easier.
 
 
+## Version
+
+
+10 March 2023
+
+
 ## Logistics
 
 
@@ -90,7 +96,7 @@ I'm not religious about any line-spacing.
 ## License
 
 
-https://creativecommons.org/licenses/by/4.0/
+[`https://creativecommons.org/licenses/by/4.0/`](https://creativecommons.org/licenses/by/4.0/)
 
 
 ## Technology
@@ -104,10 +110,16 @@ The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tuf
 ## Undone
 
 
-* pygments for syntax highlighting
+* pygments or highlights.js for syntax highlighting.
+  Multiple attempts in the `pm` leaf directory do
+  not work as expected. Color changes in pygments do
+  not appear, and highlights does not produce syntax
+  highlighting, though it renders code correctly in
+  `pre` tags.
 
 
-* sidenotes, marginnotes
+* sidenotes, marginnotes from the `template.html`
+  don't work.
 
 
 # Chapters 1 & 2
