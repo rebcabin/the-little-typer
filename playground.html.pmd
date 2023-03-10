@@ -1,0 +1,3415 @@
+#lang pollen
+
+```racket
+#lang pie  ;; Racket supports this language as a
+           ;; package (`raco pkg install pie`)
+```
+
+# Prolegomenon
+
+
+These are my notes on [_The Little Typer_](https://thelittletyper.com/index.html), Fifth Printing.
+
+
+[Here is a good article on the basics of type theory](https://medium.com/@haliq12/homotopy-type-theory-hott-for-mere-mortals-8d28301a1b19).
+In there, we find out that dependent type theory is not
+just for programming languages.
+
+
+[The Wikipedia article](https://en.wikipedia.org/wiki/Type_theory) is worth your time, too.
+
+
+[Benjamin Pierce's book TAPL](https://www.cis.upenn.edu/~bcpierce/tapl/) is famous and on my
+reading list for the future.
+
+
+[Software Foundations is an interactive course](https://softwarefoundations.cis.upenn.edu/)
+in Coq. I played around with it but came here for
+something smaller and easier.
+
+
+## Logistics
+
+
+In Emacs racket-mode, `C-c C-c` sends the whole file
+to the racket interpreter. `C-M-x` sends the s-exp
+that surrounds the cursor, just as with CIDER in
+Clojure-mode.
+
+
+Code blocks are delimited in triple-backticks, not
+nestable. If you can extract the code from the
+`.pmd` file, you can run it in `racket`.
+
+
+I tried to do this whole thing in a Jupyter
+notebook, but found that the racket kernel for
+Jupyter was not up to the job on my Mac Book Pro M1.
+
+
+Alternatively, if you don't want to set up Emacs
+for racket, load this file into DrRacket and play
+around. DrRacket comes for free with [the racket
+distribution](https://download.racket-lang.org/).
+Install the distribution, type `raco pkg install
+pie` at the terminal, launch `DrRacket` and party
+on. DrRacket is a fine IDE if you can stand
+imperfect Emacs key-binding emulation (I can't;
+too many decades of muscle memory!)
+
+
+Mostly, I leave two blank lines between things. I
+leave one blank line between a `claim` and its
+matching `define`. Writing these pairs _feels like_
+writing Haskell. I also sometimes leave a single
+blank line between a definition and its unit tests.
+I'm not religious about any line-spacing.
+
+
+# Chapters 1 & 2
+
+
+```racket
+'spinach
+
+
+(the (Pair Atom Atom)                       ; type
+     (cons 'spinach 'cauliflower))             ; instance
+
+
+(the Atom (the Atom 'pie))                  ; instance only
+
+```
+
+
+## Which-Nat
+
+
+Here is my clone of `which-Nat` and its type
+signature:
+
+
+```racket
+(claim wN
+       (Π ((E      U        )
+           (target Nat      )
+           (base   E        )
+           (step   (→ Nat E)))
+          E))
+
+(define wN
+  (λ (E)
+   (λ (t b s) (which-Nat t b s))))
+```
+
+
+The base and the output of `step` must have the
+same type `(E U)`. `E` can be anything -- `Atom`
+or `Nat`, for instance, but it must be the same
+on both branches of `which-Nat`.
+
+
+Here is pseudocode for which-Nat:
+
+
+```racket
+;; (which-Nat target base step) == base if
+;; target == 0 else if target == n == (add1 n-1)
+;; then which-Nat = (step n-1)
+```
+
+
+A good name for the argument (parameter?) of step
+is `n-1` because step is called with `n-1` when
+`target` == `n` == `(add1 n-1)`.
+
+
+A parameter is a name for an argument. What is
+the name of a parameter (your answer)?
+
+
+SPOILER: Parameters inhabit a space of symbolic
+calculation inside the compiler or its runtime,
+Names of parameters only appear in the
+implementations of the compiler or its run-time
+representative functions, where they may stand
+for arbitrary parameters. At the user's level.
+parameters are names for arguments, where they
+may stand for arbitrary argument values. Recall
+that values are expressions with constructors up
+top (in first positions in parenthesized
+expressions).
+
+
+```racket
+(which-Nat zero 'naught (λ (n-1) 'more))
+; (the Atom 'naught)                    ; response from REPL
+(which-Nat 4    'naught (λ (n-1) 'three))
+; (the atom 'three)                     ; response from REPL
+```
+
+
+I made up the following to show how rec-Nat can
+mimic the behavior of `which-Nat`, i.e., by the
+step's ignoring both its arguments:
+
+
+```racket
+;;      target    base       step
+;;       ---- ----------- ----------
+(rec-Nat zero 'rec-naught (λ (n-1 r) 'rec-more))
+; (the Atom 'rec-naught)
+(rec-Nat 4    'rec-naught (λ (n-1 r) 'rec-three))
+; (the Atom 'rec-three
+```
+
+
+Notice that both `which-Nat` and `rec-Nat` ignore
+`step` when `target` is `zero`.
+
+
+Notice that `rec-Nat` "destructures" its argument
+into `(add1 n-1)` and then "eliminates" `add1`
+before handing `n-1` to the `step` function,
+`(λ (n-1 r) 'some-atom)`. More about
+destructuring and elimination below.
+
+
+The book writes ignored arguments in a dimmed,
+grey, `dim` font. I think one need not bother
+much about that here. But one might sometimes
+write `_` or `foo_` with a `_` suffix for ignored
+arguments. Lots of programming languages follow
+that convention, sometimes allowing multiple
+instances of `_` in an argument list without
+collision.
+
+
+Later, one will see that by `step`'s ignoring
+argument `r`, the recursive computation,
+`rec-Nat`, simulates `iter-Nat`.
+
+
+# Chapter 3
+
+
+## Frame 3.23
+
+
+All the functions above follow a pattern, with
+parameters `target`, `base`, and `step`.
+
+
+```racket
+;;        target base      step
+;;       |------|----|----------------|
+(iter-Nat    5     3  (λ (k) (add1 k)))
+```
+
+Discovery about pie (the language of this file):
+cannot use `add1` instead of `(λ (k) (add1 k))`.
+Later, one finds the reason: `add1` is not a
+function; it's of an un-named primitive kind,
+perhaps a macro. Later, one can see that it acts
+like a value constructor in expressions like
+`(add1 n-1)`.
+
+
+```racket
+;; (iter-Nat 5 3 add1)                  ; input to REPL
+;;                                      : response from REPL:
+;; .../the-little-typer/playground.pie:17:14:
+;; add1: expected valid Pie name
+;   at: add1
+;   in: add1
+```
+
+
+## Iter-Nat
+
+
+pseudocode for `iter-Nat`:
+
+
+```racket
+;; (iter-Nat target base step) == base if
+;; target == 0 else if target == n == (add1 n-1)
+;; then iter-Nat ==
+;; (step
+;;    (iter-Nat
+;;      n-1 base step))
+```
+
+
+`iter-Nat` has type
+
+
+```racket
+;;     (Π ((E U))
+;;       (→ N E (→ N E) E))
+;;          ^ ^  \_ _/  ^
+;;           \ \   v     \
+;;            \ \   \     type of return value
+;;             \ \   type of `step`
+;;              \ type of `base`
+;;               type of `target`
+```
+
+same as the type of `which-Nat`. The difference
+between the two is that `iter-Nat` calls
+`iter-Nat` internally for the argument of `step`.
+User-defined code must not recurse explicitly,
+but this system-defined routine can recurse
+internally because it does type-checking along
+the way or at compile time.
+
+
+We must define `+`. It's not built-in:
+
+
+```racket
+;; (+ 2 3)                              ; input to REPL
+; Unknown variable +                    ; response from REPL
+```
+
+When some input to the REPL produces an error
+message, we must comment-out that input in this
+source file. The REPL halts on any error. We want
+to write down the errors, but we don't want to
+halt the REPL once we figure out the fix.
+
+
+<hr>
+```racket
+(claim step-+
+       (→ Nat Nat))
+
+(define step-+
+  (λ (n-1) (add1 n-1)))
+```
+
+
+<hr>
+```racket
+(claim + (→ Nat Nat Nat))
+
+(define +
+  (λ (n j) ;; Don't use the name `n-1` here.
+    ;;        target base  step  ; the pattern
+    ;;       |------|----|-------|
+    (iter-Nat    n     j   step-+ )))
+```
+
+
+## Frame 3.28, sort-of
+
+
+reminder of the pseudocode of `which-Nat`:
+
+
+```racket
+;; (which-Nat target base step) == base if
+;; target == 0 else if target == n == (add1 n-1)
+;; then which-Nat = (step n-1)
+```
+
+## Elimination
+
+
+The process of replacing `(add1 n-1)` with `n-1`
+is "elimination" because it strips off --
+eliminates -- the value constructor `add1`.
+Selection (`which-Nat`), iteration (`iter-Nat`),
+and recursion (`rec-Nat`) work in a backwards
+kind of way, by eliminating toward zero. One says
+"backwards" because one's prior experience with
+recursion and iteration probably has one starting
+with some big Nat and _subtracting_ 1 from it
+before recursing. Here, in The Little Typer, one
+instead destructures larger numbers `n` into
+smaller ones `(add1 n-1)` by writing out the
+_addition_ that "must have taken place." The
+effect is the same, but preserves type
+information.
+
+
+Sequential deconstruction and elimination _build
+up_ expressions of smaller Nats. The eliminators
+_rattle down_ those expressions in O(n) time to
+produce final results in the unique normal form
+-- the "most direct" form.
+
+
+## Destructuring
+
+
+The invisible process of noticing that
+`n == (add1 n-1)` is "destructuring," a term not
+in The Little Typer. I borrowed it from Clojure.
+One might think it should "structuring" because
+it substitutes a value like `(add1 n-1)`, with a
+constructor up top, for an expression like `n`.
+However, I always pair destructuring with a
+following elimination, so destructuring is more a
+partner of elimination than it is a stand-alone
+operation. Also, I wanted to mimic Clojure, which
+unpacks variable-binding expressions into value
+forms, typically with Clojure keywords up top
+taking the role of Pie's constructors.
+Destructuring might better be called _pattern
+matching_, but The Little Typer has a specific
+meaning for _pattern matching_ in an Appendix and
+I don't want to collide names.
+
+
+Destructuring, in our example, defines the
+argument `n-1` by setting up the value
+`(add1 n-1)` [constructor `add1` up top, as if a
+Clojure keyword] for later elimination to `n-1`.
+
+
+```racket
+;; (iter-Nat target base step) == base if
+;; target == 0 else if target == n == (add1 n-1)
+;;                               |-------------|
+;;                                destructuring
+;; then iter-Nat ==        ______/
+;;                        /
+;;             elimination
+;; (step       |---------|
+;;    (iter-Nat    n-1    base step))
+```
+
+`Iter-Nat` is [an "eliminator" for Nats](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._iter-.Nat%29%29).
+
+
+Here is a "same-chart" -- a hand calculation --
+for `(+ 2 3)`. I assume one understands "subst.",
+i.e., substitution, without further explanation:
+
+
+```racket
+(+ 2 3) ; step 1. ...                     how? why?
+;; 2.     (iter-Nat     2    3 step-+)    subst. def
+;; 3.     (iter-Nat (add1 1) 3 step-+)    destructuring
+;; 4. (step-+            /                elimination
+;;        (iter-Nat     1    3 step-+))   ... always together
+;; 5. (step-+       ____^___
+;;        (iter-Nat (add1 0) 3 step-+))   destructuring
+;; 6. (step-+            /                elimination
+;;      (step-+         |                 ... line handmaidens
+;;        (iter-Nat     0    3 step-+)))
+;;        -------------------v--------
+;; 7. (step-+                |            subst. base
+;;      (step-+              3))
+;; ~~~> 5                                 rattle-down evaluation
+```
+
+
+Here is something I made up to show that
+`rec-Nat` is at least as strong as `iter-Nat`. In
+the following example, the `step` function body
+ignores its recursive argument `r`, so we write
+it `r_` by the naming convention that ignored
+variables have a `_` suffix.
+
+
+reminder of `rec-Nat`:
+
+
+```racket
+;; (rec-Nat target base step) == base if
+;; target == 0 else if target == (add1 n-1)
+;; then rec-Nat ==
+;; (step n-1                              nota bene
+;;    (rec-Nat n-1 base step))            elimination
+```
+
+
+<hr>
+```racket
+(claim sr+
+       (→ Nat Nat Nat))
+
+(define sr+
+  (λ (n-1 r_) (add1 n-1))) ;              ignore r == r_
+```
+
+
+```racket
+(rec-Nat 2 3 sr+) ; step 1. ...
+;; 2.     (rec-Nat     2    3 sr+)        subst. def
+;;                 ____^___
+;; 3.     (rec-Nat (add1 1) 3 sr+)        destructuring
+;; 4. (sr+ 1            /                 elimination
+;;        (rec-Nat     1    3 sr+))       ... always together
+;; 5. (sr+ 1       ____^___               destructuring
+;;        (rec-Nat (add1 0) 3 sr+))
+;; 6. (sr+ 0            /                 elimination
+;;      (sr+ 0         |                  ... like handmaidens
+;;        (rec-Nat     0    3 sr+)))
+;;        ------------------v-----        subst. base
+;; 7. (sr+ 0                |
+;;      (sr+ 0              3))
+;; ~~~> 5                                 rattle-down evaluation
+```
+
+
+## Gauss
+
+
+The steppers in the `rec-Nat` example above
+ignores the recursive argument `r == r_`. Here is
+an example of a `rec-Nat` stepper that uses both
+arguments, including `r == rg`, i.e., `r` gauss:
+
+
+<hr>
+```racket
+(claim step-gauss
+       (→ Nat Nat
+          Nat))
+
+(define step-gauss
+  (λ (n-1 rg)
+    (+ (add1 n-1) rg)))
+```
+
+
+<hr>
+```racket
+(claim gauss
+       ;;  n  output
+       (→ Nat Nat))
+
+(define gauss
+  (λ (n) ; Don't name this argument n-1
+    (rec-Nat n ; `target`: if zero, return ...
+             0 ; `base`: else, if target is `(add1 n-1)`
+             ;; return
+             ;; (step-gauss
+             ;;   (rec-Nat n-1
+             ;;            base
+             ;;            step-gauss)
+             step-gauss)))
+```
+
+
+Less noisy pseudocode:
+
+
+```racket
+;; letting rN == rec-Nat, s == some-stepper, a1 == add1
+;; claim s (→ Nat Nat Nat)
+;; (rN     0    b s) ~~> b
+;; (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
+```
+
+a step-chart calculated by hand:
+
+
+```racket
+(gauss 3) ; step 1. ...
+;; 2.       (rN    3   0 sg)              subst. def
+;;              ___^__
+;; 3.       (rN (a1 2) 0 sg)              destructuring
+;; 4. (sg 2        /                      elimination
+;;          (rN    2   0 sg))             ... always together
+;; 5. (sg 2     ___^__
+;;          (rN (a1 1) 0 sg))             destructuring
+;; 6. (sg 2        /                      elimination
+;;      (sg 1      |                      ... like handmaidens
+;;          (rN    1   0 sg)))
+;; 6. (sg 2        |
+;;      (sg 1   ___^__
+;;          (rN (a1 0) 0 sg)))            destructuring
+;; 7. (sg 2        /                      elimination
+;;      (sg 1      |
+;;        (sg 0    |
+;;          (rN    0   0 sg))))
+;; 8. (sg 2 -------v--------
+;;      (sg 1      |
+;;        (sg 0    0)))                   subst. base
+;; 9. (sg 2 (sg 1 (+ (add1 0) 0)))        rattle-down evaluation
+;; A. (sg 2 (sg 1 1))                     including
+;; B. (sg 2 (+ (add1 1) 1))               multiple
+;; C. (sg 2 3)                            steps not
+;; D. (+ (add1 2) 3)                      exploded here
+;; E. 6
+```
+
+
+# Chapter 4
+
+
+This chapter is mostly about the miniature
+calculus on types, a calculus effected by Π. I
+assume this is easy, so I don't talk much, just
+show some examples. In Emacs, type M-C-x with the
+cursor in an example to see its value in the
+pie/racket interpreter.
+
+
+```racket
+;; (claim foo (→ A D))
+;; Page 98:  ~" → is not up to the job "~
+```
+
+
+## Flip
+
+
+<hr>
+```racket
+(claim flip
+       (Π ((A U) (D U))
+          (→ (Pair A D)
+              (Pair D A))))
+
+(define flip
+  (λ (A D)
+    (λ (p) ;; of type (Pair A D)
+      (cons (cdr p) (car p)))))  ;; normal form!
+```
+
+
+We'll make much truck of the normal form later!
+
+
+```racket
+(flip Nat Nat)                          ; input to REPL
+; (the (→ (Pair Nat Nat)                ; response from REPL
+;         (Pair Nat Nat))
+;      (λ (p)
+;        (cons (cdr p)
+;              (car p))))
+```
+
+
+```racket
+((flip Nat Atom) (cons 17 'apple))
+; (the (Pair Atom Nat)
+;      (cons 'apple 17))
+```
+
+
+```racket
+((flip Nat Nat) (cons 2 3))
+; (the (Pair Nat Nat)
+;      (cons 3 2))
+```
+
+
+## Curried!
+
+
+
+```racket
+(flip Nat Atom (cons 17 'apple))
+; (the (Pair Atom Nat)
+;      (cons 'apple 17))
+```
+
+
+```racket
+(flip Nat Nat (cons 2 3))
+; (the (Pair Nat Nat)
+;      (cons 3 2))
+```
+
+
+The following makes THE VERY IMPORTANT POINT that
+CONSTRUCTORS like `cons` and `add1` ARE NOT
+FUNCTIONS! You CAN'T CURRY THEM!
+
+
+## `cons` is Not a Function! (Can't Curry it)
+
+
+```racket
+;; (flip Nat Atom (cons 17 'apple))
+; cons: expected valid Pie name
+;   at: cons
+;   in: cons
+```
+
+
+## Write Your Own Eliminator
+
+
+<hr>
+```racket
+(claim elim-Pair
+       (Π ((A U) (D U) (X U))
+          (→ (Pair A D)
+             (→ A D X)
+             X)))
+
+(define elim-Pair
+  (λ (A D X)
+    (λ (p f)
+      (f (car p) (cdr p)))))
+```
+
+
+```racket
+elim-Pair
+; (the (Π ((A U)
+;          (D U)
+;          (X U))
+;         (→ (Pair A D)
+;            (→ A D
+;               X)
+;            X))
+;      (λ (A D X p f)
+;        (f (car p)
+;           (cdr p))))
+```
+
+
+```racket
+(elim-Pair Nat Atom Nat)
+; (the (→ (Pair Nat Atom)
+;         (→ Nat Atom
+;            Nat)
+;         Nat)
+;      (λ (p f)
+;        (f (car p)
+;           (cdr p))))
+```
+
+
+# Kar, Kdr
+
+
+These `kar` and `kdr` functions are specialized
+for Nats. `kar` and `kdr` are probably lousy
+names for them, but go with them just to exit the
+chapter. `elim-pair` is not specialized, so
+bracket the function-calls appropriately.
+
+
+<hr>
+```racket
+(claim kar
+       (→ (Pair Nat Nat) Nat))
+
+(define kar
+  (λ (p)
+    ((elim-Pair Nat Nat Nat) ; specialized on Nats
+               p
+               (λ (a d_) a)))) ; ignore argument d
+```
+
+
+```racket
+kar
+; (the (→ (Pair Nat Nat)
+;         Nat)
+;      (λ (p)
+;        (car p)))
+```
+
+
+```racket
+(kar (cons 2 3))
+; (the Nat 2)
+```
+
+
+<hr>
+```racket
+(claim kdr
+       (→ (Pair Nat Nat) Nat))
+
+(define kdr
+  (λ (pn)
+    ((elim-Pair Nat Nat Nat) ; specialized on Nats
+               pn
+               (λ (a_ d) d)))) ; ignore argument a
+```
+
+
+```racket
+(kdr (cons 2 3))
+; (the Nat 3)
+```
+
+
+## Frame 4.50
+
+
+## Twin
+
+
+<hr>
+```racket
+(claim twin
+       (Π ((Y U))
+          (→ Y (Pair Y Y))))
+
+(define twin
+  (λ (Y)
+    (λ (x)
+      (cons x x))))
+```
+
+
+```racket
+((twin Atom) 'pew)
+; (the (Pair Atom Atom)
+;      (cons 'pew 'pew))
+```
+
+
+curried:
+
+
+```racket
+(twin Atom 'poe)
+; (the (Pair Atom Atom)
+;      (cons 'poe 'poe))
+```
+
+
+# Chapter 5
+
+
+No need for a lot of prose, here. Read the code!
+
+
+## Frame 5.31
+
+
+<hr>
+```racket
+(claim toppings (List Atom))
+
+(define toppings
+  (:: 'potato (:: 'butter nil)))
+```
+
+
+<hr>
+```racket
+(claim condiments (List Atom))
+
+(define condiments
+  (:: 'chives
+      (:: 'mayonnaise nil)))
+```
+
+
+## Length
+
+
+reminder of `rec-Nat`:
+
+
+```racket
+;; letting rN == rec-Nat, s == some-stepper, a1 == add1
+;; claim s (→ Nat Nat Nat)
+;; (rN     0    b s) ~~> b
+;; (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
+```
+
+
+```racket
+;; pseudocode for rec-List:
+;; claim s (-> E (List E) X X)            stepper
+;; claim b X                              base
+;; claim t (List E)                       target
+```
+
+letting `rL` == `rec-List`, `s` == some-stepper, `::` for
+destructuring like `add1` (the "1" in `add1` is
+analogous to the additional `E` argument in the
+stepper, `s` [Frame 5.27]; the book does not state
+this, but it's obvious in retrospect!).
+
+
+```racket
+;; (rL    nil    b s) ~~> b
+;; (rl (:: e es) b s) ~~> (s e es (rL es b s))
+```
+
+
+<hr>
+```racket
+(claim step-length
+       (Π ((E U))
+          (→ E
+             (List E)
+             Nat
+             Nat)))
+
+(define step-length
+  (λ (E)
+    (λ (e es length-es)
+      (add1 length-es))))
+```
+
+
+<hr>
+```racket
+(claim length
+       (Π ((E U))
+          (→ (List E)
+              Nat)))
+
+(define length
+  (λ (E)
+    (λ (es)
+      (rec-List es 0 (step-length E)))))
+```
+
+
+```racket
+(length Nat nil)                        ; ~~> (the Nat 0)
+(length Atom nil)                       ; ~~> (the Nat 0)
+```
+
+
+```racket
+(length Nat (:: 42 nil))                ; ~~> (the Nat 1)
+(length Atom (:: 'foo (:: 'bar nil)))   ; ~~> (the Nat 2)
+```
+
+
+```racket
+(the (List Atom) nil)                   ; typed empty list
+(the (List Nat)  nil)                   ; typed empty list
+```
+
+
+## Frame 5.42
+
+
+Specialized for the `Atom` type:
+
+
+<hr>
+```racket
+(claim length-Atom
+       (→ (List Atom) Nat))
+
+(define length-Atom
+  (length Atom))
+```
+
+
+## Frame 5.45
+
+
+## Append
+
+
+`step-append` is called post-destructuring into
+`(:: e es)` and post-elimination of `::`, just as
+with `rec-Nat`. Destructuring and elimination are
+handmaidens, destructuring before elimination.
+
+
+<hr>
+```racket
+(claim step-append
+       (Π ((E U))
+          (→ E
+             (List E)
+             (List E)
+             (List E))))
+
+(define step-append
+  (λ (E)
+    (λ (e es append-es)
+      (:: e append-es))))
+```
+
+
+<hr>
+```racket
+(claim append
+       (Π ((E U))
+          (→ (List E)
+             (List E)
+             (List E))))
+
+(define append
+  (λ (E)
+    (λ (start end)
+      (rec-List start end (step-append E)))))
+```
+
+
+```racket
+((append Nat) nil nil)                  ; ~~> (the (List Nat) nil)
+(append Nat nil nil)                    ; Everything's curried.
+```
+
+
+<hr>
+```racket
+(claim append-Nat
+       (→ (List Nat)
+          (List Nat)
+          (List Nat)))
+
+(define append-Nat
+  (append Nat))
+```
+
+
+```racket
+(append-Nat (:: 1 nil) nil)
+; (the (List Nat) (:: 1 nil))
+(append-Nat nil (:: 2 nil))
+(append-Nat (:: 1 nil) (:: 2 nil))
+; You fill those in!
+```
+
+
+## Reverse
+
+
+<hr>
+```racket
+(claim snoc
+       (Π ((E U))
+          (→ (List E) ; start
+             E        ; element e
+             (List E))))
+
+(define snoc
+  (λ (E)
+    (λ (start e)
+      (append E start (:: e nil)))))
+```
+
+
+The compiler detects, by type analysis, that
+consing `nil` onto `nil` is illegal: it does not
+produce a `List`!
+
+
+illegal! compile error!
+
+
+```racket
+;; (snoc Nat nil nil)
+; nil requires a List type, but was used as a Nat
+;   Source locations:
+;   playground.pie:54:14
+```
+
+
+```racket
+(snoc Nat nil 1)
+(snoc Nat (:: 1 nil) 2)
+; You fill those in!
+```
+
+
+<hr>
+```racket
+(claim step-reverse
+       (Π ((E U))
+          (→ E
+             (List E)
+             (List E)
+             (List E))))
+```
+
+
+`step-reverse` is called post-destructuring into
+`(:: e es)` and post-elimination of `::`, just as
+with `rec-Nat`. So it gets two arguments, `e` and
+`es`, as well as the recursive "almost,"
+reversed.
+
+
+```racket
+(define step-reverse
+  (λ (E)
+    (λ (e es reversed)
+      (snoc E reversed e))))
+```
+
+
+<hr>
+```racket
+(claim reverse
+       (Π ((E U))
+          (→ (List E)
+             (List E))))
+```
+
+
+I first wrote the `nil` below without peeking at
+the answer. But the book snuck one in on me: too
+clever by half! `nil` must be explicitly typed,
+here. Not sure why type inference in Pie fails in
+this case. The book is not clear about it.
+
+
+```racket
+(define reverse
+  (λ (E)
+    (λ (es)
+      (rec-List es
+                (the (List E) nil)
+                ;; See sneaky footnote on Page 125!
+                (step-reverse E)))))
+```
+
+
+```racket
+(reverse Nat nil)
+(reverse Nat (:: 1 nil))
+(reverse Nat (:: 2 (:: 1 nil)))
+; You fill those in!
+```
+
+
+# Chapter 6
+
+
+two expressions that produce types -- instances
+of type `U`:
+
+
+```racket
+(Vec Atom zero)                         ; (the U (Vec Atom 0))
+(Vec Atom (add1 zero))                  ; (the U (Vec Atom 1))
+```
+
+
+`Vec` is like a `List` that carries its length
+along with it. A `Vec` of length 3 is of a
+different type than a `Vec` of length 2. We'll
+have to occasionally pass Nats around to remind
+certain functions of the Nat part of a `Vec`
+type.
+
+
+Here is an instance expression ("The Little Typer"
+through chapter 6 does not use the word
+"instance" in this way, but I use it to mean a
+value):
+
+
+```racket
+(the (Vec Atom zero) vecnil)            ; ~~> itself
+```
+
+
+## Frame 6.21
+
+
+`head` and `tail` are built-in, but they need
+type-hints:
+
+
+```racket
+(head (the (Vec Atom 1) (vec:: 'a vecnil)))
+                                        ; ~~> (the Atom 'a)
+```
+
+
+```racket
+;; (head (vec:: 'a vecnil))
+;; because
+; Can't determine a type
+;   Source locations:
+;   playground.pie:71:6
+```
+
+
+```racket
+(tail (the (Vec Atom 1) (vec:: 'a vecnil)))
+                                        ; ~~> (the (Vec Atom 0) vecnil
+```
+
+
+<hr>
+```racket
+(claim first-of-one
+       (Π ((E U))
+          (→ (Vec E 1) E)))
+
+(define first-of-one
+  (λ (E)
+    (λ (es)
+      (head es))))
+```
+
+
+```racket
+(first-of-one Atom (vec:: 'shiitake vecnil))
+```
+
+Lots of expressions need type hints:
+
+
+See https://stackoverflow.com/questions/75516108/vec-in-the-little-typer/75516109#75516109
+
+
+```racket
+(the (Vec Atom 1) (vec:: 'shiitake vecnil))
+(the (Vec Atom 1) (vec:: (the Atom 'shiitake) vecnil))
+(the (Vec Atom 1) (vec:: (the Atom 'shiitake)
+                         (the (Vec Atom zero) vecnil)))
+(the (Vec Atom 1) (vec:: 'shiitake
+                         (the (Vec Atom zero) vecnil)))
+```
+
+
+## First
+
+
+## Frames 6.34 through 6.37
+
+
+## _Totality_
+
+
+This version of `first` requires a Nat argument,
+`ℓ-1`, that is one fewer than the length of the
+`Vec`. The argument must be one fewer than the
+length so that `first` may be a total function;
+so that neither its input nor its output may ever
+be `vecnil`, that is, the sole `(Vec E 0)`.
+`First` guarantees totality by destructuring
+`ℓ-1` into `(add1 ℓ-1)`, which may never be
+`zero`, then eliminating `add1` to yield `ℓ-1`,
+which _can_ be `zero`.
+
+
+The requirement that all functions be total gives
+the type system great power to reject values that
+might diverge, i.e., be non-terminating or empty.
+
+
+`First` must be total, so its base type must be
+some `Vec` with at least one element. The _type_
+`(Vec E (add1 ℓ-1))` tells the whole story! Wow!
+
+
+Note from the shorthand on Page 138 (Fifth
+Printing), one might just as well write
+
+
+<hr>
+```racket
+(claim first
+       (Π ((E U)
+           (ℓ-1 Nat)
+           (es (Vec E (add1 ℓ-1))))
+          E))
+
+(define first
+  (λ (E_ ℓ_ es)
+    (head es)))
+```
+
+
+As what I originally wrote (without peeking).
+It's equivalent, but aggressively renames the Nat
+argument from `ℓ` to `ℓ-1`.
+
+
+```racket
+;;     (claim first
+;;            (Π ((E U)
+;;                (ℓ-1 Nat))
+;;               (→ (Vec E (add1 ℓ-1))
+;;                  E)))
+
+;;     (define first
+;;       (λ (E ℓ-1)
+;;         (λ (es)
+;;           (head es))))
+```
+
+
+```racket
+(first Atom 2 (vec:: 'a (vec:: 'b (vec:: 'c vecnil))))
+                                        ; ~~> (the Atom 'a)
+(first Atom 0 (vec:: 'a vecnil))        ; ~~> (the Atom 'a)
+```
+
+
+The book captures the lesson about totality in
+the slogan "Use a More Specific Type ... to weed
+out unwanted arguments" on Page 137 (Fifth
+Printing).
+
+
+The rest of Chapter 6 seems to me just to
+enshrine standard facts about the form of lambda
+calculus that uses `GREEK CAPITAL LETTER PI`, `Π`.
+
+
+# Chapter 7
+
+
+```racket
+;; (define peas
+;;   (λ (how-many-peas)
+;;     (rec-Nat how-many-peas           ; target
+;;           ;  ------v------
+;;           ;    ____^_____
+;;           ; == (add1 ℓ-1)
+;;              vecnil                  ; base: type?
+;;              (λ (ℓ-1_ peas_ℓ-1)      ; step: uh-oh
+;;                (vec:: 'pea peas_ℓ-1)))))  ; type?
+```
+
+
+`peas` does not have a consistent type. `rec-Nat`
+requires the type of `base` to be the same as
+that of `peas_ℓ-1`. But, the type of base is
+
+```racket
+;;
+;;     (Vec Atom 0),
+;;
+;; and the type of `peas_ℓ-1` is
+;;
+;;     (Vec Atom ℓ-1)
+;;
+;; and `ℓ-1` could be anything `>= 0`.
+```
+
+
+Any ___motive___ for types that depend on Nat has
+type `(→ Nat U)`.
+
+
+"The motive explains _why_ the target is to be
+eliminated."
+
+
+I would say "how the target is destructured?"
+because I like to distinguish destructuring and
+elimination. Why? because it helps me to name my
+variables. If I point out that `n` is
+destructured into `(add1 n-1)`, then it's clear
+that the result of elimination, `n-1`, can be
+zero whilst `n` can't and they both remain Nats.
+
+
+Here is a shorthand synopsis for `ind-Nat`, which
+does forward-rewriting by adding 1 to the input
+of `step`. Backwards rewriting is done by
+elimination on `(add1 n-1)`; that elimination
+amounts to subtraction.
+
+
+The motive, when applied to `zero`, returns
+_the type of_ the base.
+
+
+Letting iN be ind-Nat and a1 be add1:
+    claim mot (→ Nat U)
+    claim b   (mot zero)             ; base
+    claim s   (Π ((n-1 Nat))         ; step
+                 (→ (mot    n-1)     ;  forward ...
+                    (mot (a1 n-1)))) ; ... rewriting
+
+    claim iN
+    (Π ((t   Nat)                    ; target
+        (m   (→ Nat U))              ; motive
+        (b   (m 0))                  ; base
+        (s   (Π ((n-1 Nat))          ; step
+                (→ (m n-1)
+                   (m (add1 n-1))))))
+       (m t))
+
+    (iN      0     m b s) ~~> b == (m 0)
+    (iN (add1 ℓ-1) m b s) ~~>
+      (s ℓ-1 (iN ℓ-1 m b s)) == (m (add1 ℓ-1))
+
+
+<hr>
+```racket
+(claim mot-peas
+       (→ Nat U))
+
+(define mot-peas
+  (λ (k) (Vec Atom k)))
+```
+
+
+The motive returns a type:
+
+
+```racket
+(mot-peas zero)
+; (the U                                ; response from REPL
+;   (Vec Atom 0))
+```
+
+
+```racket
+(mot-peas 1)
+; (the U
+;   (Vec Atom 1)
+```
+
+
+<hr>
+```racket
+(claim base-peas
+       (Vec Atom 0))
+
+(define base-peas                       ; because of the claim,
+  vecnil)                               ;   Pie knows the type
+```
+
+
+<hr>
+```racket
+(claim step-peas
+       (Π ((ℓ-1 Nat))
+          (→ (mot-peas ℓ-1)
+             (mot-peas (add1 ℓ-1)))))
+
+(define step-peas
+  (λ (ℓ-1)
+    (λ (peas_ℓ-1)
+      (vec:: 'pea peas_ℓ-1))))
+```
+
+
+<hr>
+```racket
+(claim peas
+       (Π ((ℓ Nat))
+          (Vec Atom ℓ)))
+
+(define peas
+  (λ (ℓ)
+    (ind-Nat ℓ
+             mot-peas
+             base-peas
+             step-peas)))
+```
+
+
+`M-C-x` on these after loading the file via `C-c C-c`.
+
+
+```racket
+(peas 0)
+(peas 1)
+(peas 3)
+; You fill in the responses!
+```
+
+
+I made up the following exercise for myself.
+
+
+Check type-fu by defining a function that's the
+same as `ind-Nat` (by technical meaning of "the
+same?" It's difficult to check, because ind-Nat
+isn't a function and doesn't have a normal form)
+
+
+The [official documentation for ind-Nat is here](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
+
+
+```racket
+;; (ind-Nat target motive base step) → (motive target)
+;;     target : Nat
+;;     motive : (-> Nat U)
+;;     base   : (motive zero)
+;;     step	 	:	(Π ((n Nat))
+;;                (-> (motive n)
+;;                (motive (add1 n))))
+```
+
+
+I got some help on this self-inflicted "homework"
+problem. [See here](https://racket.discourse.group/t/the-type-of-ind-nat-in-the-pie-language/1733).
+
+
+<hr>
+```racket
+(claim iN
+       (Π ((target   Nat)               ; target
+           (motive   (→ Nat U))         ; motive
+           (base     (motive 0))        ; base
+           (step     (Π ((n-1 Nat))     ; step
+                        (→ (motive n-1)
+                           (motive (add1 n-1))))))
+          (motive target)))
+
+(define iN
+  (λ (target motive base step)
+    (ind-Nat
+     target
+     motive
+     base
+     step)))
+```
+
+
+## unit tests
+
+
+<hr>
+```racket
+(claim peas-ex
+       (Π ((ℓ Nat))
+          (Vec Atom ℓ)))
+
+(define peas-ex
+  (λ (ℓ)
+    (iN ℓ
+        mot-peas
+        base-peas
+        step-peas)))
+```
+
+
+```racket
+(peas-ex 0)
+(peas-ex 1)
+(peas-ex 2)
+; You fill in the responses!
+```
+
+
+## Frame 7.27
+
+
+`rec-Nat` can act like `ind-Nat` when `ind-Nat`
+doesn't use its motive, because the types of
+`target`, `base`, `step`, and `result` don't
+change.
+
+
+<hr>
+```racket
+(claim also-rec-Nat
+       (Π ((E U))
+          (→ Nat                        ; target
+             E                          ; base
+             (→ Nat E E)                ; step
+             E)))                       ; result
+```
+
+
+```racket
+(define also-rec-Nat
+  (λ (E)
+    (λ (t b s)
+      (ind-Nat
+       t                                ; target
+       (λ (k) E)                        ; motive_
+       b                                ; base
+       s))))                            ; step
+```
+
+
+## Last
+
+
+## Frame 7.38, Page 152 (Fifth Printing)
+
+
+Motives are functions that return types. "The
+motive applied to [E and] zero should be the type
+of the base." The type of the base of `last` is
+
+    (→ (Vec E (add1 zero))
+       E)
+
+that is, the type of a function of a singleton
+`Vec` that returns the sole element of that
+`Vec`.
+
+
+<hr>
+```racket
+(claim mot-last
+       ;; extra type argument at the front:
+       (→ U Nat U))
+```
+
+
+Can we be more specific?
+
+
+```racket
+;;     (claim mot-last
+;;            ;; extra type argument at the front:
+;;            (Π ((E U))
+;;               (the U (→ (Vec E Nat) E))))
+```
+
+
+Doesn't work, so we can't easily be more
+specific! Let's see why it doesn't work:
+
+
+```racket
+(define mot-last
+  (λ (E k-1)
+    ;; Return a function from a singleton vec to an
+    ;; element:
+    (→ (Vec E (add1 k-1))
+       E)))
+```
+
+
+The motive applied to `zero` must return the type
+of a function that extracts the sole element of a
+singleton `Vec`:
+
+
+```racket
+(mot-last Atom 0)
+; (the U
+;   (→ (Vec Atom 1) Atom)
+```
+
+
+The motive applied to bigger `Nat`s returns the
+types of functions that can rattle out the last
+from bigger `Vec`s:
+
+
+```racket
+(mot-last Atom 1)
+; (the U
+;   (→ (Vec Atom 2) Atom)
+```
+
+
+This shows why the following attempt at a more
+specific type for `mot-last` fails:
+
+
+```racket
+;; (claim mot-last
+;;        ;; extra type argument at the front:
+;;        (Π ((E U))
+;;           (the U (→ (Vec E Nat) E))))
+; Expected
+;   (→ (Vec E k-1)
+;     E)
+; but given U
+```
+
+
+The motive must be able to return multiple
+different types! Each is reckoned just as a type,
+a type of type `U`.
+
+
+Why would we want a more specific types? Because
+having two `U`s in the type of the motive makes
+us kind-of seasick. But, I don't see a way around
+it! The return value must be of "any type" and
+the first input must be of "any type."
+
+
+<hr>
+```racket
+(claim base-last
+       (Π ((E U))
+          ;; The result is the type of a function
+          ;; that coughs up the sole element of a
+          ;; singleton Vec. It's (mot-last Atom 0).
+          (→ (Vec E (add1 zero))
+             E)))
+
+(define base-last
+  (λ (E)
+    (λ (singleton-vec)
+      (head singleton-vec))))
+```
+
+
+<hr>
+```racket
+(claim step-last
+       (Π ((E U)
+           (ℓ-1 Nat))
+          ;; The result is the type of a function
+          ;; that converts a motive of E and ℓ-1 to
+          ;; a motive of E and ℓ == (add1 ℓ-1) by
+          ;; "forward rewriting" (my terminology).
+          (→ (mot-last E       ℓ-1 )
+             (mot-last E (add1 ℓ-1)))))
+```
+
+
+Recall that these motives, after application to `E`
+and a `Nat`, yield types of functions from `Vec`s to
+elements of type `E`:
+
+
+```racket
+(define step-last
+  (λ (E ℓ-1)
+    (λ (mot-of-E-and-ℓ-1) ;; convert this bad boy
+      ;; ... into a new function of a `Vec`, `es`,
+      ;; which applies the motive to the tail of the
+      ;; Vec:
+      (λ (es)
+        (mot-of-E-and-ℓ-1 (tail es))))))
+```
+
+
+<hr>
+```racket
+(claim last
+       (Π ((E   U  )
+           (ℓ-1 Nat))
+          ;; The result is the type of a function
+          ;; from a vector of at least one element
+          ;; to an element:
+          (→ (Vec E (add1 ℓ-1))
+             E)))
+```
+
+
+We can cons-up `last` almost blindly:
+
+
+```racket
+(define last
+  (λ (E ℓ-1)
+    (ind-Nat ℓ-1
+             (mot-last E)
+             (base-last E)
+             (step-last E))))
+```
+
+
+and unit-test it:
+
+
+```racket
+(last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
+                                        ; ~~> (the Atom 'b)
+(last Atom 0 (vec:: 'b vecnil))         ; ~~> (the Atom 'b)
+```
+
+
+Due to totality, we can't even write, let alone
+compile, an expression that gets the last element
+of an empty `Vec`. We can try
+
+
+```racket
+;; (last Atom 0 vecnil)
+;  vecnil requires that the length be zero, not
+;   1
+```
+
+
+## Drop-Last
+
+
+## Frame 7.64, pg. 160 (Fifth Printing)
+
+
+Motives are functions that return types. "The
+motive applied to [E and] zero should be the type
+of the base." The type of the base of `drop-last`
+is the type of a function that converts a
+singleton vector into an empty vector:
+
+    (→ (Vec E (add1 zero))
+       (Vec E     zero   ))
+
+
+<hr>
+```racket
+(claim mot-drop-last
+       ;; extra type argument at the front:
+       (→ U Nat U))
+
+(define mot-drop-last
+  (λ (E ℓ-1)
+    (→ (Vec E (add1 ℓ-1 ))
+       (Vec E       ℓ-1 ))))
+```
+
+
+## unit tests:
+
+
+```racket
+(mot-drop-last Atom zero)
+; (the U
+;    (→ (Vec Atom 1)
+;       (Vec Atom 0)))
+```
+
+
+```racket
+(mot-drop-last Atom 1)
+; (the U
+;    (→ (Vec Atom 2)
+;       (Vec Atom 1)))
+```
+
+
+## Frame 7.61
+
+
+The base is a function of a singleton `Vec` that
+returns an empty `Vec`:
+
+
+<hr>
+```racket
+(claim base-drop-last
+       (Π ((E U))
+          (→ (Vec E (add1 zero))
+             (Vec E       zero ))))
+
+(define base-drop-last
+  (λ (E)
+    (λ (es_)
+      ;; Might be overkill to spell out the type.
+      ;; Might write just `vecnil`. Maybe Pie can
+      ;; reckon the type of `vecnil` here.
+      (the (Vec E zero) vecnil))))
+```
+
+
+## Frames 7.66-67
+
+
+The type of `step-drop-last` is the type of a
+function that converts a motive of `E` and `ℓ-1`
+to a motive of `E` and `ℓ == (add1 ℓ-1)`. Except
+for names, the claimed type of `step-drop-last`
+is the same as the claimed type for `step-last`,
+but the implementation differs.
+
+
+<hr>
+```racket
+(claim step-drop-last
+       (Π ((E   U  )
+           (ℓ-1 Nat))
+          (→ (mot-drop-last E       ℓ-1 )
+             (mot-drop-last E (add1 ℓ-1)))))
+```
+
+```racket
+(define step-drop-last
+  (λ (E ℓ-1)
+    ;; From a function a longer `Vec`, return a
+    ;; function from a shorter `Vec`:
+    (λ (mot-of-E-and-ℓ-1)
+      (λ (es)
+        (vec:: (head es)
+               (mot-of-E-and-ℓ-1 (tail es)))))))
+```
+
+
+We can blindly write the final function:
+
+
+<hr>
+```racket
+(claim drop-last
+       (Π ((E   U  )
+           (ℓ-1 Nat))
+          ;; The result is the type of a function
+          ;; from a vector of at least one element
+          ;; to a vector of one fewer elements:
+          (→ (Vec E (add1 ℓ-1))
+             (Vec E     ℓ-1   ))))
+```
+
+```racket
+(define drop-last
+  (λ (E ℓ-1)
+    (ind-Nat ℓ-1
+             (mot-drop-last E)
+             (base-drop-last E)
+             (step-drop-last E))))
+```
+
+
+## unit-tests (M-C-x to see results in the REPL):
+
+
+```racket
+(drop-last Atom 1 (vec:: 'a (vec:: 'b vecnil)))
+; (the (Vec Atom 1)
+;      (vec:: 'a vecnil))
+```
+
+
+```racket
+(drop-last Atom 0 (vec:: 'b vecnil))
+; (the (Vec Atom 0)
+;      vecnil)
+```
+
+
+Again, due to totality, we can't write or compile
+or interpret (at run time!) an application of
+`drop-last` to an empty vector:
+
+
+```racket
+;; (drop-last Atom 42 vecnil)
+; vecnil requires that the length be zero, not
+;  43
+```
+
+
+# Intermezzo
+
+
+Pages 165-168 (Fifth Printing) are not in any
+chapter. We know they're not in Chapter 7 because
+the frame numbers start at 1, and the last frame
+in Chapter 7 is 73. Plus there is a nice picture
+on Page 164 called "one piece at a time."
+
+
+The frames on these pages are notes on
+interactive syntax and display format.
+
+
+Because ["the racket REPL is hopeless,"](https://github.com/racket/racket/wiki/The-toplevel-is-hopeless)
+we can't directly do in Emacs most of the things
+recommended in the intermezzo. I also verified
+that they don't work in DrRacket. We can do a
+little, though, and the results are instructive.
+
+
+I'm commenting them out because the REPL resets
+the cursor to the output of the TODO lines,
+forcing me to change buffers and reset the
+cursor to the end. That's undesirable because
+I reload this buffer (C-c C-c) frequently.
+
+
+```racket
+;;     (claim peas-i
+;;            (Pi ((n Nat))
+;;                (Vec Atom n)))
+```
+
+
+```racket
+;;     (define peas-i
+;;       (λ (n)
+;;         (ind-Nat n
+;;                  (λ (k) (Vec Atom k))    ; motive
+;;                  vecnil                  ; base
+;;                  (λ (n-1 ps-1)           ; step
+;;                    (vec:: TODO TODO)))))
+```
+
+
+# Chapter 8
+
+
+This is a challenging chapter because it's not
+clear at the start where it's going. I figured it
+out by reading it and writing about it several
+times, and the notes below are my current
+iteration.
+
+
+We'll prove that `(+ 1)` _equals_ `add1`, and
+then that `incr` _equals_ `add1`. `Equals`, here,
+is not the same as "the same as," which we
+already know about from judgments:
+
+
+## The Four Forms of Judgment
+
+
+1. __instance__ is a __type__.
+
+2. __instance__ is the same __type__ as __instance__.
+
+3. __type__ is a type [as opposed to an instance]
+
+4. __type__ and __type__ are the same type.
+
+
+Types are values, too. `same` is one constructor
+for instances (values) of types. `same` is the
+constructor that creates instances of the `=`
+type.
+
+
+Judgments are for humans; formal statements and
+proofs of statements are for computers. "Formal"
+means "machine-checkable." We write a formal
+statement as a `claim` and a formal proof as a
+`define`, that is, by exhibiting an instance or
+witness of the claim. Claims, implicitly, are
+statements that something exists, so showing an
+instance is a good proof of a claim like that.
+
+
+This reminds me of [constructive mathematics](https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf),
+[a view supported here](https://en.wikipedia.org/wiki/Constructivism_(philosophy_of_mathematics)#The_place_of_constructivism_in_mathematics).
+I'm sure this is no news to type theorists. I am
+not a type theorist, but a practical programmer
+and a curious, eager learner.
+
+
+To say formally what we mean by `equals`, we
+introduce a type constructor, `=`, its companion
+value constructor `same`, and some eliminators
+for `=`. See [the documentation](https://docs.racket-lang.org/pie/#%28part._.Equality%29)
+for more.
+
+
+The first claim and proof of equality will look
+like this:
+
+
+```racket
+;; (claim +1=add1
+;;        (Π ((n Nat))                  ; Read: for every Nat n,
+;;           (= Nat (+ 1 n) (add1 n)))) ; ... FROM equals TO.
+```
+
+
+```racket
+;; (define +1=add1                      ; Prove by constructing
+;;   (λ (n) (same (add1 n))))           ; a "same" value for it.
+```
+
+
+We'll define `incr` as we go along.
+
+
+Bottoming out in `add1` is a good idea because
+it's a built-in.
+
+
+We'll use "same as" judgments as human
+motivations along the way. Remember that two
+expressions are the same, according to some type,
+if and only if (iff) their normal forms are
+identical, up to consistent renaming of their
+variables.
+
+
+We now have three similar notions in the air: (1)
+"identical," which is machine checkable, even
+with consistent renaming of variables [footnote];
+(2) "same," which we check by judgments and which
+sometimes (always?) means "identical, up to
+consistent renaming," so can be checked by
+machine; and (3) "equals," which we are going to
+develop now. Equals solves problems that checking
+for identical normal forms cannot solve.
+
+
+footnote:: Checking that two expressions are
+identical up to consistent renaming is
+surprisingly tricky, and the greats have
+published mistakes about it. See [de Bruijn Index](https://en.wikipedia.org/wiki/De_Bruijn_index).
+
+
+We're going to prove that `incr` equals `add1` in
+stages. The first stage is to prove that `(+ 1)`,
+i.e., our existing `+` partially evaluated on
+`1`, equals `add1`.
+
+
+## Proving that `(+ 1)` Equals `add1`
+
+
+We start by showing that the normal forms of
+`(+ 1)` and `add1` are identical (up to
+consistent renaming of variables). That means
+they're "the same." Then we'll write that fact up
+via `=` and `same`, showing that they're also
+`equal`.
+
+
+Later, the proof that `incr` equals `add1`
+requires new eliminators for `=`, namely `cong`
+and `replace`, because the normal forms for
+`incr` and `add1` are not identical (up to
+consistent renaming of variables).
+
+
+Start with the normal form of `(+ 1)`
+partial application of `+` to `1`:
+
+
+Recall the definition of `+`:
+
+
+```racket
+;; (define +
+;;   (λ (n j) ;; Don't use the name n-1 here.
+;;     ;;        target base  step  ; the pattern
+;;     ;;       |------|----|-------|
+;;     (iter-Nat    n     j   step-+ )))
+```
+
+
+where `(define step-+ (λ (n-1) (add1 n-1)))`
+bottoms out at the built-in `add1`.
+
+
+## Normal Form of `(+ 1)`
+
+
+Calculate the normal form of `(+ 1)` by hand:
+
+
+```racket
+;; (+ 1)
+;; (+ (add1 zero))                        destructuring
+;; (λ (j)
+;;   (iter-Nat (add1 zero) j step-+))     subst. def of +
+;; (λ (j)      -----v-----
+;;   (step-+       _^__
+;;     (iter-Nat   zero    j step-+))     elimination
+;; (λ (j)
+;;   (add1 ,------- n-1 -------.          subst. def of step-+
+;;     (iter-Nat   zero j step-+)))
+;;                     /
+;;                ----
+;;               /
+;; (λ (j) (add1 j))                       base case
+```
+
+
+That's the normal form of `(+ 1)`. Remember or
+bookmark it.
+
+
+## Normal Form of `add1`
+
+
+
+The normal form of `(+ 1)` is identical to the
+normal form of `add1` if we wrap `add1` in a
+minimal function, and we must. The Pie REPL
+reveals that a naked `add1` doesn't have a normal
+form:
+
+
+```racket
+;; add1
+; add1: expected valid Pie name
+;   at: add1
+;   in: add1
+```
+
+
+But the wrapped `add1` is fine (with a type hint)
+and is already in normal form -- the Pie REPL
+can't reduce it any more:
+
+
+```racket
+;; (the (→ Nat Nat) (λ (n) (add1 n)))   ; input to REPL
+;  (the (→ Nat                          ; response from REPL
+;          Nat)
+;       (λ (n)
+;         (add1 n)))
+
+
+
+If `add1` were a function, we could use the Final
+Law of Application (Page 139, Fifth Printing), or
+even the Initial Law of Application (Page 38,
+Fifth Printing) to show that `add1` is "the same"
+as `(λ (n) (add1 n))`, and also that they have
+identical normal forms (up to renaming).
+
+
+This pattern of wrapping `add1` is exactly like
+the common need to wrap macros with functions in
+C and Lisp. We must often do that so we can pass
+around the functions as values. Macros are not
+values, but functions _are_ values because they
+have the constructor λ up top; that's the
+definition of a value -- it has a constructor up
+top.
+
+
+Let's call it a day: `(λ (n) (add1 n))` _is_ "the
+normal form of `add1`".
+
+
+```racket
+(the (-> Nat Nat) (λ (n) (add1 n)))     ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (n)
+;        (add1 n)))
+```
+
+
+The easiest way to write something that the REPL
+reduces to the normal form is `(+ 1)`. You can't
+present a naked `add1` to the REPL.
+
+
+```racket
+(+ 1)                                   ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (j)
+;        (add1 j)))
+```
+
+
+We've now shown that `(+ 1)` and `add1` have
+identical normal forms (up to renaming), so
+they're "the same" by Big Box on Page 13. That
+doesn't mean they're `equal`. So let's write
+`equal` as a statement -- a `claim` or a type --
+and its proof as a `define`.
+
+
+## Frame 8.23, Page 177 (Fifth Printing):
+
+
+Here is a type that _states_ the equality of
+`(+ 1 n)` and `(add1 n)`. The statement boils
+down to stating that the normal forms are
+identical (up to renaming), hence the same.
+That's not a proof of equality, but a precise and
+practical statement of it. We'll need a witness,
+conveniently packaged in a `define`.
+
+
+```racket
+(Π ((n Nat))                            ; input to REPL
+   (= Nat (+ 1 n) (add1 n)))
+; (the U                                ; response from REPL
+;      (Π ((n Nat))
+;         (= Nat
+;            (add1 n)
+;            (add1 n))))
+```
+
+
+The REPL converged the normal forms to
+`(add1 n)`! They're "the same" by Big Box, Page
+13. So we can write the formal proof of the
+equality statement by defining something that
+constructs a value by the sole constructor for
+`=`, namely `same`. It's a pun that the name of
+the constructor is identical to the word "same"
+that we employ for human judgments.
+
+
+<hr>
+```racket
+(claim +1=add1
+       (Π ((n Nat))  ; For every Nat, n, ...
+          (= Nat (+ 1 n) (add1 n))))
+
+(define +1=add1
+  (λ (n) (same (add1 n))))
+```
+
+
+Really, just the fact that the definition
+satisfies the claim _is_ the proof! Here is the
+whole magillah without `claim` or `define`, just
+a type and a witness ("defines are never
+necessary!" Page 58, Fifth Printing).
+
+
+```racket
+(the (Π ((n Nat))                       ; input to REPL
+        (= Nat (+ 1 n) (add1 n)))
+     (λ (n) (same (add1 n))))
+; (the (Π ((n Nat))                     ; response from REPL
+;         (= Nat
+;            (add1 n)
+;            (add1 n)))
+;      (λ (n)
+;        (same (add1 n))))
+```
+
+
+Let us write some prose for human judgment about
+`=`:
+
+
+## The Law of `=`
+
+
+Page 174 (Fifth Printing): "An expression
+
+    (= X from to)
+
+is a type if `X` is a type, _from_ is an `X`, and
+_to_ is an `X`."
+
+
+■
+
+
+That's a judgment of type 1, a "J1."
+
+
+When discussing an `=` type expression, call the
+second argument the FROM of the expression and
+the third argument the TO of the expression, with
+the words FROM and TO in all-caps.
+
+
+The FROM and TO might be types or not, but they
+must be of type `X` (type `X` is a `U`).
+Therefore, an `(= ...)` is a dependent type
+because it might depend on things that might not,
+themselves, be types.
+
+
+Here is an example of a `=` types for describing
+equality -- remember, types _describe_ values,
+but they are also propositions in logic that
+_state_ that a value satisfying the type exists.
+We constructively prove the proposition by
+exhibiting an instance or witness.
+
+
+```racket
+(= Nat (+ 6 7) 13)                      ; input to REPL
+; (the U                                ; response from REPL
+;      (= Nat 13 13))
+```
+
+
+We now move to the meaty bit: proving that two
+expressions that are not "the same" are actually
+`=`.
+
+
+## Proof that `incr` Equals `add1`
+
+
+Here is `incr`:
+
+
+<hr>
+```racket
+(claim incr (→ Nat Nat))
+
+(de4fine incr
+  (λ (n)
+    (iter-Nat n                         ; target
+              1                         ; base
+              (+ 1))))                  ; step, same as `add1`
+```
+
+The normal forms of `(+ 1)` and `incr` are not
+"the same." We'll show so by showing that their
+normal forms are not identical (up to renaming).
+Check your hand calculation by computing the
+normal forms in the REPL:
+
+
+```racket
+(+ 1)                                   ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (j)
+;        (add1 j)))
+;
+incr                                    ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (n)
+;        (iter-Nat n
+;                  (the Nat 1)
+;                  (λ (j)
+;                    (add1 j)))))
+```
+
+
+I made up the following exercise to express the
+claim -- the statement, the type -- that they're
+equal, though not the same.
+
+
+```racket
+(Π ((n Nat))
+   (= Nat (+ 1 n) (incr n)))            ; input to REPL
+; (the U                                ; response from REPL
+;      (Π ((n Nat))
+;         (= Nat
+;            (add1 n)
+;            (iter-Nat n
+;                      (the Nat 1)
+;                      (λ (j)
+;                        (add1 j))))))
+```
+
+## The Law of `same`
+
+
+My edits after incorporating Frame 8.37, Page 179.
+
+
+The expression `(same e3)` is an `(= X e1 e2)` if `e1`,
+`e2`, and `e3` are each an `X` and `e1` is the same as
+`e2` [J1].
+
+
+■
+
+
+We've seen that `(+ 1)` and `add1` are identical
+and therefore "the same" but that `(+ 1 n)` and
+`(incr n)` are not identical so not "the same."
+Can we exhibit a witness in a `same` constructor?
+
+
+Writing a formal type-witness proof of sameness
+is called _internalizing_ a sameness judgment.
+
+
+`Π`-expressions are statements of universal
+quantifications, i.e, "for-every," `∀`, statements
+(Page 187, Fifth Printing). `(→ Y X)` is a
+shorthand for `(Π ((y Y)) X)` when the name of
+`Y`'s instance, `y`, is not needed in `X` (Page
+138, Fifth Printing).
+
+
+"By combining `Π` with `=`, we can write statements
+that are true for arbitrary `Nat`s, while we could
+only make judgments about particular `Nat`s. Here's
+an example:"
+
+
+Here is a commented-out reminder copy of the
+formal proof of `+1=add1` above.
+
+
+```racket
+;;     (claim +1=add1
+;;            (Π ((n Nat))
+;;               (= Nat (+ 1 n) (add1 n))))
+
+;;     (define +1=add1
+;;       (λ (n) (same (add1 n))))
+```
+
+
+... proves the statement that for every `Nat` `n`,
+`(+ 1 n)` equals `(add1 n)`. Equals, here is via
+the type constructor `=` and the value
+constructor `same`, which creates an
+type-instance of the `=`
+
+
+But `incr=add1` doesn't prove so easily, as
+noted. Here is a statement of the proposition,
+copied from above and attached to a name via
+`claim`.
+
+
+<hr>
+```racket
+(claim incr=add1
+       (Π ((n Nat))
+          (= Nat (incr n) (add1 n))))
+```
+
+
+This is _harder_ to prove because the normal
+forms of `(incr n)` and `(add1 n)` are not
+identical. Reminder:
+
+
+```racket
+;; (define incr=add1
+;;   (λ (n)
+;;     (same (add1 n))))                ; input to REPL
+; The expressions                       ; response from REPL
+; (iter-Nat n
+;           (the Nat 1)
+;           (λ (j)                      ; same as (+ 1)
+;             (add1 j)))                ; and add1
+; and
+; (add1 n)
+; are not the same Nat
+```
+
+
+The normal form of `(incr n)` is
+`(iter-Nat n 1 (+ 1)` (we must add a type hint
+for Pie); _part of `(iter-Nat n 1 (+ 1)` is
+informally the same as `add1` or `(+ 1)`:
+
+
+```racket
+(the (→ Nat Nat) (λ (n) (incr n)))      ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (n)
+;        (iter-Nat n
+;                  (the Nat 1)
+;                  (λ (j)               ; same as add1 or
+;                    (add1 j)))))       ; (+ 1)
+```
+
+
+We must figure out how to extract that part.
+
+
+## _Neutrality_
+
+
+The book goes on a long discourse about
+neutrality to make needed observations about
+normal forms.
+
+
+This normal form of `(incr n)`,
+
+    (iter-Nat n 1 (+ 1))
+
+is neutral, because it's not a value (no
+constructor up top) and it cannot (yet) be
+evaluated because of the variable `n`. From Page
+182 (Fifth Edition):
+
+
+"Variables that are not defined are neutral. If
+the target of an eliminator expression [like
+`iter-Nat`] is neutral, then the eliminator
+expression is neutral. _Thus values are not
+neutral_."
+
+
+This implication needed [a little
+clarification](https://racket.discourse.group/t/the-little-typer-implicattion-that-values-are-not-neutral/1737)
+for me. The gist is that neutral variables and
+neutrally targeted eliminator expressions are
+_the only_ kinds of neutral expressions. No value
+can be of either kind. `(add1 n)` though
+seemingly neutral, is not a neutral expression
+because it's not a naked variable and is not a
+targeted eliminator expression. Its normal form,
+`(λ (j) (add1 j))`, reported by Pie, is a value
+with a λ constructor up top and thus not neutral.
+
+
+Now, we're going to do a lot of talking about
+whether neutral expressions are normal and vice
+versa. This is the most tricky bit of reasoning
+in the book through Chapter 8, but we shall
+exhibit neutral expressions that are not normal
+because their normal forms are values and values
+can never be neutral.
+
+
+Frame 2.26, Page 40: "Expressions that are not
+values and cannot yet be evaluated due to a
+[stuck] variable are called _neutral_."
+
+
+There are four possibilities:
+
+1. Normal and Neutral
+
+2. Normal but not Neutral
+
+3. Neither Normal nor Neutral
+
+4. Neutral but not Normal
+
+
+## Normal and Neutral
+
+
+Frames 8.48-8.49, Page 181 (Fifth Printing): the
+normal form of `(incr n)`, namely
+`(iter-Nat n 1 (+ 1))`, is neutral because it is
+a neutrally targeted eliminator expression: (1)
+it is not a value (no constructor up top) and (2)
+it cannot yet be evaluated due to the variable n.
+`(iter-Nat n 1 (+ 1))` is normal and neutral.
+
+
+## Normal but Not Neutral
+
+
+`(λ (x) (add1 x))`, already normal, is not
+neutral because it's a value with the function
+constructor `λ` up top
+
+
+```racket
+(the (→ Nat Nat) (λ (x) (add1 x)))      ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (x)
+;        (add1 x)))
+```
+
+itself: normal but not neutral
+
+
+## Neither Normal Nor Neutral
+
+
+```racket
+(+ 1)                                   ; input to REPL
+; (the (→ Nat                           ; response from REPL
+;         Nat)
+;      (λ (j)
+;        (add1 j)))
+```
+
+neither neutral nor normal; its normal form is a
+value thus not neutral.
+
+
+## Neutral but Not Normal
+
+
+Page 183 (Fifth Printing):
+
+
+The neutral expression `(the (→ Nat Nat) f)` is
+"the same" as `(λ (n) (f n))` by the Laws of `λ`
+when `n` does not occur in `f`. `(λ (n) (f n))`
+is not neutral because it is a value. So `f` is
+reckoned "neutral but not normal."
+
+
+Page 184, Fifth Printing: Likewise, any neutral
+`(Pair A D)`, `p`, is not normal because its
+normal form, `(cons (car p) (cdr p))` is not
+neutral: it has the constructor `cons` up top.
+
+
+## Back to Work
+
+
+Remember our claim:
+
+
+```racket
+;;     (claim incr=add1
+;;            (Π ((n Nat))
+;;               (= Nat (incr n) (add1 n))))
+```
+
+
+Let's try
+
+
+```racket
+;; (define incr=add1
+;;   (λ (n)
+;;     (same (iter-Nat n 1 (+ 1)))))    ; input to REPL
+; The expressions                       ; response from REPL
+;   (add1 n)
+; and
+;   (iter-Nat n
+;      (the Nat 1)
+;      (λ (j)
+;        (add1 j)))
+; are not the same Nat
+```
+
+
+This fails because the normal form of `(add1 n)`,
+namely `(λ (n) (add1 n))`, is not neutral because
+it's a value, but `(iter-Nat n 1 (+ 1))` is
+neutral even though it's normal.
+
+
+Check it a couple of more ways:
+
+
+```racket
+;; (check-same (→ Nat Nat)
+;;             (λ (n) (iter-Nat n 1 (+ 1)))
+;;             (λ (n) (add1 n)))        ; input to REPL
+;;                    '------'          ; nota bene
+; The expressions                       ; response from REPL
+;   (λ (n)
+;     (iter-Nat n
+;        (the Nat 1)
+;        (λ (j)
+;          (add1 j))))
+; and
+;   (λ (n)
+;     (add1 n))
+; are not the same
+;   (→ Nat
+;     Nat)
+```
+
+
+```racket
+;; (check-same (→ Nat Nat)
+;;             (λ (n) (iter-Nat n 1 (+ 1)))
+;;             (λ (n) (+ 1 n)))         ; input to REPL
+;;                    '-----'           ; nota bene
+; The expressions                       ; response from REPL
+;   (λ (n)
+;     (iter-Nat n
+;        (the Nat 1)
+;        (λ (j)
+;          (add1 j))))
+; and
+;   (λ (n)
+;     (add1 n))
+; are not the same
+;   (→ Nat
+;     Nat)
+```
+
+
+Socrates, on the left-hand side of every frame,
+says "try `ind-Nat`." We'll need `target`, `base`,
+`motive`, and `step`.
+
+
+## Base
+
+
+Here is a base case that makes an `=` statement
+about `zero` and proves it with a `same`
+constructor:
+
+
+<hr>
+```racket
+(claim base-incr=add1
+       (= Nat (incr 0) (add1 zero)))
+
+(define base-incr=add1
+  (same (add1 zero)))
+```
+
+
+## Motive
+
+
+Here is a motive that makes an `=` statement
+about any `Nat`; that statement is a type:
+
+
+<hr>
+```racket
+(claim mot-incr=add1                    ; standard
+       (→ Nat U))                       ; makes an `=`,
+                                        ;   which is a `U`
+```
+
+
+Remember for later that `=` statements are types,
+so they're of type `U`. It's difficult
+(impossible?) to be more specific in general
+cases.
+
+
+```racket
+(define mot-incr=add1
+  (λ (k)
+    (= Nat (incr k) (add1 k))))
+```
+
+
+Is `(mot-incr=add1 zero)` the same as
+`base-incr=add1`? Yes, by "The Commandment of
+`cong`", below.
+
+
+## Step
+
+
+The step must move us from an `=` statement about
+`Nat` `k` to an `=` statement about `(add1 k)`:
+
+
+The following attempt works, but it considered
+not ideal for reasons to-be-revealed:
+
+
+```racket
+;;     (claim step-incr=add1
+;;            (Π (( n-1 Nat ))
+;;               (→ (mot-incr=add1 n-1)
+;;                  (mot-incr=add1 (add1 n-1)))))
+```
+
+
+To move it to a more ideal form, inline the
+references to the motive:
+
+
+```racket
+;;     (claim step-incr=add1
+;;            (Π (( n-1 Nat ))
+;;               (→ (= Nat
+;;                     (incr n-1)
+;;                     (add1 n-1))
+;;                  (= Nat
+;;                     (incr (add1 n-1))
+;;                     (add1 (add1 n-1))))))
+```
+
+
+Works, but still considered ugly because of lack
+of parallelism in the last two lines. Without
+that, we can't easily spot the opportunity to
+apply `cong`!
+
+
+The following claim is considered ideal because
+it pulls the `add1` up top in the output of
+`step-incr=add1`. See Page 188 (Fifth Printing)
+for a lengthy calculation. This form makes the
+application of `cong` obvious, but only by
+applying the pseudo-function `add1`: Letting
+target be
+
+     (= Nat
+        (incr n-1)
+        (add1 n-1))
+
+and `f` "be" `add1`, `(cong target f)` is
+
+     (= Nat
+        (add1 (incr n-1))
+        (add1 (add1 n-1)))
+
+
+```racket
+(claim step-incr=add1
+       (Π (( n-1 Nat ))
+          (→ (= Nat
+                (incr n-1)
+                (add1 n-1))
+             (= Nat
+                (add1 (incr n-1))
+                (add1 (add1 n-1))))))
+```
+
+To prove this claim, i.e., to produce a witness,
+introduce `cong` ("congruent"). `cong` is an
+eliminator for `=`.
+
+
+## The Law of `cong`
+
+
+Page 190 (Fifth Printing):
+
+If `target` is an `(= X from to)`
+
+and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
+
+then              `(cong target f)` is
+
+an                `(= Y (f from) (f to))`.
+
+
+■
+
+
+This looks like [The Yoneda Lemma](https://en.wikipedia.org/wiki/Yoneda_lemma) to my eyes. Is it?
+
+
+## The Commandment of `cong`
+
+
+Show how `cong` eliminates `=` by producing a
+`same`:
+
+
+If `x` is an      `X` and
+
+`f` is an         `(→ X Y)`, then
+
+then              `(cong (same x) f)`
+
+is the same       `(= Y (f x) (f x))` as
+                  `(same (f x))`
+
+
+■
+
+
+In our example, `step-incr=add1` must transform
+
+
+```racket
+;;     (= Nat
+;;        (incr n-1)
+;;        (add1 n-1))
+```
+
+
+into
+
+
+```racket
+;;     (= Nat
+;;        (add1 (incr n-1))
+;;        (add1 (add1 n-1))))
+```
+
+
+which just moves the FROM and TO under `add1`, by
+eliminating `=`:
+
+
+```racket
+(define step-incr=add1
+  (λ (n-1)
+    (λ (incr=add_n-1)
+      (cong incr=add_n-1 (+ 1)))))
+```
+
+
+;; We're done:
+
+
+```racket
+(define incr=add1
+  (λ (n)
+    (ind-Nat n
+             mot-incr=add1
+             base-incr=add1             ; (same (add1 zero))
+             step-incr=add1)))
+```
+
+
+## Frame 8.89, Page 195 (Fifth Printing):
+
+
+Socrates: "The interplay between judging sameness
+and stating equality is at the heart of dependent
+types. This taste only scratches the surface."
+
+
+# Chapter 9
+
+
+We'll first show a use of `replace` that's
+equivalent to the use of `cong` above.
+
+
+Page 199, Fifth Printing:
+
+
+## The Law of `replace`
+
+
+If `target` is an `(= X from to)`  [which is a `U`]
+
+`mot` is an       `(→ X U)`
+
+and `base` is a   `(mot from)`
+
+then              `(replace target mot base)`
+
+is a              `(mot to)`.
+
+
+■
+
+
+Reminders about `cong` so we can see the
+parallelism:
+
+
+If `target` is an `(= X from to)`  [which is a `U`]
+and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
+then              `(cong target f)` is
+an                `(= Y (f from) (f to))`.
+
+
+If `x` is an      `X` and
+
+`f` is an         `(→ X Y)`, then
+
+then              `(cong (same x) f)`
+
+is the same       `(= Y (f x) (f x))` as
+                  `(same (f x))`
+
+
+■
+
+
+Reminders:
+
+
+<hr>
+```racket
+;; (define incr=add1
+;;   (λ (n)
+;;     (ind-Nat n
+;;              mot-incr=add1
+;;              base-incr=add1
+;;              step-incr=add1)))
+;; -----------------------------------------------
+;; (define mot-incr=add1
+;;   (λ (k)
+;;     (= Nat (incr k) (add1 k))))
+;; -----------------------------------------------
+;; (define base-incr=add1
+;;   (same (add1 zero)))
+```
+
+
+<hr>
+```racket
+;; (define step-incr=add1
+;;   (λ (n-1)
+;;     (λ (incr=add_n-1)
+;;     ;
+;;     ;           (mot n-1) ~~> (= Nat (incr n-1) (add1 n-1))
+;;     ;           '---.---'     same as by The Comm'dt of `cong`
+;;     ;               |         /
+;;     ;               |base    /
+;;     ;               |       /
+;;     ;       .-------^-------.
+;;     ;       (same (add1 n-1)) (→ Nat Nat)
+;;     ;       '--------.------' '----.----'
+;;     ;                |             |
+;;     ;                |target       |f = "add1"
+;;     ;                |             |
+;;     ;           .----^-----.     .-^-.
+;;       (cong     incr=add_n-1     (+ 1)  ) )))
+;;     ; '------------.------------------------'
+;;     ;              |
+;;     ;              |(cong target f)
+;;     ;              |
+;;     ; .------------^---------.
+;;     ; (same (add1 (incr n-1)))
+;;     ;
+;;     ;     by The Commandment of `cong`, same as
+;;     ;
+;;     ; (= Nat ((+ 1) (incr n-1)) ((+ 1) (incr n-1)))
+;;     ;
+;;     ;     normalizing:
+;;     ;
+;;     ; (= Nat (add1  (incr n-1)) (add1  (incr n-1)))
+```
+
+
+Write it up with `replace`. We'll need a motive
+for `replace`:
+
+
+<hr>
+```racket
+(claim mot-step-incr=add1
+       (→ Nat Nat
+          U))
+
+(define mot-step-incr=add1
+  (λ (n-1 k)
+    (= Nat
+       (add1 (incr n-1))
+       (add1 k))))
+```
+
+
+... and a new `step` for `replace`, a `step` that
+uses the motive `mot-step-incr=add1`. This `step`
+employs `replace` instead of `cong`:
+
+
+<hr>
+```racket
+(claim step-incr=add1-2                 ; identical claim to
+       (Π (( n-1 Nat ))                 ;   the claim of
+          (→ (= Nat                     ;   step-incr=add1
+                (incr n-1)
+                (add1 n-1))
+             (= Nat
+                (add1 (incr n-1))
+                (add1 (add1 n-1))))))
+```
+
+
+```racket
+(define step-incr=add1-2                ; different from the
+  (λ (n-1)                              ;   definition of
+    (λ (incr=add_n-1)                   ;   step-incr=add1
+      (replace incr=add_n-1             ; target
+               (mot-step-incr=add1 n-1) ; motive
+               (same (add1 (incr n-1))) ; base
+               ))))
+```
+
+
+<hr>
+```racket
+(claim incr=add1-2                      ; identical claim to
+       (Π ((n Nat))                     ;   the claim of
+          (= Nat (incr n) (add1 n))))   ;   incr=add1
+```
+
+
+```racket
+(define incr=add1-2                     ; Keeps `ind-Nat`, but
+  (λ (n)                                ;   employs the new `step`
+    (ind-Nat n                          ;   `step-incr=add1-2`.
+             mot-incr=add1              ; Uses the same old
+             base-incr=add1             ;   motive and base as
+             step-incr=add1-2)))        ;   before.
+```
+
+
+Let's analyze the new `step-incr=add1-2`:
+
+
+`step-incr=add1` is
+
+    (λ (n-1)
+      (λ (incr=add_n-1)
+        (cong incr=add_n-1 (+ 1))))
+
+It puts `add1`, in its functional disguise as
+`(+ 1)`, up top of
+
+    (= Nat
+       (incr n-1)
+       (add1 n-1))
+
+
+Replace must do the identical thing. Let's see
+that. Here is the new `step-incr=add1-2`:
+
+
+```racket
+;; (λ (n-1)
+;;   (λ (incr=add_n-1)
+;;     (replace incr=add_n-1             ; target
+;;              (mot-step-incr=add1 n-1) ; motive
+;;              (same (add1 (incr n-1))) ; base
+;;              )))
+```
+
+Copying from The Law of `replace` and filling in
+the blanks:
+
+
+-- If `target` is an `(= X from to)`
+
+
+It's `incr=add_n-1`, a parameter. How is it an
+`(= X from to)`? `ind-Nat` feeds it to
+`step-incr=add1-2`, and we recall that it
+starts as `(same (add1 zero))`. That is a
+witness for `(= Nat (add1 zero) (add1 zero)`,
+so we are confident that `target` is an
+`(= Nat (add1 zero) (add1 zero))`.
+
+
+-- `mot` is an       `(→ X U)`
+
+
+`(mot n-1)`, the motive for `replace`, is a
+
+    (λ (k)
+      (= Nat
+         (add1 (incr n-1))
+         (add1 k)))
+
+by currying. Remember that `=` expressions are
+types of type `U`, so `(mot n-1)` is a
+`(→ Nat U)`.
+
+
+-- and `base` is a `(mot from)`
+
+
+`from` is `(add1 zero)`; `(mot from)` is an
+`(= Nat (add1 (incr n-1)) (add1 k~~>(add1 zero)))`
+`base` is, manifestly,
+`(same_(add1_(incr_n-1)))`, so it's an
+`(= Nat (add1 (incr n-1)) (add1 (add1 zero)))`
+when `n-1` is zero.
+
+
+-- then              `(replace target mot base)`
+
+
+-- is a              `(mot to)`.
+
+When `incr=add_n-1` is `(add1 n-1)` and not
+just `(add1 zero)`, then `to` is an
+`(= Nat (add1 (incr n-1)) (add1 (add1 n-1)))`.
+
+QED ■
+
+
+## Double and Twice
+
+
+We didn't write down `*`, from Pages 85ff (Fifth
+Printing). It's time to do that now.
+
+
+<hr>
+```racket
+(claim *
+       (→ Nat Nat
+          Nat))
+```
+
+
+<hr>
+```racket
+(claim make-step-*
+       (→ Nat
+          (→ Nat Nat
+             Nat)))
+```
+
+
+```racket
+(define make-step-*
+  (λ (j)
+    (λ (n-1_ *_n-1)
+      (+ j *_n-1))))
+```
+
+
+<hr>
+```racket
+(define *
+  (λ (n j)
+    (rec-Nat n
+             0
+             (make-step-* j))))
+```
+(* 6 7)
+; (the Nat 42)
+
+
+<hr>
+```racket
+(claim double
+       (→ Nat
+          Nat))
+```
+
+
+```racket
+(define double
+  (λ (n)
+    (iter-Nat n
+              0
+              (+ 2))))
+```
+
+
+```racket
+(double 21)
+; (the Nat 42)
+```
+
+
+<hr>
+```racket
+(claim twice
+       (→ Nat
+          Nat))
+```
+
+
+```racket
+(define twice
+  (λ (n)
+    (+ n n)))
+```
+
+
+```racket
+(twice 21)
+; (tha Nat 42)
+```
+
+
+<hr>
+```racket
+(claim twice=double
+       (Π ((n Nat))
+          (= Nat (twice n) (double n))))
+```
+
+
+<hr>
+```racket
+(claim add1+=+add1
+       (Π ((n Nat)
+           (j Nat))
+          (= Nat
+             (add1 (+ n j))
+             (+ n (add1 j)))))
+```
+
+
+<hr>
+```racket
+(claim mot-add1+=+add1
+       (→ Nat Nat
+          U))
+```
+
+
+```racket
+(define mot-add1+=+add1
+  (λ (j k)
+    (= Nat
+       (add1 (+ k j))
+       (+ k (add1 j)))))
+```
+
+
+```racket
+(mot-add1+=+add1 6 7)
+; (the U
+;   (= Nat 14 14))
+```
+
+
+<hr>
+```racket
+(claim step-add1+=+add1
+       (Π ((j Nat)
+           (n-1 Nat))
+          (→ (mot-add1+=+add1 j n-1)
+             (mot-add1+=+add1 j (add1 n-1)))))
+```
+
+
+```racket
+(define step-add1+=+add1
+  (λ (j n-1)
+    (λ (add1+=+add1_n-1)
+      (cong add1+=+add1_n-1
+            (+ 1)))))
+```
+
+
+<hr>
+```racket
+(define add1+=+add1
+  (λ (n j)
+    (ind-Nat n
+             (mot-add1+=+add1 j)
+             (same (add1 j))
+             (step-add1+=+add1 j))))
+```
+
+
+```racket
+(add1+=+add1 6 7)
+; (the (= Nat 14 14)
+;   (same 14)
+```
+
+
+<hr>
+```racket
+(claim mot-twice=double
+       (→ Nat
+          U))
+```
+
+
+```racket
+(define mot-twice=double
+  (λ (k)
+    (= Nat
+       (twice k)
+       (double k))))
+```
+
+
+<hr>
+```racket
+(claim step-twice=double
+       (Π ((n-1 Nat))
+          (→ (mot-twice=double n-1)
+             (mot-twice=double (add1 n-1)))))
+```
+
+
+motive for `replace`:
+
+
+<hr>
+```racket
+(claim mot-step-twice=double
+       (→ Nat Nat
+          U))
+```
+
+
+```racket
+(define mot-step-twice=double
+  (λ (n-1 k)
+    (= Nat
+       (add1 k)
+       (add1 (add1 (double n-1))))))
+```
+
+
+<hr>
+```racket
+(define step-twice=double
+  (λ (n-1)
+    (λ (twice-double_n-1)
+      (replace (add1+=+add1 n-1 n-1)
+               (mot-step-twice=double n-1)
+               (cong twice-double_n-1
+                     (+ 2))))))
+```
+
+
+<hr>
+```racket
+(define twice=double
+  (λ (n)
+    (ind-Nat n
+             mot-twice=double
+             (same zero)
+             step-twice=double)))
+```
+
+
+```racket
+(twice=double 21)
+; (the (= Nat 42 42)
+;   (same 42))
+```
+
+
+# Cheat Sheet
+
+
+[The Ultimate Cheat Sheet is
+here](https://docs.racket-lang.org/pie/#%28part._top%29).
+It's the official pie documentation. It's
+refreshingly short and useful.
