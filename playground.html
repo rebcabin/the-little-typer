@@ -16,7 +16,7 @@
 </head>
 <body><root><pre class="brush: racket"><code>#lang pie  ;; Racket supports this language as a
            ;; package (`raco pkg install pie`)</code></pre><blockquote><p>I wonder whether ${2^{\aleph_\alpha} = \aleph_{\alpha+1}}$?</p></blockquote><p>&mdash; Matthew Butterick</p><h1 id="prolegomenon">Prolegomenon</h1><p>I am Brian Beckman. These are my notes on <a href="https://thelittletyper.com/index.html"><em>The Little Typer</em></a>, Fifth Printing. <a href="https://github.com/rebcabin/the-little-typer/">Find the source of my notes here</a>.</p><p>Though my explanations are my own, the code is mostly copied from the book. You will most likely need the book to understand my notes.</p><p><a href="https://medium.com/@haliq12/homotopy-type-theory-hott-for-mere-mortals-8d28301a1b19">Here is a good article on the basics of type theory</a>. In there, we find out that dependent type theory is not just for programming languages.</p><p><a href="https://en.wikipedia.org/wiki/Type_theory">The Wikipedia article</a> is worth your time, too.</p><p><a href="https://www.cis.upenn.edu/~bcpierce/tapl/">Benjamin Pierce&rsquo;s book TAPL</a> is famous and on my reading list for the future.</p><p><a href="https://softwarefoundations.cis.upenn.edu/">Software Foundations is an interactive course</a> in Coq. I played around with it but came here for something smaller and easier.</p><h2 id="version">Version</h2><p>10 March 2023</p><h2 id="logistics">Logistics</h2><p>In Emacs racket-mode, <code>C-c C-c</code> sends the whole file to the racket interpreter. <code>C-M-x</code> sends the s-exp that surrounds the cursor, just as with CIDER in Clojure-mode.</p><p>Code blocks are delimited in triple-backticks, not nested. If you can extract the code from the <code>.pmd</code> file, you can run it in <code>racket</code>.</p><p>I tried to do this whole thing in a Jupyter notebook, but found that the racket kernel for Jupyter was not up to the job on my Mac Book Pro M1.</p><p>Alternatively, if you don&rsquo;t want to set up Emacs for racket, load this file into DrRacket and play around. DrRacket comes for free with <a href="https://download.racket-lang.org/">the racket distribution</a>. Install the distribution, type <code>raco pkg install
-pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket is a fine IDE if you can stand imperfect Emacs key-binding emulation (I can&rsquo;t; too many decades of muscle memory!)</p><p>Mostly, I leave two blank lines between things. I leave one blank line between a <code>claim</code> and its matching <code>define</code>. Writing these pairs <em>feels like</em> writing Haskell. I also sometimes leave a single blank line between a definition and its unit tests. I&rsquo;m not religious about any line-spacing.</p><h2 id="license">License</h2><p><a href="https://creativecommons.org/licenses/by/4.0/"><code>https://creativecommons.org/licenses/by/4.0/</code></a></p><h2 id="technology">Technology</h2><p>I build the html via <a href="file:///Users/brian/Library/Racket/8.8/pkgs/pollen/pollen/doc/pollen/index.html">pollen</a>. The web fonts and CSS styles are from <a href="https://github.com/edwardtufte/tufte-css">tufte</a>.</p><h2 id="undone">Undone</h2><ul><li><p>pygments or highlights.js for syntax highlighting.  Multiple attempts in the <code>pm</code> leaf directory do  not work as expected. Color changes in pygments do  not appear, and highlights does not produce syntax  highlighting, though it renders code correctly in  <code>pre</code> tags.</p></li><li><p>sidenotes, marginnotes from the <code>template.html</code>  don&rsquo;t work.</p></li></ul><h1 id="chapters-1--2">Chapters 1 &amp; 2</h1><pre class="brush: racket"><code>'spinach</code></pre><pre class="brush: racket"><code>(the (Pair Atom Atom)                       ; type
+pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket is a fine IDE if you can stand imperfect Emacs key-binding emulation (I can&rsquo;t; too many decades of muscle memory!)</p><p>Mostly, I leave two blank lines between things. I leave one blank line between a <code>claim</code> and its matching <code>define</code>. Writing these pairs <em>feels like</em> writing Haskell. I also sometimes leave a single blank line between a definition and its unit tests. I&rsquo;m not religious about any line-spacing.</p><h2 id="license">License</h2><p><a href="https://creativecommons.org/licenses/by/4.0/"><code>https://creativecommons.org/licenses/by/4.0/</code></a></p><h2 id="technology">Technology</h2><p>I build the html via <a href="file:///Users/brian/Library/Racket/8.8/pkgs/pollen/pollen/doc/pollen/index.html">pollen</a>. The web fonts and CSS styles are from <a href="https://github.com/edwardtufte/tufte-css">tufte</a>.</p><h2 id="undone">Undone</h2><ul><li><p>pygments or highlights.js for syntax highlighting.  Multiple attempts in the <code>pm</code> leaf directory do  not work as expected. Color changes in pygments do  not appear, and highlights does not produce syntax  highlighting, though it renders code correctly in  <code>pre</code> tags.</p></li><li><p>sidenotes, marginnotes from the <code>template.html</code>  don&rsquo;t work.</p></li><li><p>Table of Contents</p></li></ul><h1 id="chapters-1--2">Chapters 1 &amp; 2</h1><pre class="brush: racket"><code>'spinach</code></pre><pre class="brush: racket"><code>(the (Pair Atom Atom)                       ; type
      (cons 'spinach 'cauliflower))             ; instance
 
 
@@ -213,7 +213,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 ;         Nat)
 ;      (λ (p f)
 ;        (f (car p)
-;           (cdr p))))</code></pre><h1 id="kar-kdr"><code>Kar</code>, <code>Kdr</code></h1><p>These <code>kar</code> and <code>kdr</code> functions are specialized for <code>Nat</code>s. <code>kar</code> and <code>kdr</code> are probably lousy names for them, but go with them just to exit the chapter. <code>elim-pair</code> is not specialized, so bracket the function-calls appropriately.</p><hr/><pre class="brush: racket"><code>(claim kar
+;           (cdr p))))</code></pre><h2 id="kar-kdr"><code>Kar</code>, <code>Kdr</code></h2><p>These <code>kar</code> and <code>kdr</code> functions are specialized for <code>Nat</code>s. <code>kar</code> and <code>kdr</code> are probably lousy names for them, but go with them just to exit the chapter. <code>elim-pair</code> is not specialized, so bracket the function-calls appropriately.</p><hr/><pre class="brush: racket"><code>(claim kar
        (→ (Pair Nat Nat) Nat))
 
 (define kar
@@ -620,27 +620,30 @@ claim iN
 ;;                  (λ (k) (Vec Atom k))    ; motive
 ;;                  vecnil                  ; base
 ;;                  (λ (n-1 ps-1)           ; step
-;;                    (vec:: TODO TODO)))))</code></pre><h1 id="chapter-8">Chapter 8</h1><p>This is a challenging chapter because it&rsquo;s not clear at the start where it&rsquo;s going. I figured it out by reading it and writing about it several times, and the notes below are my current iteration.</p><p>We&rsquo;ll prove that <code>(+ 1)</code> <em>equals</em> <code>add1</code>, and then that <code>incr</code> <em>equals</em> <code>add1</code>. <code>Equals</code>, here, is not the same as &ldquo;the same as,&rdquo; which we already know about from judgments:</p><h2 id="the-four-forms-of-judgment">The Four Forms of Judgment</h2><ol><li><p><strong>instance</strong> is a <strong>type</strong>.</p></li><li><p><strong>instance</strong> is the same <strong>type</strong> as <strong>instance</strong>.</p></li><li><p><strong>type</strong> is a type [as opposed to an instance]</p></li><li><p><strong>type</strong> and <strong>type</strong> are the same type.</p></li></ol><p>Types are values, too. <code>same</code> is one constructor for instances (values) of types. <code>same</code> is the constructor that creates instances of the <code>=</code> type.</p><p>Judgments are for humans; formal statements and proofs of statements are for computers. &ldquo;Formal&rdquo; means &ldquo;machine-checkable.&rdquo; We write a formal statement as a <code>claim</code> and a formal proof as a <code>define</code>, that is, by exhibiting an instance or witness of the claim. Claims, implicitly, are statements that something exists, so showing an instance is a good proof of a claim like that.</p><p>This reminds me of <a href="https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf">constructive mathematics</a>, <a href="https://en.wikipedia.org/wiki/Constructivism_(philosophy_of_mathematics)#The_place_of_constructivism_in_mathematics">a view supported here</a>. I&rsquo;m sure this is no news to type theorists. I am not a type theorist, but a practical programmer and a curious, eager learner.</p><p>To say formally what we mean by <code>equals</code>, we introduce a type constructor, <code>=</code>, its companion value constructor <code>same</code>, and some eliminators for <code>=</code>. See <a href="https://docs.racket-lang.org/pie/#%28part._.Equality%29">the documentation</a> for more.</p><p>The first claim and proof of equality will look like this:</p><pre class="brush: racket"><code>;; (claim +1=add1
-;;        (Π ((n Nat))                  ; Read: for every Nat n,
-;;           (= Nat (+ 1 n) (add1 n)))) ; ... FROM equals TO.</code></pre><pre class="brush: racket"><code>;; (define +1=add1                      ; Prove by constructing
-;;   (λ (n) (same (add1 n))))           ; a "same" value for it.</code></pre><p>We&rsquo;ll define <code>incr</code> as we go along.</p><p>Bottoming out in <code>add1</code> is a good idea because it&rsquo;s a built-in.</p><p>We&rsquo;ll use &ldquo;same as&rdquo; judgments as human motivations along the way. Remember that two expressions are the same, according to some type, if and only if (iff) their normal forms are identical, up to consistent renaming of their variables.</p><p>We now have three similar notions in the air: (1) &ldquo;identical,&rdquo; which is machine checkable, even with consistent renaming of variables [footnote]; (2) &ldquo;same,&rdquo; which we check by judgments and which sometimes (always?) means &ldquo;identical, up to consistent renaming,&rdquo; so can be checked by machine; and (3) &ldquo;equals,&rdquo; which we are going to develop now. Equals solves problems that checking for identical normal forms cannot solve.</p><p>footnote:: Checking that two expressions are identical up to consistent renaming is surprisingly tricky, and the greats have published mistakes about it. See <a href="https://en.wikipedia.org/wiki/De_Bruijn_index">de Bruijn Index</a>.</p><p>We&rsquo;re going to prove that <code>incr</code> equals <code>add1</code> in stages. The first stage is to prove that <code>(+ 1)</code>, i.e., our existing <code>+</code> partially evaluated on <code>1</code>, equals <code>add1</code>.</p><h2 id="proving-that--1-equals-add1">Proving that <code>(+ 1)</code> Equals <code>add1</code></h2><p>We start by showing that the normal forms of <code>(+ 1)</code> and <code>add1</code> are identical (up to consistent renaming of variables). That means they&rsquo;re &ldquo;the same.&rdquo; Then we&rsquo;ll write that fact up via <code>=</code> and <code>same</code>, showing that they&rsquo;re also <code>equal</code>.</p><p>Later, the proof that <code>incr</code> equals <code>add1</code> requires new eliminators for <code>=</code>, namely <code>cong</code> and <code>replace</code>, because the normal forms for <code>incr</code> and <code>add1</code> are not identical (up to consistent renaming of variables).</p><p>Start with the normal form of <code>(+ 1)</code> partial application of <code>+</code> to <code>1</code>:</p><p>Recall the definition of <code>+</code>:</p><pre class="brush: racket"><code>;; (define +
-;;   (λ (n j) ;; Don't use the name n-1 here.
-;;     ;;        target base  step  ; the pattern
-;;     ;;       |------|----|-------|
-;;     (iter-Nat    n     j   step-+ )))</code></pre><p>where <code>(define step-+ (λ (n-1) (add1 n-1)))</code> bottoms out at the built-in <code>add1</code>.</p><h2 id="normal-form-of--1">Normal Form of <code>(+ 1)</code></h2><p>Calculate the normal form of <code>(+ 1)</code> by hand:</p><pre class="brush: racket"><code>;; (+ 1)
-;; (+ (add1 zero))                        destructuring
-;; (λ (j)
-;;   (iter-Nat (add1 zero) j step-+))     subst. def of +
-;; (λ (j)      -----v-----
-;;   (step-+       _^__
-;;     (iter-Nat   zero    j step-+))     elimination
-;; (λ (j)
-;;   (add1 ,------- n-1 -------.          subst. def of step-+
-;;     (iter-Nat   zero j step-+)))
-;;                     /
-;;                ----
-;;               /
-;; (λ (j) (add1 j))                       base case</code></pre><p>That&rsquo;s the normal form of <code>(+ 1)</code>. Remember or bookmark it.</p><h2 id="normal-form-of-add1">Normal Form of <code>add1</code></h2><p>The normal form of <code>(+ 1)</code> is identical to the normal form of <code>add1</code> if we wrap <code>add1</code> in a minimal function, and we must. The Pie REPL reveals that a naked <code>add1</code> doesn&rsquo;t have a normal form:</p><pre class="brush: racket"><code>;; add1
+;;                    (vec:: TODO TODO)))))</code></pre><h1 id="chapter-8">Chapter 8</h1><p>This is a challenging chapter because it&rsquo;s not clear at the start where it&rsquo;s going. I figured it out by reading it and writing about it several times, and the notes below are my current iteration.</p><p>We&rsquo;ll prove that <code>(+ 1)</code> <em>equals</em> <code>add1</code>, and then that <code>incr</code> <em>equals</em> <code>add1</code>. <code>Equals</code>, here, is not the same as &ldquo;the same as,&rdquo; which we already know about from judgments:</p><h2 id="the-four-forms-of-judgment">The Four Forms of Judgment</h2><ol><li><p><strong>instance</strong> is a <strong>type</strong>.</p></li><li><p><strong>instance</strong> is the same <strong>type</strong> as <strong>instance</strong>.</p></li><li><p><strong>type</strong> is a type [as opposed to an instance]</p></li><li><p><strong>type</strong> and <strong>type</strong> are the same type.</p></li></ol><p>Types are values, too. <code>same</code> is one constructor for instances (values) of types. <code>same</code> is the constructor that creates instances of the <code>=</code> type.</p><p>Judgments are for humans; formal statements and proofs of statements are for computers. &ldquo;Formal&rdquo; means &ldquo;machine-checkable.&rdquo; We write a formal statement as a <code>claim</code> and a formal proof as a <code>define</code>, that is, by exhibiting an instance or witness of the claim. Claims, implicitly, are statements that something exists, so showing an instance is a good proof of a claim like that.</p><p>This reminds me of <a href="https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf">constructive mathematics</a>, <a href="https://en.wikipedia.org/wiki/Constructivism_(philosophy_of_mathematics)#The_place_of_constructivism_in_mathematics">a view supported here</a>. I&rsquo;m sure this is no news to type theorists. I am not a type theorist, but a practical programmer and a curious, eager learner.</p><p>To say formally what we mean by <code>equals</code>, we introduce a type constructor, <code>=</code>, its companion value constructor <code>same</code>, and some eliminators for <code>=</code>. See <a href="https://docs.racket-lang.org/pie/#%28part._.Equality%29">the documentation</a> for more.</p><p>The first claim and proof of equality will look like this:</p><pre><code>(claim +1=add1
+       (Π ((n Nat))                  ; Read: for every Nat n,
+          (= Nat (+ 1 n) (add1 n)))) ; ... FROM equals TO.
+
+
+(define +1=add1                      ; Prove by constructing
+  (λ (n) (same (add1 n))))           ; a "same" value for it.</code></pre><p>We&rsquo;ll define <code>incr</code> as we go along.</p><p>Bottoming out in <code>add1</code> is a good idea because it&rsquo;s a built-in.</p><p>We&rsquo;ll use &ldquo;same as&rdquo; judgments as human motivations along the way. Remember that two expressions are the same, according to some type, if and only if (iff) their normal forms are identical, up to consistent renaming of their variables.</p><p>We now have three similar notions in the air: (1) &ldquo;identical,&rdquo; which is machine checkable, even with consistent renaming of variables [footnote]; (2) &ldquo;same,&rdquo; which we check by judgments and which sometimes (always?) means &ldquo;identical, up to consistent renaming,&rdquo; so can be checked by machine; and (3) &ldquo;equals,&rdquo; which we are going to develop now. Equals solves problems that checking for identical normal forms cannot solve.</p><p>footnote:: Checking that two expressions are identical up to consistent renaming is surprisingly tricky, and the greats have published mistakes about it. See <a href="https://en.wikipedia.org/wiki/De_Bruijn_index">de Bruijn Index</a>.</p><p>We&rsquo;re going to prove that <code>incr</code> equals <code>add1</code> in stages. The first stage is to prove that <code>(+ 1)</code>, i.e., our existing <code>+</code> partially evaluated on <code>1</code>, equals <code>add1</code>.</p><h2 id="proving-that--1-equals-add1">Proving that <code>(+ 1)</code> Equals <code>add1</code></h2><p>We start by showing that the normal forms of <code>(+ 1)</code> and <code>add1</code> are identical (up to consistent renaming of variables). That means they&rsquo;re &ldquo;the same.&rdquo; Then we&rsquo;ll write that fact up via <code>=</code> and <code>same</code>, showing that they&rsquo;re also <code>equal</code>.</p><p>Later, the proof that <code>incr</code> equals <code>add1</code> requires new eliminators for <code>=</code>, namely <code>cong</code> and <code>replace</code>, because the normal forms for <code>incr</code> and <code>add1</code> are not identical (up to consistent renaming of variables).</p><p>Start with the normal form of <code>(+ 1)</code> partial application of <code>+</code> to <code>1</code>:</p><p>Recall the definition of <code>+</code>:</p><pre><code>(define +
+  (λ (n j) ;; Don't use the name n-1 here.
+    ;;        target base  step  ; the pattern
+    ;;       |------|----|-------|
+    (iter-Nat    n     j   step-+ )))</code></pre><p>where <code>(define step-+ (λ (n-1) (add1 n-1)))</code> bottoms out at the built-in <code>add1</code>.</p><h2 id="normal-form-of--1">Normal Form of <code>(+ 1)</code></h2><p>Calculate the normal form of <code>(+ 1)</code> by hand:</p><pre><code>(+ 1)
+(+ (add1 zero))                        destructuring
+(λ (j)
+  (iter-Nat (add1 zero) j step-+))     subst. def of +
+(λ (j)      -----v-----
+  (step-+       _^__
+    (iter-Nat   zero    j step-+))     elimination
+(λ (j)
+  (add1 ,------- n-1 -------.          subst. def of step-+
+    (iter-Nat   zero j step-+)))
+                    /
+               ----
+              /
+(λ (j) (add1 j))                       base case</code></pre><p>That&rsquo;s the normal form of <code>(+ 1)</code>. Remember or bookmark it.</p><h2 id="normal-form-of-add1">Normal Form of <code>add1</code></h2><p>The normal form of <code>(+ 1)</code> is identical to the normal form of <code>add1</code> if we wrap <code>add1</code> in a minimal function, and we must. The Pie REPL reveals that a naked <code>add1</code> doesn&rsquo;t have a normal form:</p><pre class="brush: racket"><code>;; add1
 ; add1: expected valid Pie name
 ;   at: add1
 ;   in: add1</code></pre><p>But the wrapped <code>add1</code> is fine (with a type hint) and is already in normal form &mdash; the Pie REPL can&rsquo;t reduce it any more:</p><pre class="brush: racket"><code>;; (the (→ Nat Nat) (λ (n) (add1 n)))   ; input to REPL
@@ -674,15 +677,15 @@ claim iN
 ;            (add1 n)
 ;            (add1 n)))
 ;      (λ (n)
-;        (same (add1 n))))</code></pre><p>Let us write some prose for human judgment about <code>=</code>:</p><h2 id="the-law-of-">The Law of <code>=</code></h2><p>Page 174 (Fifth Printing): "An expression</p><pre><code>(= X from to)</code></pre><p>is a type if <code>X</code> is a type, <em>from</em> is an <code>X</code>, and <em>to</em> is an <code>X</code>."</p><p>■</p><p>That&rsquo;s a judgment of type 1, a "J1."</p><p>When discussing an <code>=</code> type expression, call the second argument the FROM of the expression and the third argument the TO of the expression, with the words FROM and TO in all-caps.</p><p>The FROM and TO might be types or not, but they must be of type <code>X</code> (type <code>X</code> is a <code>U</code>). Therefore, an <code>(= ...)</code> is a dependent type because it might depend on things that might not, themselves, be types.</p><p>Here is an example of a <code>=</code> types for describing equality &mdash; remember, types <em>describe</em> values, but they are also propositions in logic that <em>state</em> that a value satisfying the type exists. We constructively prove the proposition by exhibiting an instance or witness.</p><pre class="brush: racket"><code>(= Nat (+ 6 7) 13)                      ; input to REPL
+;        (same (add1 n))))</code></pre><p>Let us write some prose for human judgment about <code>=</code>:</p><h2 id="the-law-of-">The Law of <code>=</code></h2><p>Page 174 (Fifth Printing):</p><blockquote><p>An expression</p></blockquote><blockquote><pre><code>(= X from to)</code></pre></blockquote><blockquote><p>is a type if <code>X</code> is a type, <em>from</em> is an <code>X</code>, and <em>to</em> is an <code>X</code>."</p></blockquote><p>■</p><p>That&rsquo;s a judgment of type 1, a &ldquo;J1.&rdquo;</p><p>When discussing an <code>=</code> type expression, call the second argument the FROM of the expression and the third argument the TO of the expression, with the words FROM and TO in all-caps.</p><p>The FROM and TO might be types or not, but they must be of type <code>X</code> (type <code>X</code> is a <code>U</code>). Therefore, an <code>(= ...)</code> is a dependent type because it might depend on things that might not, themselves, be types.</p><p>Here is an example of a <code>=</code> types for describing equality &mdash; remember, types <em>describe</em> values, but they are also propositions in logic that <em>state</em> that a value satisfying the type exists. We constructively prove the proposition by exhibiting an instance or witness.</p><pre class="brush: racket"><code>(= Nat (+ 6 7) 13)                      ; input to REPL
 ; (the U                                ; response from REPL
-;      (= Nat 13 13))</code></pre><p>We now move to the meaty bit: proving that two expressions that are not "the same" are actually <code>=</code>.</p><h2 id="proof-that-incr-equals-add1">Proof that <code>incr</code> Equals <code>add1</code></h2><p>Here is <code>incr</code>:</p><hr/><pre class="brush: racket"><code>(claim incr (→ Nat Nat))
+;      (= Nat 13 13))</code></pre><p>We now move to the meaty bit: proving that two expressions that are not &ldquo;the same&rdquo; are actually <code>=</code>.</p><h2 id="proof-that-incr-equals-add1">Proof that <code>incr</code> Equals <code>add1</code></h2><p>Here is <code>incr</code>:</p><hr/><pre class="brush: racket"><code>(claim incr (→ Nat Nat))
 
 (de4fine incr
   (λ (n)
     (iter-Nat n                         ; target
               1                         ; base
-              (+ 1))))                  ; step, same as `add1`</code></pre><p>The normal forms of <code>(+ 1)</code> and <code>incr</code> are not "the same." We&rsquo;ll show so by showing that their normal forms are not identical (up to renaming). Check your hand calculation by computing the normal forms in the REPL:</p><pre class="brush: racket"><code>(+ 1)                                   ; input to REPL
+              (+ 1))))                  ; step, same as `add1`</code></pre><p>The normal forms of <code>(+ 1)</code> and <code>incr</code> are not &ldquo;the same.&rdquo; We&rsquo;ll show so by showing that their normal forms are not identical (up to renaming). Check your hand calculation by computing the normal forms in the REPL:</p><pre class="brush: racket"><code>(+ 1)                                   ; input to REPL
 ; (the (→ Nat                           ; response from REPL
 ;         Nat)
 ;      (λ (j)
@@ -704,14 +707,14 @@ incr                                    ; input to REPL
 ;            (iter-Nat n
 ;                      (the Nat 1)
 ;                      (λ (j)
-;                        (add1 j))))))</code></pre><h2 id="the-law-of-same">The Law of <code>same</code></h2><p>My edits after incorporating Frame 8.37, Page 179.</p><p>The expression <code>(same e3)</code> is an <code>(= X e1 e2)</code> if <code>e1</code>, <code>e2</code>, and <code>e3</code> are each an <code>X</code> and <code>e1</code> is the same as <code>e2</code> [J1].</p><p>■</p><p>We&rsquo;ve seen that <code>(+ 1)</code> and <code>add1</code> are identical and therefore "the same" but that <code>(+ 1 n)</code> and <code>(incr n)</code> are not identical so not "the same." Can we exhibit a witness in a <code>same</code> constructor?</p><p>Writing a formal type-witness proof of sameness is called <em>internalizing</em> a sameness judgment.</p><p><code>Π</code>-expressions are statements of universal quantifications, i.e, "for-every," <code>∀</code>, statements (Page 187, Fifth Printing). <code>(→ Y X)</code> is a shorthand for <code>(Π ((y Y)) X)</code> when the name of <code>Y</code>&rsquo;s instance, <code>y</code>, is not needed in <code>X</code> (Page 138, Fifth Printing).</p><p>&ldquo;By combining <code>Π</code> with <code>=</code>, we can write statements that are true for arbitrary <code>Nat</code>s, while we could only make judgments about particular <code>Nat</code>s. Here&rsquo;s an example:&rdquo;</p><p>Here is a commented-out reminder copy of the formal proof of <code>+1=add1</code> above.</p><pre class="brush: racket"><code>;;     (claim +1=add1
-;;            (Π ((n Nat))
-;;               (= Nat (+ 1 n) (add1 n))))
-
-;;     (define +1=add1
-;;       (λ (n) (same (add1 n))))</code></pre><p>&hellip; proves the statement that for every <code>Nat</code> <code>n</code>, <code>(+ 1 n)</code> equals <code>(add1 n)</code>. Equals, here is via the type constructor <code>=</code> and the value constructor <code>same</code>, which creates an type-instance of the <code>=</code></p><p>But <code>incr=add1</code> doesn&rsquo;t prove so easily, as noted. Here is a statement of the proposition, copied from above and attached to a name via <code>claim</code>.</p><hr/><pre class="brush: racket"><code>(claim incr=add1
+;                        (add1 j))))))</code></pre><h2 id="the-law-of-same">The Law of <code>same</code></h2><p>My edits after incorporating Frame 8.37, Page 179.</p><blockquote><p>The expression <code>(same e3)</code> is an <code>(= X e1 e2)</code> if <code>e1</code>, <code>e2</code>, and <code>e3</code> are each an <code>X</code> and <code>e1</code> is the same as <code>e2</code> [J1].</p></blockquote><p>■</p><p>We&rsquo;ve seen that <code>(+ 1)</code> and <code>add1</code> are identical and therefore &ldquo;the same&rdquo; but that <code>(+ 1 n)</code> and <code>(incr n)</code> are not identical so not &ldquo;the same.&rdquo; Can we exhibit a witness in a <code>same</code> constructor?</p><p>Writing a formal type-witness proof of sameness is called <em>internalizing</em> a sameness judgment.</p><p><code>Π</code>-expressions are statements of universal quantifications, i.e, &ldquo;for-every,&rdquo; <code>∀</code>, statements (Page 187, Fifth Printing). <code>(→ Y X)</code> is a shorthand for <code>(Π ((y Y)) X)</code> when the name of <code>Y</code>&rsquo;s instance, <code>y</code>, is not needed in <code>X</code> (Page 138, Fifth Printing).</p><p>&ldquo;By combining <code>Π</code> with <code>=</code>, we can write statements that are true for arbitrary <code>Nat</code>s, while we could only make judgments about particular <code>Nat</code>s. Here&rsquo;s an example:&rdquo;</p><p>Here is a reminder copy of the formal proof of <code>+1=add1</code> above.</p><pre><code>(claim +1=add1
        (Π ((n Nat))
-          (= Nat (incr n) (add1 n))))</code></pre><p>This is <em>harder</em> to prove because the normal forms of <code>(incr n)</code> and <code>(add1 n)</code> are not identical. Reminder:</p><pre class="brush: racket"><code>;; (define incr=add1
+          (= Nat (+ 1 n) (add1 n))))
+
+(define +1=add1
+  (λ (n) (same (add1 n))))</code></pre><p>&hellip; proves the statement that for every <code>Nat</code> <code>n</code>, <code>(+ 1 n)</code> equals <code>(add1 n)</code>. Equals, here is via the type constructor <code>=</code> and the value constructor <code>same</code>, which creates an type-instance of the <code>=</code></p><p>But <code>incr=add1</code> doesn&rsquo;t prove so easily, as noted. Here is a statement of the proposition, copied from above and attached to a name via <code>claim</code>.</p><hr/><pre class="brush: racket"><code>(claim incr=add1
+       (Π ((n Nat))
+          (= Nat (incr n) (add1 n))))</code></pre><p>This is <em>harder</em> to prove because the normal forms of <code>(incr n)</code> and <code>(add1 n)</code> are not identical. Reminder:</p><pre class="brush: racket"><code>; (define incr=add1
 ;;   (λ (n)
 ;;     (same (add1 n))))                ; input to REPL
 ; The expressions                       ; response from REPL
@@ -736,9 +739,9 @@ incr                                    ; input to REPL
 ; (the (→ Nat                           ; response from REPL
 ;         Nat)
 ;      (λ (j)
-;        (add1 j)))</code></pre><p>neither neutral nor normal; its normal form is a value thus not neutral.</p><h2 id="neutral-but-not-normal">Neutral but Not Normal</h2><p>Page 183 (Fifth Printing):</p><p>The neutral expression <code>(the (→ Nat Nat) f)</code> is &ldquo;the same&rdquo; as <code>(λ (n) (f n))</code> by the Laws of <code>λ</code> when <code>n</code> does not occur in <code>f</code>. <code>(λ (n) (f n))</code> is not neutral because it is a value. So <code>f</code> is reckoned &ldquo;neutral but not normal.&rdquo;</p><p>Page 184, Fifth Printing: Likewise, any neutral <code>(Pair A D)</code>, <code>p</code>, is not normal because its normal form, <code>(cons (car p) (cdr p))</code> is not neutral: it has the constructor <code>cons</code> up top.</p><h2 id="back-to-work">Back to Work</h2><p>Remember our claim:</p><pre class="brush: racket"><code>;;     (claim incr=add1
-;;            (Π ((n Nat))
-;;               (= Nat (incr n) (add1 n))))</code></pre><p>Let&rsquo;s try</p><pre class="brush: racket"><code>;; (define incr=add1
+;        (add1 j)))</code></pre><p>neither neutral nor normal; its normal form is a value thus not neutral.</p><h2 id="neutral-but-not-normal">Neutral but Not Normal</h2><p>Page 183 (Fifth Printing):</p><p>The neutral expression <code>(the (→ Nat Nat) f)</code> is &ldquo;the same&rdquo; as <code>(λ (n) (f n))</code> by the Laws of <code>λ</code> when <code>n</code> does not occur in <code>f</code>. <code>(λ (n) (f n))</code> is not neutral because it is a value. So <code>f</code> is reckoned &ldquo;neutral but not normal.&rdquo;</p><p>Page 184, Fifth Printing: Likewise, any neutral <code>(Pair A D)</code>, <code>p</code>, is not normal because its normal form, <code>(cons (car p) (cdr p))</code> is not neutral: it has the constructor <code>cons</code> up top.</p><h2 id="back-to-work">Back to Work</h2><p>Remember our claim:</p><pre><code>(claim incr=add1
+       (Π ((n Nat))
+          (= Nat (incr n) (add1 n))))</code></pre><p>Let&rsquo;s try</p><pre class="brush: racket"><code>;; (define incr=add1
 ;;   (λ (n)
 ;;     (same (iter-Nat n 1 (+ 1)))))    ; input to REPL
 ; The expressions                       ; response from REPL
@@ -786,17 +789,17 @@ incr                                    ; input to REPL
        (→ Nat U))                       ; makes an `=`,
                                         ;   which is a `U`</code></pre><p>Remember for later that <code>=</code> statements are types, so they&rsquo;re of type <code>U</code>. It&rsquo;s difficult (impossible?) to be more specific in general cases.</p><pre class="brush: racket"><code>(define mot-incr=add1
   (λ (k)
-    (= Nat (incr k) (add1 k))))</code></pre><p>Is <code>(mot-incr=add1 zero)</code> the same as <code>base-incr=add1</code>? Yes, by &ldquo;The Commandment of <code>cong</code>&rdquo;, below.</p><h2 id="step">Step</h2><p>The step must move us from an <code>=</code> statement about <code>Nat</code> <code>k</code> to an <code>=</code> statement about <code>(add1 k)</code>:</p><p>The following attempt works, but it considered not ideal for reasons to-be-revealed:</p><pre class="brush: racket"><code>;;     (claim step-incr=add1
-;;            (Π (( n-1 Nat ))
-;;               (→ (mot-incr=add1 n-1)
-;;                  (mot-incr=add1 (add1 n-1)))))</code></pre><p>To move it to a more ideal form, inline the references to the motive:</p><pre class="brush: racket"><code>;;     (claim step-incr=add1
-;;            (Π (( n-1 Nat ))
-;;               (→ (= Nat
-;;                     (incr n-1)
-;;                     (add1 n-1))
-;;                  (= Nat
-;;                     (incr (add1 n-1))
-;;                     (add1 (add1 n-1))))))</code></pre><p>Works, but still considered ugly because of lack of parallelism in the last two lines. Without that, we can&rsquo;t easily spot the opportunity to apply <code>cong</code>!</p><p>The following claim is considered ideal because it pulls the <code>add1</code> up top in the output of <code>step-incr=add1</code>. See Page 188 (Fifth Printing) for a lengthy calculation. This form makes the application of <code>cong</code> obvious, but only by applying the pseudo-function <code>add1</code>: Letting target be</p><pre><code> (= Nat
+    (= Nat (incr k) (add1 k))))</code></pre><p>Is <code>(mot-incr=add1 zero)</code> the same as <code>base-incr=add1</code>? Yes, by &ldquo;The Commandment of <code>cong</code>&rdquo;, below.</p><h2 id="step">Step</h2><p>The step must move us from an <code>=</code> statement about <code>Nat</code> <code>k</code> to an <code>=</code> statement about <code>(add1 k)</code>:</p><p>The following attempt works, but it considered not ideal for reasons to-be-revealed:</p><pre><code>(claim step-incr=add1
+       (Π (( n-1 Nat ))
+          (→ (mot-incr=add1 n-1)
+             (mot-incr=add1 (add1 n-1)))))</code></pre><p>To move it to a more ideal form, inline the references to the motive:</p><pre><code>(claim step-incr=add1
+       (Π (( n-1 Nat ))
+          (→ (= Nat
+                (incr n-1)
+                (add1 n-1))
+             (= Nat
+                (incr (add1 n-1))
+                (add1 (add1 n-1))))))</code></pre><p>Works, but still considered ugly because of lack of parallelism in the last two lines. Without that, we can&rsquo;t easily spot the opportunity to apply <code>cong</code>!</p><p>The following claim is considered ideal because it pulls the <code>add1</code> up top in the output of <code>step-incr=add1</code>. See Page 188 (Fifth Printing) for a lengthy calculation. This form makes the application of <code>cong</code> obvious, but only by applying the pseudo-function <code>add1</code>: Letting target be</p><pre><code> (= Nat
     (incr n-1)
     (add1 n-1))</code></pre><p>and <code>f</code> &ldquo;be&rdquo; <code>add1</code>, <code>(cong target f)</code> is</p><pre><code> (= Nat
     (add1 (incr n-1))
@@ -807,11 +810,11 @@ incr                                    ; input to REPL
                 (add1 n-1))
              (= Nat
                 (add1 (incr n-1))
-                (add1 (add1 n-1))))))</code></pre><p>To prove this claim, i.e., to produce a witness, introduce <code>cong</code> (&ldquo;congruent&rdquo;). <code>cong</code> is an eliminator for <code>=</code>.</p><h2 id="the-law-of-cong">The Law of <code>cong</code></h2><p>Page 190 (Fifth Printing):</p><p>If <code>target</code> is an <code>(= X from to)</code></p><p>and <code>f</code>is an <code>(→ X Y)</code> [even if a macro like <code>add1</code>]</p><p>then <code>(cong target f)</code> is</p><p>an <code>(= Y (f from) (f to))</code>.</p><p>■</p><p>This looks like <a href="https://en.wikipedia.org/wiki/Yoneda_lemma">The Yoneda Lemma</a> to my eyes. Is it?</p><h2 id="the-commandment-of-cong">The Commandment of <code>cong</code></h2><p>Show how <code>cong</code> eliminates <code>=</code> by producing a <code>same</code>:</p><p>If <code>x</code> is an <code>X</code> and</p><p><code>f</code> is an <code>(→ X Y)</code>, then</p><p>then <code>(cong (same x) f)</code></p><p>is the same <code>(= Y (f x) (f x))</code> as  <code>(same (f x))</code></p><p>■</p><p>In our example, <code>step-incr=add1</code> must transform</p><pre class="brush: racket"><code>;;     (= Nat
-;;        (incr n-1)
-;;        (add1 n-1))</code></pre><p>into</p><pre class="brush: racket"><code>;;     (= Nat
-;;        (add1 (incr n-1))
-;;        (add1 (add1 n-1))))</code></pre><p>which just moves the FROM and TO under <code>add1</code>, by eliminating <code>=</code>:</p><pre class="brush: racket"><code>(define step-incr=add1
+                (add1 (add1 n-1))))))</code></pre><p>To prove this claim, i.e., to produce a witness, introduce <code>cong</code> (&ldquo;congruent&rdquo;). <code>cong</code> is an eliminator for <code>=</code>.</p><h2 id="the-law-of-cong">The Law of <code>cong</code></h2><p>Page 190 (Fifth Printing):</p><blockquote><p>If <code>target</code> is an <code>(= X from to)</code></p></blockquote><blockquote><p>and <code>f</code>is an <code>(→ X Y)</code> [even if a macro like <code>add1</code>]</p></blockquote><blockquote><p>then <code>(cong target f)</code> is</p></blockquote><blockquote><p>an <code>(= Y (f from) (f to))</code>.</p></blockquote><p>■</p><p>This looks like <a href="https://en.wikipedia.org/wiki/Yoneda_lemma">The Yoneda Lemma</a> to my eyes. Is it?</p><h2 id="the-commandment-of-cong">The Commandment of <code>cong</code></h2><p>Show how <code>cong</code> eliminates <code>=</code> by producing a <code>same</code>:</p><blockquote><p>If <code>x</code> is an <code>X</code> and</p></blockquote><blockquote><p><code>f</code> is an <code>(→ X Y)</code>, then</p></blockquote><blockquote><p>then <code>(cong (same x) f)</code></p></blockquote><blockquote><p>is the same <code>(= Y (f x) (f x))</code> as  <code>(same (f x))</code></p></blockquote><p>■</p><p>In our example, <code>step-incr=add1</code> must transform</p><pre><code>(= Nat
+   (incr n-1)
+   (add1 n-1))</code></pre><p>into</p><pre><code>(= Nat
+   (add1 (incr n-1))
+   (add1 (add1 n-1))))</code></pre><p>which just moves the FROM and TO under <code>add1</code>, by eliminating <code>=</code>:</p><pre class="brush: racket"><code>(define step-incr=add1
   (λ (n-1)
     (λ (incr=add_n-1)
       (cong incr=add_n-1 (+ 1)))))</code></pre><p>;; We&rsquo;re done:</p><pre class="brush: racket"><code>(define incr=add1
@@ -819,49 +822,45 @@ incr                                    ; input to REPL
     (ind-Nat n
              mot-incr=add1
              base-incr=add1             ; (same (add1 zero))
-             step-incr=add1)))</code></pre><h2 id="frame-889-page-195-fifth-printing">Frame 8.89, Page 195 (Fifth Printing):</h2><p>Socrates: &ldquo;The interplay between judging sameness and stating equality is at the heart of dependent types. This taste only scratches the surface.&rdquo;</p><h1 id="chapter-9">Chapter 9</h1><p>We&rsquo;ll first show a use of <code>replace</code> that&rsquo;s equivalent to the use of <code>cong</code> above.</p><p>Page 199, Fifth Printing:</p><h2 id="the-law-of-replace">The Law of <code>replace</code></h2><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>]</p><p><code>mot</code> is an <code>(→ X U)</code></p><p>and <code>base</code> is a <code>(mot from)</code></p><p>then <code>(replace target mot base)</code></p><p>is a <code>(mot to)</code>.</p><p>■</p><p>Reminders about <code>cong</code> so we can see the parallelism:</p><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>]</p><p>and <code>f</code>is an <code>(→ X Y)</code> [even if a macro like <code>add1</code>]</p><p>then <code>(cong target f)</code> is</p><p>an <code>(= Y (f from) (f to))</code>.</p><p>If <code>x</code> is an <code>X</code> and</p><p><code>f</code> is an <code>(→ X Y)</code>, then</p><p>then <code>(cong (same x) f)</code></p><p>is the same <code>(= Y (f x) (f x))</code> as  <code>(same (f x))</code></p><p>■</p><p>Reminders:</p><hr/><pre class="brush: racket"><code>;; (define incr=add1
-;;   (λ (n)
-;;     (ind-Nat n
-;;              mot-incr=add1
-;;              base-incr=add1
-;;              step-incr=add1)))
-;; -----------------------------------------------
-;; (define mot-incr=add1
-;;   (λ (k)
-;;     (= Nat (incr k) (add1 k))))
-;; -----------------------------------------------
-;; (define base-incr=add1
-;;   (same (add1 zero)))</code></pre><hr/><pre class="brush: racket"><code>;; (define step-incr=add1
-;;   (λ (n-1)
-;;     (λ (incr=add_n-1)
-;;     ;
-;;     ;           (mot n-1) ~~&gt; (= Nat (incr n-1) (add1 n-1))
-;;     ;           '---.---'     same as by The Comm'dt of `cong`
-;;     ;               |         /
-;;     ;               |base    /
-;;     ;               |       /
-;;     ;       .-------^-------.
-;;     ;       (same (add1 n-1)) (→ Nat Nat)
-;;     ;       '--------.------' '----.----'
-;;     ;                |             |
-;;     ;                |target       |f = "add1"
-;;     ;                |             |
-;;     ;           .----^-----.     .-^-.
-;;       (cong     incr=add_n-1     (+ 1)  ) )))
-;;     ; '------------.------------------------'
-;;     ;              |
-;;     ;              |(cong target f)
-;;     ;              |
-;;     ; .------------^---------.
-;;     ; (same (add1 (incr n-1)))
-;;     ;
-;;     ;     by The Commandment of `cong`, same as
-;;     ;
-;;     ; (= Nat ((+ 1) (incr n-1)) ((+ 1) (incr n-1)))
-;;     ;
-;;     ;     normalizing:
-;;     ;
-;;     ; (= Nat (add1  (incr n-1)) (add1  (incr n-1)))</code></pre><p>Write it up with <code>replace</code>. We&rsquo;ll need a motive for <code>replace</code>:</p><hr/><pre class="brush: racket"><code>(claim mot-step-incr=add1
+             step-incr=add1)))</code></pre><h2 id="frame-889-page-195-fifth-printing">Frame 8.89, Page 195 (Fifth Printing):</h2><blockquote><p>Socrates: &ldquo;The interplay between judging sameness and stating equality is at the heart of dependent types. This taste only scratches the surface.&rdquo;</p></blockquote><h1 id="chapter-9">Chapter 9</h1><p>We&rsquo;ll first show a use of <code>replace</code> that&rsquo;s equivalent to the use of <code>cong</code> above.</p><p>Page 199, Fifth Printing:</p><h2 id="the-law-of-replace">The Law of <code>replace</code></h2><blockquote><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>]</p></blockquote><blockquote><p><code>mot</code> is an <code>(→ X U)</code></p></blockquote><blockquote><p>and <code>base</code> is a <code>(mot from)</code></p></blockquote><blockquote><p>then <code>(replace target mot base)</code></p></blockquote><blockquote><p>is a <code>(mot to)</code>.</p></blockquote><p>■</p><p>Reminders about <code>cong</code> so we can see the parallelism:</p><blockquote><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>]</p></blockquote><blockquote><p>and <code>f</code>is an <code>(→ X Y)</code> [even if a macro like <code>add1</code>]</p></blockquote><blockquote><p>then <code>(cong target f)</code> is</p></blockquote><blockquote><p>an <code>(= Y (f from) (f to))</code>.</p></blockquote><p>■</p><blockquote><p>If <code>x</code> is an <code>X</code> and</p></blockquote><blockquote><p><code>f</code> is an <code>(→ X Y)</code>, then</p></blockquote><blockquote><p>then <code>(cong (same x) f)</code></p></blockquote><blockquote><p>is the same <code>(= Y (f x) (f x))</code> as  <code>(same (f x))</code></p></blockquote><p>■</p><p>Reminders:</p><hr/><pre><code>(define incr=add1
+  (λ (n)
+    (ind-Nat n
+             mot-incr=add1
+             base-incr=add1
+             step-incr=add1)))</code></pre><hr/><pre><code>(define mot-incr=add1
+  (λ (k)
+    (= Nat (incr k) (add1 k))))</code></pre><hr/><pre><code>(define base-incr=add1
+  (same (add1 zero)))</code></pre><hr/><pre><code>(define step-incr=add1
+  (λ (n-1)
+    (λ (incr=add_n-1)
+    ;
+    ;           (mot n-1) ~~&gt; (= Nat (incr n-1) (add1 n-1))
+    ;           '---.---'     'same as', by The Comm'dt of `cong`
+    ;               |         /
+    ;               |base    /
+    ;               |       /
+    ;       .-------^-------.
+    ;       (same (add1 n-1)) (→ Nat Nat)
+    ;       '--------.------' '----.----'
+    ;                |             |
+    ;                |target       |f = "add1"
+    ;                |             |
+    ;           .----^-----.     .-^-.
+      (cong     incr=add_n-1     (+ 1)  ) )))
+    ; '------------.------------------------'
+    ;              |
+    ;              |(cong target f)
+    ;              |
+    ; .------------^---------.
+    ; (same (add1 (incr n-1)))
+    ;
+    ;     by The Commandment of `cong`, same as
+    ;
+    ; (= Nat ((+ 1) (incr n-1)) ((+ 1) (incr n-1)))
+    ;
+    ;     normalizing:
+    ;
+    ; (= Nat (add1  (incr n-1)) (add1  (incr n-1)))</code></pre><p>Write it up with <code>replace</code>. We&rsquo;ll need a motive for <code>replace</code>:</p><hr/><pre class="brush: racket"><code>(claim mot-step-incr=add1
        (→ Nat Nat
           U))
 
@@ -893,15 +892,15 @@ incr                                    ; input to REPL
   (λ (incr=add_n-1)
     (cong incr=add_n-1 (+ 1))))</code></pre><p>It puts <code>add1</code>, in its functional disguise as <code>(+ 1)</code>, up top of</p><pre><code>(= Nat
    (incr n-1)
-   (add1 n-1))</code></pre><p>Replace must do the identical thing. Let&rsquo;s see that. Here is the new <code>step-incr=add1-2</code>:</p><pre class="brush: racket"><code>;; (λ (n-1)
-;;   (λ (incr=add_n-1)
-;;     (replace incr=add_n-1             ; target
-;;              (mot-step-incr=add1 n-1) ; motive
-;;              (same (add1 (incr n-1))) ; base
-;;              )))</code></pre><p>Copying from The Law of <code>replace</code> and filling in the blanks:</p><p>&mdash; If <code>target</code> is an <code>(= X from to)</code></p><p>It&rsquo;s <code>incr=add_n-1</code>, a parameter. How is it an <code>(= X from to)</code>? <code>ind‑Nat</code> feeds it to <code>step-incr=add1-2</code>, and we recall that it starts as <code>(same (add1 zero))</code>. That is a witness for <code>(= Nat (add1 zero) (add1 zero))</code>, so we are confident that <code>target</code> is an <code>(= Nat (add1 zero) (add1 zero))</code>.</p><p>&mdash; <code>mot</code> is an <code>(→ X U)</code></p><p><code>(mot n-1)</code>, the motive for <code>replace</code>, is a</p><pre><code>(λ (k)
+   (add1 n-1))</code></pre><p>Replace must do the identical thing. Let&rsquo;s see that. Here is the new <code>step-incr=add1-2</code>:</p><pre><code>(λ (n-1)
+  (λ (incr=add_n-1)
+    (replace incr=add_n-1             ; target
+             (mot-step-incr=add1 n-1) ; motive
+             (same (add1 (incr n-1))) ; base
+             )))</code></pre><p>Copying from The Law of <code>replace</code> and filling in the blanks:</p><p>&mdash; If <code>target</code> is an <code>(= X from to)</code></p><p>It&rsquo;s <code>incr=add_n-1</code>, a parameter. How is it an <code>(= X from to)</code>? <code>ind‑Nat</code> feeds it to <code>step-incr=add1-2</code>, and we recall that it starts as <code>(same (add1 zero))</code>. That is a witness for <code>(= Nat (add1 zero) (add1 zero))</code>, so we are confident that <code>target</code> is an <code>(= Nat (add1 zero) (add1 zero))</code>.</p><p>&mdash; <code>mot</code> is an <code>(→ X U)</code></p><p><code>(mot n-1)</code>, the motive for <code>replace</code>, is a</p><pre><code>(λ (k)
   (= Nat
      (add1 (incr n-1))
-     (add1 k)))</code></pre><p>by currying. Remember that <code>=</code> expressions are types of type <code>U</code>, so <code>(mot n-1)</code> is a <code>(→ Nat U)</code>.</p><p>&mdash; and <code>base</code> is a <code>(mot from)</code></p><p><code>from</code> is <code>(add1 zero)</code>; <code>(mot from)</code> is an <code>(= Nat (add1 (incr n-1)) (add1 k~~&gt;(add1 zero)))</code> <code>base</code> is, manifestly, <code>(same_(add1_(incr_n-1)))</code>, so it&rsquo;s an <code>(= Nat (add1 (incr n-1)) (add1 (add1 zero)))</code> when <code>n-1</code> is <code>zero</code>.</p><p>&mdash; then <code>(replace target mot base)</code></p><p>&mdash; is a <code>(mot to)</code>.</p><p>When <code>incr=add_n-1</code> is <code>(add1 n-1)</code> and not just <code>(add1 zero)</code>, then <code>to</code> is an <code>(= Nat (add1 (incr n-1)) (add1 (add1 n-1)))</code>.</p><p>QED ■</p><h2 id="double-and-twice">Double and Twice</h2><p>We didn&rsquo;t write down <code>*</code>, from Pages 85ff (Fifth Printing). It&rsquo;s time to do that now.</p><hr/><pre class="brush: racket"><code>(claim *
+     (add1 k)))</code></pre><p>by currying. Remember that <code>=</code> expressions are types of type <code>U</code>, so <code>(mot n-1)</code> is a <code>(→ Nat U)</code>.</p><p>&mdash; and <code>base</code> is a <code>(mot from)</code></p><p><code>from</code> is <code>(add1 zero)</code>; <code>(mot from)</code> is an <code>(= Nat (add1 (incr n-1)) (add1 k~~&gt;(add1 zero)))</code> <code>base</code> is, manifestly, <code>(same_(add1_(incr_n-1)))</code>, so it&rsquo;s an <code>(= Nat (add1 (incr n-1)) (add1 (add1 zero)))</code> when <code>n-1</code> is <code>zero</code>.</p><p>&mdash; then <code>(replace target mot base)</code></p><p>&mdash; is a <code>(mot to)</code>.</p><p>When <code>incr=add_n-1</code> is <code>(add1 n-1)</code> and not just <code>(add1 zero)</code>, then <code>to</code> is an <code>(= Nat (add1 (incr n-1)) (add1 (add1 n-1)))</code>.</p><p>QED ■</p><h2 id="double-and-twice">Double and Twice</h2><h3 id="multiplication">Multiplication</h3><p>We didn&rsquo;t write down <code>*</code>, from Pages 85ff (Fifth Printing). It&rsquo;s time to do that now.</p><hr/><pre class="brush: racket"><code>(claim *
        (→ Nat Nat
           Nat))</code></pre><hr/><pre class="brush: racket"><code>(claim make-step-*
        (→ Nat
@@ -913,26 +912,27 @@ incr                                    ; input to REPL
   (λ (n j)
     (rec-Nat n
              0
-             (make-step-* j))))</code></pre><p>(* 6 7) ; (the Nat 42)</p><hr/><pre class="brush: racket"><code>(claim double
+             (make-step-* j))))</code></pre><pre class="brush: racket"><code>(* 6 7)
+; (the Nat 42)</code></pre><h3 id="double">Double</h3><p>Add 2 to <code>zero</code> <code>n</code> times by iteration:</p><hr/><pre class="brush: racket"><code>(claim double
        (→ Nat
           Nat))</code></pre><pre class="brush: racket"><code>(define double
   (λ (n)
     (iter-Nat n
               0
               (+ 2))))</code></pre><pre class="brush: racket"><code>(double 21)
-; (the Nat 42)</code></pre><hr/><pre class="brush: racket"><code>(claim twice
+; (the Nat 42)</code></pre><h3 id="twice">Twice</h3><p>Add the argument <code>n</code> to itself:</p><hr/><pre class="brush: racket"><code>(claim twice
        (→ Nat
           Nat))</code></pre><pre class="brush: racket"><code>(define twice
   (λ (n)
     (+ n n)))</code></pre><pre class="brush: racket"><code>(twice 21)
-; (tha Nat 42)</code></pre><hr/><pre class="brush: racket"><code>(claim twice=double
+; (the Nat 42)</code></pre><h2 id="the-claim">The claim</h2><p><code>Twice</code> equals <code>double</code> for any <code>n: Nat</code>:</p><hr/><pre class="brush: racket"><code>(claim twice=double
        (Π ((n Nat))
-          (= Nat (twice n) (double n))))</code></pre><hr/><pre class="brush: racket"><code>(claim add1+=+add1
+          (= Nat (twice n) (double n))))</code></pre><h3 id="involution-of-add1-and--by-induction">Involution of <code>add1</code> and <code>+</code>, by Induction</h3><hr/><pre class="brush: racket"><code>(claim add1+=+add1
        (Π ((n Nat)
            (j Nat))
           (= Nat
              (add1 (+ n j))
-             (+ n (add1 j)))))</code></pre><hr/><pre class="brush: racket"><code>(claim mot-add1+=+add1
+             (+ n (add1 j)))))</code></pre><p>We&rsquo;ll need a motive, base, and step for <code>ind-Nat</code>:</p><hr/><pre class="brush: racket"><code>(claim mot-add1+=+add1
        (→ Nat Nat
           U))</code></pre><pre class="brush: racket"><code>(define mot-add1+=+add1
   (λ (j k)
@@ -955,7 +955,7 @@ incr                                    ; input to REPL
              (same (add1 j))
              (step-add1+=+add1 j))))</code></pre><pre class="brush: racket"><code>(add1+=+add1 6 7)
 ; (the (= Nat 14 14)
-;   (same 14)</code></pre><hr/><pre class="brush: racket"><code>(claim mot-twice=double
+;   (same 14)</code></pre><h3 id="the-proof-by-induction">The Proof by Induction</h3><p>We&rsquo;ll need a motive, base, and step for induction:</p><hr/><pre class="brush: racket"><code>(claim mot-twice=double
        (→ Nat
           U))</code></pre><pre class="brush: racket"><code>(define mot-twice=double
   (λ (k)
@@ -964,7 +964,7 @@ incr                                    ; input to REPL
        (double k))))</code></pre><hr/><pre class="brush: racket"><code>(claim step-twice=double
        (Π ((n-1 Nat))
           (→ (mot-twice=double n-1)
-             (mot-twice=double (add1 n-1)))))</code></pre><p>motive for <code>replace</code>:</p><hr/><pre class="brush: racket"><code>(claim mot-step-twice=double
+             (mot-twice=double (add1 n-1)))))</code></pre><p>The step will use <code>replace</code>, which needs its own motive, base, and step:</p><hr/><pre class="brush: racket"><code>(claim mot-step-twice=double
        (→ Nat Nat
           U))</code></pre><pre class="brush: racket"><code>(define mot-step-twice=double
   (λ (n-1 k)

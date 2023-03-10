@@ -122,6 +122,9 @@ The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tuf
   don't work.
 
 
+* Table of Contents
+
+
 # Chapters 1 & 2
 
 
@@ -738,7 +741,7 @@ elim-Pair
 ```
 
 
-# `Kar`, `Kdr`
+## `Kar`, `Kdr`
 
 
 These `kar` and `kdr` functions are specialized
@@ -2045,17 +2048,13 @@ The first claim and proof of equality will look
 like this:
 
 
-```racket
-;; (claim +1=add1
-;;        (Π ((n Nat))                  ; Read: for every Nat n,
-;;           (= Nat (+ 1 n) (add1 n)))) ; ... FROM equals TO.
-```
+    (claim +1=add1
+           (Π ((n Nat))                  ; Read: for every Nat n,
+              (= Nat (+ 1 n) (add1 n)))) ; ... FROM equals TO.
 
 
-```racket
-;; (define +1=add1                      ; Prove by constructing
-;;   (λ (n) (same (add1 n))))           ; a "same" value for it.
-```
+    (define +1=add1                      ; Prove by constructing
+      (λ (n) (same (add1 n))))           ; a "same" value for it.
 
 
 We'll define `incr` as we go along.
@@ -2121,13 +2120,11 @@ partial application of `+` to `1`:
 Recall the definition of `+`:
 
 
-```racket
-;; (define +
-;;   (λ (n j) ;; Don't use the name n-1 here.
-;;     ;;        target base  step  ; the pattern
-;;     ;;       |------|----|-------|
-;;     (iter-Nat    n     j   step-+ )))
-```
+    (define +
+      (λ (n j) ;; Don't use the name n-1 here.
+        ;;        target base  step  ; the pattern
+        ;;       |------|----|-------|
+        (iter-Nat    n     j   step-+ )))
 
 
 where `(define step-+ (λ (n-1) (add1 n-1)))`
@@ -2140,22 +2137,20 @@ bottoms out at the built-in `add1`.
 Calculate the normal form of `(+ 1)` by hand:
 
 
-```racket
-;; (+ 1)
-;; (+ (add1 zero))                        destructuring
-;; (λ (j)
-;;   (iter-Nat (add1 zero) j step-+))     subst. def of +
-;; (λ (j)      -----v-----
-;;   (step-+       _^__
-;;     (iter-Nat   zero    j step-+))     elimination
-;; (λ (j)
-;;   (add1 ,------- n-1 -------.          subst. def of step-+
-;;     (iter-Nat   zero j step-+)))
-;;                     /
-;;                ----
-;;               /
-;; (λ (j) (add1 j))                       base case
-```
+    (+ 1)
+    (+ (add1 zero))                        destructuring
+    (λ (j)
+      (iter-Nat (add1 zero) j step-+))     subst. def of +
+    (λ (j)      -----v-----
+      (step-+       _^__
+        (iter-Nat   zero    j step-+))     elimination
+    (λ (j)
+      (add1 ,------- n-1 -------.          subst. def of step-+
+        (iter-Nat   zero j step-+)))
+                        /
+                   ----
+                  /
+    (λ (j) (add1 j))                       base case
 
 
 That's the normal form of `(+ 1)`. Remember or
@@ -2319,12 +2314,15 @@ Let us write some prose for human judgment about
 ## The Law of `=`
 
 
-Page 174 (Fifth Printing): "An expression
+Page 174 (Fifth Printing):
 
-    (= X from to)
 
-is a type if `X` is a type, _from_ is an `X`, and
-_to_ is an `X`."
+> An expression
+
+>     (= X from to)
+
+> is a type if `X` is a type, _from_ is an `X`, and
+> _to_ is an `X`."
 
 
 ■
@@ -2432,9 +2430,9 @@ equal, though not the same.
 My edits after incorporating Frame 8.37, Page 179.
 
 
-The expression `(same e3)` is an `(= X e1 e2)` if `e1`,
-`e2`, and `e3` are each an `X` and `e1` is the same as
-`e2` [J1].
+> The expression `(same e3)` is an `(= X e1 e2)` if `e1`,
+> `e2`, and `e3` are each an `X` and `e1` is the same as
+> `e2` [J1].
 
 
 ■
@@ -2464,18 +2462,16 @@ only make judgments about particular `Nat`s. Here's
 an example:"
 
 
-Here is a commented-out reminder copy of the
+Here is a reminder copy of the
 formal proof of `+1=add1` above.
 
 
-```racket
-;;     (claim +1=add1
-;;            (Π ((n Nat))
-;;               (= Nat (+ 1 n) (add1 n))))
+    (claim +1=add1
+           (Π ((n Nat))
+              (= Nat (+ 1 n) (add1 n))))
 
-;;     (define +1=add1
-;;       (λ (n) (same (add1 n))))
-```
+    (define +1=add1
+      (λ (n) (same (add1 n))))
 
 
 ... proves the statement that for every `Nat` `n`,
@@ -2505,7 +2501,7 @@ identical. Reminder:
 
 
 ```racket
-;; (define incr=add1
+; (define incr=add1
 ;;   (λ (n)
 ;;     (same (add1 n))))                ; input to REPL
 ; The expressions                       ; response from REPL
@@ -2674,11 +2670,9 @@ neutral: it has the constructor `cons` up top.
 Remember our claim:
 
 
-```racket
-;;     (claim incr=add1
-;;            (Π ((n Nat))
-;;               (= Nat (incr n) (add1 n))))
-```
+    (claim incr=add1
+           (Π ((n Nat))
+              (= Nat (incr n) (add1 n))))
 
 
 Let's try
@@ -2815,28 +2809,24 @@ The following attempt works, but it considered
 not ideal for reasons to-be-revealed:
 
 
-```racket
-;;     (claim step-incr=add1
-;;            (Π (( n-1 Nat ))
-;;               (→ (mot-incr=add1 n-1)
-;;                  (mot-incr=add1 (add1 n-1)))))
-```
+    (claim step-incr=add1
+           (Π (( n-1 Nat ))
+              (→ (mot-incr=add1 n-1)
+                 (mot-incr=add1 (add1 n-1)))))
 
 
 To move it to a more ideal form, inline the
 references to the motive:
 
 
-```racket
-;;     (claim step-incr=add1
-;;            (Π (( n-1 Nat ))
-;;               (→ (= Nat
-;;                     (incr n-1)
-;;                     (add1 n-1))
-;;                  (= Nat
-;;                     (incr (add1 n-1))
-;;                     (add1 (add1 n-1))))))
-```
+    (claim step-incr=add1
+           (Π (( n-1 Nat ))
+              (→ (= Nat
+                    (incr n-1)
+                    (add1 n-1))
+                 (= Nat
+                    (incr (add1 n-1))
+                    (add1 (add1 n-1))))))
 
 
 Works, but still considered ugly because of lack
@@ -2885,13 +2875,13 @@ eliminator for `=`.
 
 Page 190 (Fifth Printing):
 
-If `target` is an `(= X from to)`
+> If `target` is an `(= X from to)`
 
-and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
+> and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
 
-then              `(cong target f)` is
+> then              `(cong target f)` is
 
-an                `(= Y (f from) (f to))`.
+> an                `(= Y (f from) (f to))`.
 
 
 ■
@@ -2907,14 +2897,14 @@ Show how `cong` eliminates `=` by producing a
 `same`:
 
 
-If `x` is an      `X` and
+> If `x` is an      `X` and
 
-`f` is an         `(→ X Y)`, then
+> `f` is an         `(→ X Y)`, then
 
-then              `(cong (same x) f)`
+> then              `(cong (same x) f)`
 
-is the same       `(= Y (f x) (f x))` as
-                  `(same (f x))`
+> is the same       `(= Y (f x) (f x))` as
+>                   `(same (f x))`
 
 
 ■
@@ -2923,21 +2913,17 @@ is the same       `(= Y (f x) (f x))` as
 In our example, `step-incr=add1` must transform
 
 
-```racket
-;;     (= Nat
-;;        (incr n-1)
-;;        (add1 n-1))
-```
+    (= Nat
+       (incr n-1)
+       (add1 n-1))
 
 
 into
 
 
-```racket
-;;     (= Nat
-;;        (add1 (incr n-1))
-;;        (add1 (add1 n-1))))
-```
+    (= Nat
+       (add1 (incr n-1))
+       (add1 (add1 n-1))))
 
 
 which just moves the FROM and TO under `add1`, by
@@ -2968,9 +2954,9 @@ eliminating `=`:
 ## Frame 8.89, Page 195 (Fifth Printing):
 
 
-Socrates: "The interplay between judging sameness
-and stating equality is at the heart of dependent
-types. This taste only scratches the surface."
+> Socrates: "The interplay between judging sameness
+> and stating equality is at the heart of dependent
+> types. This taste only scratches the surface."
 
 
 # Chapter 9
@@ -2986,15 +2972,15 @@ Page 199, Fifth Printing:
 ## The Law of `replace`
 
 
-If `target` is an `(= X from to)`  [which is a `U`]
+> If `target` is an `(= X from to)`  [which is a `U`]
 
-`mot` is an       `(→ X U)`
+> `mot` is an       `(→ X U)`
 
-and `base` is a   `(mot from)`
+> and `base` is a   `(mot from)`
 
-then              `(replace target mot base)`
+> then              `(replace target mot base)`
 
-is a              `(mot to)`.
+> is a              `(mot to)`.
 
 
 ■
@@ -3004,23 +2990,26 @@ Reminders about `cong` so we can see the
 parallelism:
 
 
-If `target` is an `(= X from to)`  [which is a `U`]
+> If `target` is an `(= X from to)`  [which is a `U`]
 
-and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
+> and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
 
-then              `(cong target f)` is
+> then              `(cong target f)` is
 
-an                `(= Y (f from) (f to))`.
+> an                `(= Y (f from) (f to))`.
 
 
-If `x` is an      `X` and
+■
 
-`f` is an         `(→ X Y)`, then
 
-then              `(cong (same x) f)`
+> If `x` is an      `X` and
 
-is the same       `(= Y (f x) (f x))` as
-                  `(same (f x))`
+> `f` is an         `(→ X Y)`, then
+
+> then              `(cong (same x) f)`
+
+> is the same       `(= Y (f x) (f x))` as
+>                   `(same (f x))`
 
 
 ■
@@ -3030,57 +3019,57 @@ Reminders:
 
 
 <hr>
-```racket
-;; (define incr=add1
-;;   (λ (n)
-;;     (ind-Nat n
-;;              mot-incr=add1
-;;              base-incr=add1
-;;              step-incr=add1)))
-;; -----------------------------------------------
-;; (define mot-incr=add1
-;;   (λ (k)
-;;     (= Nat (incr k) (add1 k))))
-;; -----------------------------------------------
-;; (define base-incr=add1
-;;   (same (add1 zero)))
-```
+    (define incr=add1
+      (λ (n)
+        (ind-Nat n
+                 mot-incr=add1
+                 base-incr=add1
+                 step-incr=add1)))
 
 
 <hr>
-```racket
-;; (define step-incr=add1
-;;   (λ (n-1)
-;;     (λ (incr=add_n-1)
-;;     ;
-;;     ;           (mot n-1) ~~> (= Nat (incr n-1) (add1 n-1))
-;;     ;           '---.---'     same as by The Comm'dt of `cong`
-;;     ;               |         /
-;;     ;               |base    /
-;;     ;               |       /
-;;     ;       .-------^-------.
-;;     ;       (same (add1 n-1)) (→ Nat Nat)
-;;     ;       '--------.------' '----.----'
-;;     ;                |             |
-;;     ;                |target       |f = "add1"
-;;     ;                |             |
-;;     ;           .----^-----.     .-^-.
-;;       (cong     incr=add_n-1     (+ 1)  ) )))
-;;     ; '------------.------------------------'
-;;     ;              |
-;;     ;              |(cong target f)
-;;     ;              |
-;;     ; .------------^---------.
-;;     ; (same (add1 (incr n-1)))
-;;     ;
-;;     ;     by The Commandment of `cong`, same as
-;;     ;
-;;     ; (= Nat ((+ 1) (incr n-1)) ((+ 1) (incr n-1)))
-;;     ;
-;;     ;     normalizing:
-;;     ;
-;;     ; (= Nat (add1  (incr n-1)) (add1  (incr n-1)))
-```
+    (define mot-incr=add1
+      (λ (k)
+        (= Nat (incr k) (add1 k))))
+
+
+<hr>
+    (define base-incr=add1
+      (same (add1 zero)))
+
+
+<hr>
+    (define step-incr=add1
+      (λ (n-1)
+        (λ (incr=add_n-1)
+        ;
+        ;           (mot n-1) ~~> (= Nat (incr n-1) (add1 n-1))
+        ;           '---.---'     'same as', by The Comm'dt of `cong`
+        ;               |         /
+        ;               |base    /
+        ;               |       /
+        ;       .-------^-------.
+        ;       (same (add1 n-1)) (→ Nat Nat)
+        ;       '--------.------' '----.----'
+        ;                |             |
+        ;                |target       |f = "add1"
+        ;                |             |
+        ;           .----^-----.     .-^-.
+          (cong     incr=add_n-1     (+ 1)  ) )))
+        ; '------------.------------------------'
+        ;              |
+        ;              |(cong target f)
+        ;              |
+        ; .------------^---------.
+        ; (same (add1 (incr n-1)))
+        ;
+        ;     by The Commandment of `cong`, same as
+        ;
+        ; (= Nat ((+ 1) (incr n-1)) ((+ 1) (incr n-1)))
+        ;
+        ;     normalizing:
+        ;
+        ; (= Nat (add1  (incr n-1)) (add1  (incr n-1)))
 
 
 Write it up with `replace`. We'll need a motive
@@ -3169,14 +3158,13 @@ Replace must do the identical thing. Let's see
 that. Here is the new `step-incr=add1-2`:
 
 
-```racket
-;; (λ (n-1)
-;;   (λ (incr=add_n-1)
-;;     (replace incr=add_n-1             ; target
-;;              (mot-step-incr=add1 n-1) ; motive
-;;              (same (add1 (incr n-1))) ; base
-;;              )))
-```
+    (λ (n-1)
+      (λ (incr=add_n-1)
+        (replace incr=add_n-1             ; target
+                 (mot-step-incr=add1 n-1) ; motive
+                 (same (add1 (incr n-1))) ; base
+                 )))
+
 
 Copying from The Law of `replace` and filling in
 the blanks:
@@ -3235,6 +3223,9 @@ QED ■
 ## Double and Twice
 
 
+### Multiplication
+
+
 We didn't write down `*`, from Pages 85ff (Fifth
 Printing). It's time to do that now.
 
@@ -3272,8 +3263,18 @@ Printing). It's time to do that now.
              0
              (make-step-* j))))
 ```
+
+
+```racket
 (* 6 7)
 ; (the Nat 42)
+```
+
+
+### Double
+
+
+Add 2 to `zero` `n` times by iteration:
 
 
 <hr>
@@ -3299,6 +3300,12 @@ Printing). It's time to do that now.
 ```
 
 
+### Twice
+
+
+Add the argument `n` to itself:
+
+
 <hr>
 ```racket
 (claim twice
@@ -3316,8 +3323,14 @@ Printing). It's time to do that now.
 
 ```racket
 (twice 21)
-; (tha Nat 42)
+; (the Nat 42)
 ```
+
+
+## The claim
+
+
+`Twice` equals `double` for any `n: Nat`:
 
 
 <hr>
@@ -3326,6 +3339,9 @@ Printing). It's time to do that now.
        (Π ((n Nat))
           (= Nat (twice n) (double n))))
 ```
+
+
+### Involution of `add1` and `+`, by Induction
 
 
 <hr>
@@ -3337,6 +3353,9 @@ Printing). It's time to do that now.
              (add1 (+ n j))
              (+ n (add1 j)))))
 ```
+
+
+We'll need a motive, base, and step for `ind-Nat`:
 
 
 <hr>
@@ -3400,6 +3419,12 @@ Printing). It's time to do that now.
 ```
 
 
+### The Proof by Induction
+
+
+We'll need a motive, base, and step for induction:
+
+
 <hr>
 ```racket
 (claim mot-twice=double
@@ -3426,7 +3451,8 @@ Printing). It's time to do that now.
 ```
 
 
-motive for `replace`:
+The step will use `replace`, which needs its
+own motive and base:
 
 
 <hr>
@@ -3451,9 +3477,9 @@ motive for `replace`:
 (define step-twice=double
   (λ (n-1)
     (λ (twice-double_n-1)
-      (replace (add1+=+add1 n-1 n-1)
+      (replace (add1+=+add1 n-1 n-1)    ; target
                (mot-step-twice=double n-1)
-               (cong twice-double_n-1
+               (cong twice-double_n-1   ; base
                      (+ 2))))))
 ```
 
