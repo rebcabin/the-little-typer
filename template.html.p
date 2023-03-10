@@ -1,7 +1,12 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Custom template</title>
+  <script type="text/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+  <script type="text/x-mathjax-config">
+     MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$']]}});
+  </script>  <title>Custom template</title>
   <link rel="stylesheet" type="text/css" href="tufte.css"></link>
   <!-- <style type="text/css">
        body {padding: 3em; font-size: 20px;}

@@ -5,13 +5,28 @@
            ;; package (`raco pkg install pie`)
 ```
 
+◊(define ($ . xs)
+  `(mathjax ,(apply string-append `("$" ,@xs "$"))))
+◊(define ($$ . xs)
+  `(mathjax ,(apply string-append `("$$" ,@xs "$$"))))
+◊(require pollen/unstable/pygments)
+
+
+> I wonder whether ${2^{\aleph_\alpha} = \aleph_{\alpha+1}}$?
+
+
+-- Matthew Butterick
+
+
 # Prolegomenon
 
 
-These are my notes on [_The Little
-Typer_](https://thelittletyper.com/index.html),
-Fifth Printing. [Find the source
+I am Brian Beckman. These are my notes on [_The
+Little Typer_](https://thelittletyper.com/index.html),
+Fifth Printing. [Find the source of my notes
 here](https://github.com/rebcabin/the-little-typer/).
+
+
 Though my explanations are my own, the code is
 mostly copied from the book. You will most likely
 need the book to understand my notes.
@@ -44,7 +59,7 @@ Clojure-mode.
 
 
 Code blocks are delimited in triple-backticks, not
-nestable. If you can extract the code from the
+nested. If you can extract the code from the
 `.pmd` file, you can run it in `racket`.
 
 
@@ -72,6 +87,12 @@ blank line between a definition and its unit tests.
 I'm not religious about any line-spacing.
 
 
+## License
+
+
+https://creativecommons.org/licenses/by/4.0/
+
+
 ## Technology
 
 
@@ -80,23 +101,33 @@ I build the html via
 The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tufte-css).
 
 
+## Undone
+
+
+* pygments for syntax highlighting
+
+
+* sidenotes, marginnotes
+
+
 # Chapters 1 & 2
 
 
 ```racket
 'spinach
+```
 
 
+```racket
 (the (Pair Atom Atom)                       ; type
      (cons 'spinach 'cauliflower))             ; instance
 
 
 (the Atom (the Atom 'pie))                  ; instance only
-
 ```
 
 
-## Which-Nat
+## `Which-Nat`
 
 
 Here is my clone of `which-Nat` and its type
