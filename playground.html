@@ -29,9 +29,9 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 
 (define wN
   (λ (E)
-   (λ (t b s) (which-Nat t b s))))</code></pre><p>The base and the output of <code>step</code> must have the same type <code>(E U)</code>. <code>E</code> can be anything &mdash; <code>Atom</code> or <code>Nat</code>, for instance, but it must be the same on both branches of <code>which-Nat</code>.</p><p>Here is pseudocode for which-Nat:</p><pre class="brush: racket"><code>;; (which-Nat target base step) == base if
+   (λ (t b s) (which-Nat t b s))))</code></pre><p>The base and the output of <code>step</code> must have the same type <code>(E U)</code>. <code>E</code> can be anything &mdash; <code>Atom</code> or <code>Nat</code>, for instance, but it must be the same on both branches of <code>which-Nat</code>. Bindings (sub-expressions like <code>(E U)</code> under <code>Π</code>) are sequential: later ones may refer to earlier ones):</p><p>Here is pseudocode for which-Nat:</p><pre class="brush: racket"><code>;; (which-Nat target base step) == base if
 ;; target == 0 else if target == n == (add1 n-1)
-;; then which-Nat = (step n-1)</code></pre><p>A good name for the argument (parameter?) of step is <code>n-1</code> because step is called with <code>n-1</code> when <code>target</code> == <code>n</code> == <code>(add1 n-1)</code>.</p><p>A parameter is a name for an argument. What is the name of a parameter (your answer)?</p><p>SPOILER: Parameters inhabit a space of symbolic calculation inside the compiler or its runtime, Names of parameters only appear in the implementations of the compiler or its run-time representative functions, where they may stand for arbitrary parameters. At the user&rsquo;s level. parameters are names for arguments, where they may stand for arbitrary argument values. Recall that values are expressions with constructors up top (in first positions in parenthesized expressions).</p><pre class="brush: racket"><code>(which-Nat zero 'naught (λ (n-1) 'more))
+;; then which-Nat = (step n-1)</code></pre><p>A good name for the argument (parameter?) of step is <code>n-1</code> because step is called with <code>n-1</code> when <code>target</code> == <code>n</code> == <code>(add1 n-1)</code>.</p><p>A parameter is a name for an argument. What is the name of a parameter (your answer)?</p><p>SPOILER: Parameters inhabit a space of symbolic calculation inside the compiler or its runtime, Names of parameters only appear in the implementations of the compiler or its run-time representative functions, where they may stand for arbitrary parameters. At the user&rsquo;s level. parameters are names for arguments, where they may stand for arbitrary argument values. Recall that values are expressions with constructors up top (in first positions in parenthesized expressions).</p><pre class="brush: racket"><code>(which-Nat zero 'naught (λ (n-1) 'more))
 ; (the Atom 'naught)                    ; response from REPL
 (which-Nat 4    'naught (λ (n-1) 'three))
 ; (the atom 'three)                     ; response from REPL</code></pre><p>I made up the following to show how rec-Nat can mimic the behavior of <code>which-Nat</code>, i.e., by the step&rsquo;s ignoring both its arguments:</p><pre class="brush: racket"><code>;;      target    base       step
@@ -39,7 +39,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 (rec-Nat zero 'rec-naught (λ (n-1 r) 'rec-more))
 ; (the Atom 'rec-naught)
 (rec-Nat 4    'rec-naught (λ (n-1 r) 'rec-three))
-; (the Atom 'rec-three</code></pre><p>Notice that both <code>which-Nat</code> and <code>rec-Nat</code> ignore <code>step</code> when <code>target</code> is <code>zero</code>.</p><p>Notice that <code>rec-Nat</code> &ldquo;destructures&rdquo; its argument into <code>(add1 n-1)</code> and then &ldquo;eliminates&rdquo; <code>add1</code> before handing <code>n-1</code> to the <code>step</code> function, <code>(λ (n-1 r) 'some-atom)</code>. More about destructuring and elimination below.</p><p>The book writes ignored arguments in a dimmed, grey, <code>dim</code> font. I think one need not bother much about that here. But one might sometimes write <code>_</code> or <code>foo_</code> with a <code>_</code> suffix for ignored arguments. Lots of programming languages follow that convention, sometimes allowing multiple instances of <code>_</code> in an argument list without collision.</p><p>Later, one will see that by <code>step</code>&rsquo;s ignoring argument <code>r</code>, the recursive computation, <code>rec-Nat</code>, simulates <code>iter-Nat</code>.</p><h1 id="chapter-3">Chapter 3</h1><h2 id="frame-323">Frame 3.23</h2><p>All the functions above follow a pattern, with parameters <code>target</code>, <code>base</code>, and <code>step</code>.</p><pre class="brush: racket"><code>;;        target base      step
+; (the Atom 'rec-three</code></pre><p>Notice that both <code>which-Nat</code> and <code>rec-Nat</code> ignore <code>step</code> when <code>target</code> is <code>zero</code>.</p><p>Notice that <code>rec-Nat</code> &ldquo;destructures&rdquo; its argument into <code>(add1 n-1)</code> and then &ldquo;eliminates&rdquo; <code>add1</code> before handing <code>n-1</code> to the <code>step</code> function, <code>(λ (n-1 r) 'some-atom)</code>. More about destructuring and elimination below.</p><p>The book writes ignored arguments in a dimmed, grey, <code>dim</code> font. I think one need not bother much about that here. But one might sometimes write <code>_</code> or <code>foo_</code> with a <code>_</code> suffix for ignored arguments. Lots of programming languages follow that convention, sometimes allowing multiple instances of <code>_</code> in an argument list without collision.</p><p>Later, one will see that by <code>step</code>&rsquo;s ignoring argument <code>r</code>, the recursive computation, <code>rec-Nat</code>, simulates <code>iter-Nat</code>.</p><h1 id="chapter-3">Chapter 3</h1><h2 id="frame-323">Frame 3.23</h2><p>All the functions above follow a pattern, with parameters <code>target</code>, <code>base</code>, and <code>step</code>.</p><pre class="brush: racket"><code>;;        target base      step
 ;;       |------|----|----------------|
 (iter-Nat    5     3  (λ (k) (add1 k)))</code></pre><p>Discovery about pie (the language of this file): cannot use <code>add1</code> instead of <code>(λ (k) (add1 k))</code>. Later, one finds the reason: <code>add1</code> is not a function; it&rsquo;s of an un-named primitive kind, perhaps a macro. Later, one can see that it acts like a value constructor in expressions like <code>(add1 n-1)</code>.</p><pre class="brush: racket"><code>;; (iter-Nat 5 3 add1)                  ; input to REPL
 ;;                                      : response from REPL:
@@ -114,7 +114,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 ;;        ------------------v-----        subst. base
 ;; 7. (sr+ 0                |
 ;;      (sr+ 0              3))
-;; ~~~&gt; 5                                 rattle-down evaluation</code></pre><h2 id="gauss">Gauss</h2><p>The steppers in the <code>rec-Nat</code> example above ignores the recursive argument <code>r == r_</code>. Here is an example of a <code>rec-Nat</code> stepper that uses both arguments, including <code>r == rg</code>, i.e., <code>r</code> gauss:</p><hr/><pre class="brush: racket"><code>(claim step-gauss
+;; ~~~&gt; 5                                 rattle-down evaluation</code></pre><h2 id="gauss">Gauss</h2><p>The steppers in the <code>rec-Nat</code> example above ignores the recursive argument <code>r == r_</code>. Here is an example of a <code>rec-Nat</code> stepper that uses both arguments, including <code>r == rg</code>, i.e., <code>r</code>:</p><hr/><pre class="brush: racket"><code>(claim step-gauss
        (→ Nat Nat
           Nat))
 
@@ -162,7 +162,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 ;; B. (sg 2 (+ (add1 1) 1))               multiple
 ;; C. (sg 2 3)                            steps not
 ;; D. (+ (add1 2) 3)                      exploded here
-;; E. 6</code></pre><h1 id="chapter-4">Chapter 4</h1><p>This chapter is mostly about the miniature calculus on types, a calculus effected by Π. I assume this is easy, so I don&rsquo;t talk much, just show some examples. In Emacs, type M-C-x with the cursor in an example to see its value in the pie/racket interpreter.</p><pre class="brush: racket"><code>;; (claim foo (→ A D))
+;; E. 6</code></pre><h1 id="chapter-4">Chapter 4</h1><p>This chapter is mostly about the miniature calculus on types, a calculus effected by <code>Π</code>. I assume this is easy, so I don&rsquo;t talk much, just show some examples. In Emacs, type <code>M-C-x</code> with the cursor in an example to see its value in the pie/racket interpreter.</p><pre class="brush: racket"><code>;; (claim foo (→ A D))
 ;; Page 98:  ~" → is not up to the job "~</code></pre><h2 id="flip">Flip</h2><hr/><pre class="brush: racket"><code>(claim flip
        (Π ((A U) (D U))
           (→ (Pair A D)
@@ -213,7 +213,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 ;         Nat)
 ;      (λ (p f)
 ;        (f (car p)
-;           (cdr p))))</code></pre><h1 id="kar-kdr">Kar, Kdr</h1><p>These <code>kar</code> and <code>kdr</code> functions are specialized for Nats. <code>kar</code> and <code>kdr</code> are probably lousy names for them, but go with them just to exit the chapter. <code>elim-pair</code> is not specialized, so bracket the function-calls appropriately.</p><hr/><pre class="brush: racket"><code>(claim kar
+;           (cdr p))))</code></pre><h1 id="kar-kdr"><code>Kar</code>, <code>Kdr</code></h1><p>These <code>kar</code> and <code>kdr</code> functions are specialized for <code>Nat</code>s. <code>kar</code> and <code>kdr</code> are probably lousy names for them, but go with them just to exit the chapter. <code>elim-pair</code> is not specialized, so bracket the function-calls appropriately.</p><hr/><pre class="brush: racket"><code>(claim kar
        (→ (Pair Nat Nat) Nat))
 
 (define kar
@@ -400,7 +400,13 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 ;;
 ;;     (Vec Atom ℓ-1)
 ;;
-;; and `ℓ-1` could be anything `&gt;= 0`.</code></pre><p>Any <strong><em>motive</em></strong> for types that depend on Nat has type <code>(→ Nat U)</code>.</p><p>&ldquo;The motive explains <em>why</em> the target is to be eliminated.&rdquo;</p><p>I would say &ldquo;how the target is destructured?&rdquo; because I like to distinguish destructuring and elimination. Why? because it helps me to name my variables. If I point out that <code>n</code> is destructured into <code>(add1 n-1)</code>, then it&rsquo;s clear that the result of elimination, <code>n-1</code>, can be zero whilst <code>n</code> can&rsquo;t and they both remain Nats.</p><p>Here is a shorthand synopsis for <code>ind-Nat</code>, which does forward-rewriting by adding 1 to the input of <code>step</code>. Backwards rewriting is done by elimination on <code>(add1 n-1)</code>; that elimination amounts to subtraction.</p><p>The motive, when applied to <code>zero</code>, returns <em>the type of</em> the base.</p><p>Letting iN be ind-Nat and a1 be add1:  claim mot (→ Nat U)  claim b (mot zero) ; base  claim s (Π ((n&ndash;1 Nat)) ; step  (→ (mot n&ndash;1) ; forward &hellip;  (mot (a1 n&ndash;1)))) ; &hellip; rewriting</p><pre><code>claim iN
+;; and `ℓ-1` could be anything `&gt;= 0`.</code></pre><p>Any <strong><em>motive</em></strong> for types that depend on Nat has type <code>(→ Nat U)</code>.</p><p>&ldquo;The motive explains <em>why</em> the target is to be eliminated.&rdquo;</p><p>I would say &ldquo;how the target is destructured?&rdquo; because I like to distinguish destructuring and elimination. Why? because it helps me to name my variables. If I point out that <code>n</code> is destructured into <code>(add1 n-1)</code>, then it&rsquo;s clear that the result of elimination, <code>n-1</code>, can be zero whilst <code>n</code> can&rsquo;t and they both remain Nats.</p><p>Here is a shorthand synopsis for <code>ind-Nat</code>, which does forward-rewriting by adding 1 to the input of <code>step</code>. Backwards rewriting is done by elimination on <code>(add1 n-1)</code>; that elimination amounts to subtraction.</p><p>The motive, when applied to <code>zero</code>, returns <em>the type of</em> the base.</p><p>Letting <code>iN</code> be <code>ind-Nat</code> and <code>a1</code> be <code>add1</code>:</p><pre><code>claim mot (→ Nat U)
+claim b   (mot zero)             ; base
+claim s   (Π ((n-1 Nat))         ; step
+             (→ (mot    n-1)     ;  forward ...
+                (mot (a1 n-1)))) ; ... rewriting
+
+claim iN
 (Π ((t   Nat)                    ; target
     (m   (→ Nat U))              ; motive
     (b   (m 0))                  ; base
@@ -443,7 +449,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
              step-peas)))</code></pre><p><code>M-C-x</code> on these after loading the file via <code>C-c C-c</code>.</p><pre class="brush: racket"><code>(peas 0)
 (peas 1)
 (peas 3)
-; You fill in the responses!</code></pre><p>I made up the following exercise for myself.</p><p>Check type-fu by defining a function that&rsquo;s the same as <code>ind-Nat</code> (by technical meaning of &ldquo;the same?&rdquo; It&rsquo;s difficult to check, because ind-Nat isn&rsquo;t a function and doesn&rsquo;t have a normal form)</p><p>The <a href="https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29">official documentation for ind-Nat is here</a></p><pre class="brush: racket"><code>;; (ind-Nat target motive base step) → (motive target)
+; You fill in the responses!</code></pre><p>I made up the following exercise for myself.</p><p>Check type-fu by defining a function that&rsquo;s the same as <code>ind-Nat</code> (by technical meaning of &ldquo;the same?&rdquo; It&rsquo;s difficult to check, because <code>ind-Nat</code> isn&rsquo;t a function and doesn&rsquo;t have a normal form)</p><p>The <a href="https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29">official documentation for <code>ind-Nat</code> is here</a></p><pre class="brush: racket"><code>;; (ind-Nat target motive base step) → (motive target)
 ;;     target : Nat
 ;;     motive : (-&gt; Nat U)
 ;;     base   : (motive zero)
@@ -488,7 +494,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
        t                                ; target
        (λ (k) E)                        ; motive_
        b                                ; base
-       s))))                            ; step</code></pre><h2 id="last">Last</h2><h2 id="frame-738-page-152-fifth-printing">Frame 7.38, Page 152 (Fifth Printing)</h2><p>Motives are functions that return types. &ldquo;The motive applied to [E and] zero should be the type of the base.&rdquo; The type of the base of <code>last</code> is</p><pre><code>(→ (Vec E (add1 zero))
+       s))))                            ; step</code></pre><h2 id="last">Last</h2><h2 id="frame-738-page-152-fifth-printing">Frame 7.38, Page 152 (Fifth Printing)</h2><p>Motives are functions that return types. &ldquo;The motive applied to [<code>E</code> and] <code>zero</code> should be the type of the base.&rdquo;</p><p>The type of the base of <code>last</code> is</p><pre><code>(→ (Vec E (add1 zero))
    E)</code></pre><p>that is, the type of a function of a singleton <code>Vec</code> that returns the sole element of that <code>Vec</code>.</p><hr/><pre class="brush: racket"><code>(claim mot-last
        ;; extra type argument at the front:
        (→ U Nat U))</code></pre><p>Can we be more specific?</p><pre class="brush: racket"><code>;;     (claim mot-last
@@ -552,7 +558,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
                                         ; ~~&gt; (the Atom 'b)
 (last Atom 0 (vec:: 'b vecnil))         ; ~~&gt; (the Atom 'b)</code></pre><p>Due to totality, we can&rsquo;t even write, let alone compile, an expression that gets the last element of an empty <code>Vec</code>. We can try</p><pre class="brush: racket"><code>;; (last Atom 0 vecnil)
 ;  vecnil requires that the length be zero, not
-;   1</code></pre><h2 id="drop-last">Drop-Last</h2><h2 id="frame-764-pg-160-fifth-printing">Frame 7.64, pg. 160 (Fifth Printing)</h2><p>Motives are functions that return types. &ldquo;The motive applied to [E and] zero should be the type of the base.&rdquo; The type of the base of <code>drop-last</code> is the type of a function that converts a singleton vector into an empty vector:</p><pre><code>(→ (Vec E (add1 zero))
+;   1</code></pre><h2 id="drop-last">Drop-Last</h2><h2 id="frame-764-pg-160-fifth-printing">Frame 7.64, pg. 160 (Fifth Printing)</h2><p>Motives are functions that return types. &ldquo;The motive applied to [<code>E</code> and] <code>zero</code> should be the type of the base.&rdquo;</p><p>The type of the base of <code>drop-last</code> is the type of a function that converts a singleton vector into an empty vector:</p><pre><code>(→ (Vec E (add1 zero))
    (Vec E     zero   ))</code></pre><hr/><pre class="brush: racket"><code>(claim mot-drop-last
        ;; extra type argument at the front:
        (→ U Nat U))
@@ -577,7 +583,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
       ;; Might be overkill to spell out the type.
       ;; Might write just `vecnil`. Maybe Pie can
       ;; reckon the type of `vecnil` here.
-      (the (Vec E zero) vecnil))))</code></pre><h2 id="frames-76667">Frames 7.66&ndash;67</h2><p>The type of <code>step-drop-last</code> is the type of a function that converts a motive of <code>E</code> and <code>ℓ-1</code> to a motive of <code>E</code> and <code>ℓ == (add1 ℓ-1)</code>. Except for names, the claimed type of <code>step-drop-last</code> is the same as the claimed type for <code>step-last</code>, but the implementation differs.</p><hr/><pre class="brush: racket"><code>(claim step-drop-last
+      (the (Vec E zero) vecnil))))</code></pre><h2 id="frames-76667">Frames 7.66&ndash;67</h2><p>The type of <code>step-drop-last</code> is the type of a function that converts a motive of <code>E</code> and <code>ℓ-1</code> to a motive of <code>E</code> and <code>ℓ == (add1 ℓ-1)</code>. Except for names, the claimed type of <code>step-drop-last</code> is the same as the claimed type for <code>step-last</code>, but the implementation differs.</p><hr/><pre class="brush: racket"><code>(claim step-drop-last
        (Π ((E   U  )
            (ℓ-1 Nat))
           (→ (mot-drop-last E       ℓ-1 )
@@ -641,34 +647,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 ;  (the (→ Nat                          ; response from REPL
 ;          Nat)
 ;       (λ (n)
-;         (add1 n)))
-
-
-
-If `add1` were a function, we could use the Final
-Law of Application (Page 139, Fifth Printing), or
-even the Initial Law of Application (Page 38,
-Fifth Printing) to show that `add1` is "the same"
-as `(λ (n) (add1 n))`, and also that they have
-identical normal forms (up to renaming).
-
-
-This pattern of wrapping `add1` is exactly like
-the common need to wrap macros with functions in
-C and Lisp. We must often do that so we can pass
-around the functions as values. Macros are not
-values, but functions _are_ values because they
-have the constructor λ up top; that's the
-definition of a value -- it has a constructor up
-top.
-
-
-Let's call it a day: `(λ (n) (add1 n))` _is_ "the
-normal form of `add1`".
-
-
-```racket
-(the (-&gt; Nat Nat) (λ (n) (add1 n)))     ; input to REPL
+;         (add1 n)))</code></pre><p>If <code>add1</code> were a function, we could use the Final Law of Application (Page 139, Fifth Printing), or even the Initial Law of Application (Page 38, Fifth Printing) to show that <code>add1</code> is &ldquo;the same&rdquo; as <code>(λ (n) (add1 n))</code>, and also that they have identical normal forms (up to renaming).</p><p>This pattern of wrapping <code>add1</code> is exactly like the common need to wrap macros with functions in C and Lisp. We must often do that so we can pass around the functions as values. Macros are not values, but functions <em>are</em> values because they have the constructor λ up top; that&rsquo;s the definition of a value &mdash; it has a constructor up top.</p><p>Let&rsquo;s call it a day: <code>(λ (n) (add1 n))</code> <em>is</em> &ldquo;the normal form of <code>add1</code>&rdquo;.</p><pre class="brush: racket"><code>(the (-&gt; Nat Nat) (λ (n) (add1 n)))     ; input to REPL
 ; (the (→ Nat                           ; response from REPL
 ;         Nat)
 ;      (λ (n)
@@ -725,7 +704,7 @@ incr                                    ; input to REPL
 ;            (iter-Nat n
 ;                      (the Nat 1)
 ;                      (λ (j)
-;                        (add1 j))))))</code></pre><h2 id="the-law-of-same">The Law of <code>same</code></h2><p>My edits after incorporating Frame 8.37, Page 179.</p><p>The expression <code>(same e3)</code> is an <code>(= X e1 e2)</code> if <code>e1</code>, <code>e2</code>, and <code>e3</code> are each an <code>X</code> and <code>e1</code> is the same as <code>e2</code> [J1].</p><p>■</p><p>We&rsquo;ve seen that <code>(+ 1)</code> and <code>add1</code> are identical and therefore "the same" but that <code>(+ 1 n)</code> and <code>(incr n)</code> are not identical so not "the same." Can we exhibit a witness in a <code>same</code> constructor?</p><p>Writing a formal type-witness proof of sameness is called <em>internalizing</em> a sameness judgment.</p><p><code>Π</code>-expressions are statements of universal quantifications, i.e, "for-every," <code>∀</code>, statements (Page 187, Fifth Printing). <code>(→ Y X)</code> is a shorthand for <code>(Π ((y Y)) X)</code> when the name of <code>Y</code>&rsquo;s instance, <code>y</code>, is not needed in <code>X</code> (Page 138, Fifth Printing).</p><p>&ldquo;By combining <code>Π</code> with <code>=</code>, we can write statements that are true for arbitrary <code>Nat</code>s, while we could only make judgments about particular <code>Nat</code>s. Here&rsquo;s an example:&rdquo;</p><p>Here is a commented-out reminder copy of the formal proof of <code>+1=add1</code> above.</p><pre class="brush: racket"><code>;;     (claim +1=add1
+;                        (add1 j))))))</code></pre><h2 id="the-law-of-same">The Law of <code>same</code></h2><p>My edits after incorporating Frame 8.37, Page 179.</p><p>The expression <code>(same e3)</code> is an <code>(= X e1 e2)</code> if <code>e1</code>, <code>e2</code>, and <code>e3</code> are each an <code>X</code> and <code>e1</code> is the same as <code>e2</code> [J1].</p><p>■</p><p>We&rsquo;ve seen that <code>(+ 1)</code> and <code>add1</code> are identical and therefore "the same" but that <code>(+ 1 n)</code> and <code>(incr n)</code> are not identical so not "the same." Can we exhibit a witness in a <code>same</code> constructor?</p><p>Writing a formal type-witness proof of sameness is called <em>internalizing</em> a sameness judgment.</p><p><code>Π</code>-expressions are statements of universal quantifications, i.e, "for-every," <code>∀</code>, statements (Page 187, Fifth Printing). <code>(→ Y X)</code> is a shorthand for <code>(Π ((y Y)) X)</code> when the name of <code>Y</code>&rsquo;s instance, <code>y</code>, is not needed in <code>X</code> (Page 138, Fifth Printing).</p><p>&ldquo;By combining <code>Π</code> with <code>=</code>, we can write statements that are true for arbitrary <code>Nat</code>s, while we could only make judgments about particular <code>Nat</code>s. Here&rsquo;s an example:&rdquo;</p><p>Here is a commented-out reminder copy of the formal proof of <code>+1=add1</code> above.</p><pre class="brush: racket"><code>;;     (claim +1=add1
 ;;            (Π ((n Nat))
 ;;               (= Nat (+ 1 n) (add1 n))))
 
@@ -757,7 +736,7 @@ incr                                    ; input to REPL
 ; (the (→ Nat                           ; response from REPL
 ;         Nat)
 ;      (λ (j)
-;        (add1 j)))</code></pre><p>neither neutral nor normal; its normal form is a value thus not neutral.</p><h2 id="neutral-but-not-normal">Neutral but Not Normal</h2><p>Page 183 (Fifth Printing):</p><p>The neutral expression <code>(the (→ Nat Nat) f)</code> is &ldquo;the same&rdquo; as <code>(λ (n) (f n))</code> by the Laws of <code>λ</code> when <code>n</code> does not occur in <code>f</code>. <code>(λ (n) (f n))</code> is not neutral because it is a value. So <code>f</code> is reckoned &ldquo;neutral but not normal.&rdquo;</p><p>Page 184, Fifth Printing: Likewise, any neutral <code>(Pair A D)</code>, <code>p</code>, is not normal because its normal form, <code>(cons (car p) (cdr p))</code> is not neutral: it has the constructor <code>cons</code> up top.</p><h2 id="back-to-work">Back to Work</h2><p>Remember our claim:</p><pre class="brush: racket"><code>;;     (claim incr=add1
+;        (add1 j)))</code></pre><p>neither neutral nor normal; its normal form is a value thus not neutral.</p><h2 id="neutral-but-not-normal">Neutral but Not Normal</h2><p>Page 183 (Fifth Printing):</p><p>The neutral expression <code>(the (→ Nat Nat) f)</code> is &ldquo;the same&rdquo; as <code>(λ (n) (f n))</code> by the Laws of <code>λ</code> when <code>n</code> does not occur in <code>f</code>. <code>(λ (n) (f n))</code> is not neutral because it is a value. So <code>f</code> is reckoned &ldquo;neutral but not normal.&rdquo;</p><p>Page 184, Fifth Printing: Likewise, any neutral <code>(Pair A D)</code>, <code>p</code>, is not normal because its normal form, <code>(cons (car p) (cdr p))</code> is not neutral: it has the constructor <code>cons</code> up top.</p><h2 id="back-to-work">Back to Work</h2><p>Remember our claim:</p><pre class="brush: racket"><code>;;     (claim incr=add1
 ;;            (Π ((n Nat))
 ;;               (= Nat (incr n) (add1 n))))</code></pre><p>Let&rsquo;s try</p><pre class="brush: racket"><code>;; (define incr=add1
 ;;   (λ (n)
@@ -769,7 +748,7 @@ incr                                    ; input to REPL
 ;      (the Nat 1)
 ;      (λ (j)
 ;        (add1 j)))
-; are not the same Nat</code></pre><p>This fails because the normal form of <code>(add1 n)</code>, namely <code>(λ (n) (add1 n))</code>, is not neutral because it&rsquo;s a value, but <code>(iter-Nat n 1 (+ 1))</code> is neutral even though it&rsquo;s normal.</p><p>Check it a couple of more ways:</p><pre class="brush: racket"><code>;; (check-same (→ Nat Nat)
+; are not the same Nat</code></pre><p>This fails because the normal form of <code>(add1 n)</code>, namely <code>(λ (n) (add1 n))</code>, is not neutral because it&rsquo;s a value, but <code>(iter‑Nat n 1 (+ 1))</code> is neutral even though it&rsquo;s normal.</p><p>Check it a couple of more ways:</p><pre class="brush: racket"><code>;; (check-same (→ Nat Nat)
 ;;             (λ (n) (iter-Nat n 1 (+ 1)))
 ;;             (λ (n) (add1 n)))        ; input to REPL
 ;;                    '------'          ; nota bene
@@ -799,7 +778,7 @@ incr                                    ; input to REPL
 ;     (add1 n))
 ; are not the same
 ;   (→ Nat
-;     Nat)</code></pre><p>Socrates, on the left-hand side of every frame, says &ldquo;try <code>ind-Nat</code>.&rdquo; We&rsquo;ll need <code>target</code>, <code>base</code>, <code>motive</code>, and <code>step</code>.</p><h2 id="base">Base</h2><p>Here is a base case that makes an <code>=</code> statement about <code>zero</code> and proves it with a <code>same</code> constructor:</p><hr/><pre class="brush: racket"><code>(claim base-incr=add1
+;     Nat)</code></pre><p>Socrates, on the left-hand side of every frame, says &ldquo;try <code>ind‑Nat</code>.&rdquo; We&rsquo;ll need <code>target</code>, <code>base</code>, <code>motive</code>, and <code>step</code>.</p><h2 id="base">Base</h2><p>Here is a base case that makes an <code>=</code> statement about <code>zero</code> and proves it with a <code>same</code> constructor:</p><hr/><pre class="brush: racket"><code>(claim base-incr=add1
        (= Nat (incr 0) (add1 zero)))
 
 (define base-incr=add1
@@ -840,7 +819,7 @@ incr                                    ; input to REPL
     (ind-Nat n
              mot-incr=add1
              base-incr=add1             ; (same (add1 zero))
-             step-incr=add1)))</code></pre><h2 id="frame-889-page-195-fifth-printing">Frame 8.89, Page 195 (Fifth Printing):</h2><p>Socrates: &ldquo;The interplay between judging sameness and stating equality is at the heart of dependent types. This taste only scratches the surface.&rdquo;</p><h1 id="chapter-9">Chapter 9</h1><p>We&rsquo;ll first show a use of <code>replace</code> that&rsquo;s equivalent to the use of <code>cong</code> above.</p><p>Page 199, Fifth Printing:</p><h2 id="the-law-of-replace">The Law of <code>replace</code></h2><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>]</p><p><code>mot</code> is an <code>(→ X U)</code></p><p>and <code>base</code> is a <code>(mot from)</code></p><p>then <code>(replace target mot base)</code></p><p>is a <code>(mot to)</code>.</p><p>■</p><p>Reminders about <code>cong</code> so we can see the parallelism:</p><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>] and <code>f</code>is an <code>(→ X Y)</code> [even if a macro like <code>add1</code>] then <code>(cong target f)</code> is an <code>(= Y (f from) (f to))</code>.</p><p>If <code>x</code> is an <code>X</code> and</p><p><code>f</code> is an <code>(→ X Y)</code>, then</p><p>then <code>(cong (same x) f)</code></p><p>is the same <code>(= Y (f x) (f x))</code> as  <code>(same (f x))</code></p><p>■</p><p>Reminders:</p><hr/><pre class="brush: racket"><code>;; (define incr=add1
+             step-incr=add1)))</code></pre><h2 id="frame-889-page-195-fifth-printing">Frame 8.89, Page 195 (Fifth Printing):</h2><p>Socrates: &ldquo;The interplay between judging sameness and stating equality is at the heart of dependent types. This taste only scratches the surface.&rdquo;</p><h1 id="chapter-9">Chapter 9</h1><p>We&rsquo;ll first show a use of <code>replace</code> that&rsquo;s equivalent to the use of <code>cong</code> above.</p><p>Page 199, Fifth Printing:</p><h2 id="the-law-of-replace">The Law of <code>replace</code></h2><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>]</p><p><code>mot</code> is an <code>(→ X U)</code></p><p>and <code>base</code> is a <code>(mot from)</code></p><p>then <code>(replace target mot base)</code></p><p>is a <code>(mot to)</code>.</p><p>■</p><p>Reminders about <code>cong</code> so we can see the parallelism:</p><p>If <code>target</code> is an <code>(= X from to)</code> [which is a <code>U</code>]</p><p>and <code>f</code>is an <code>(→ X Y)</code> [even if a macro like <code>add1</code>]</p><p>then <code>(cong target f)</code> is</p><p>an <code>(= Y (f from) (f to))</code>.</p><p>If <code>x</code> is an <code>X</code> and</p><p><code>f</code> is an <code>(→ X Y)</code>, then</p><p>then <code>(cong (same x) f)</code></p><p>is the same <code>(= Y (f x) (f x))</code> as  <code>(same (f x))</code></p><p>■</p><p>Reminders:</p><hr/><pre class="brush: racket"><code>;; (define incr=add1
 ;;   (λ (n)
 ;;     (ind-Nat n
 ;;              mot-incr=add1
@@ -890,7 +869,7 @@ incr                                    ; input to REPL
   (λ (n-1 k)
     (= Nat
        (add1 (incr n-1))
-       (add1 k))))</code></pre><p>&hellip; and a new <code>step</code> for <code>replace</code>, a <code>step</code> that uses the motive <code>mot-step-incr=add1</code>. This <code>step</code> employs <code>replace</code> instead of <code>cong</code>:</p><hr/><pre class="brush: racket"><code>(claim step-incr=add1-2                 ; identical claim to
+       (add1 k))))</code></pre><p>&hellip; and a new <code>step</code> for <code>replace</code>, a <code>step</code> that uses the motive <code>mot‑step‑incr=add1</code>. This <code>step</code> employs <code>replace</code> instead of <code>cong</code>:</p><hr/><pre class="brush: racket"><code>(claim step-incr=add1-2                 ; identical claim to
        (Π (( n-1 Nat ))                 ;   the claim of
           (→ (= Nat                     ;   step-incr=add1
                 (incr n-1)
@@ -919,10 +898,10 @@ incr                                    ; input to REPL
 ;;     (replace incr=add_n-1             ; target
 ;;              (mot-step-incr=add1 n-1) ; motive
 ;;              (same (add1 (incr n-1))) ; base
-;;              )))</code></pre><p>Copying from The Law of <code>replace</code> and filling in the blanks:</p><p>&mdash; If <code>target</code> is an <code>(= X from to)</code></p><p>It&rsquo;s <code>incr=add_n-1</code>, a parameter. How is it an <code>(= X from to)</code>? <code>ind-Nat</code> feeds it to <code>step-incr=add1-2</code>, and we recall that it starts as <code>(same (add1 zero))</code>. That is a witness for <code>(= Nat (add1 zero) (add1 zero)</code>, so we are confident that <code>target</code> is an <code>(= Nat (add1 zero) (add1 zero))</code>.</p><p>&mdash; <code>mot</code> is an <code>(→ X U)</code></p><p><code>(mot n-1)</code>, the motive for <code>replace</code>, is a</p><pre><code>(λ (k)
+;;              )))</code></pre><p>Copying from The Law of <code>replace</code> and filling in the blanks:</p><p>&mdash; If <code>target</code> is an <code>(= X from to)</code></p><p>It&rsquo;s <code>incr=add_n-1</code>, a parameter. How is it an <code>(= X from to)</code>? <code>ind‑Nat</code> feeds it to <code>step-incr=add1-2</code>, and we recall that it starts as <code>(same (add1 zero))</code>. That is a witness for <code>(= Nat (add1 zero) (add1 zero))</code>, so we are confident that <code>target</code> is an <code>(= Nat (add1 zero) (add1 zero))</code>.</p><p>&mdash; <code>mot</code> is an <code>(→ X U)</code></p><p><code>(mot n-1)</code>, the motive for <code>replace</code>, is a</p><pre><code>(λ (k)
   (= Nat
      (add1 (incr n-1))
-     (add1 k)))</code></pre><p>by currying. Remember that <code>=</code> expressions are types of type <code>U</code>, so <code>(mot n-1)</code> is a <code>(→ Nat U)</code>.</p><p>&mdash; and <code>base</code> is a <code>(mot from)</code></p><p><code>from</code> is <code>(add1 zero)</code>; <code>(mot from)</code> is an <code>(= Nat (add1 (incr n-1)) (add1 k~~&gt;(add1 zero)))</code> <code>base</code> is, manifestly, <code>(same_(add1_(incr_n-1)))</code>, so it&rsquo;s an <code>(= Nat (add1 (incr n-1)) (add1 (add1 zero)))</code> when <code>n-1</code> is zero.</p><p>&mdash; then <code>(replace target mot base)</code></p><p>&mdash; is a <code>(mot to)</code>.</p><p>When <code>incr=add_n-1</code> is <code>(add1 n-1)</code> and not just <code>(add1 zero)</code>, then <code>to</code> is an <code>(= Nat (add1 (incr n-1)) (add1 (add1 n-1)))</code>.</p><p>QED ■</p><h2 id="double-and-twice">Double and Twice</h2><p>We didn&rsquo;t write down <code>*</code>, from Pages 85ff (Fifth Printing). It&rsquo;s time to do that now.</p><hr/><pre class="brush: racket"><code>(claim *
+     (add1 k)))</code></pre><p>by currying. Remember that <code>=</code> expressions are types of type <code>U</code>, so <code>(mot n-1)</code> is a <code>(→ Nat U)</code>.</p><p>&mdash; and <code>base</code> is a <code>(mot from)</code></p><p><code>from</code> is <code>(add1 zero)</code>; <code>(mot from)</code> is an <code>(= Nat (add1 (incr n-1)) (add1 k~~&gt;(add1 zero)))</code> <code>base</code> is, manifestly, <code>(same_(add1_(incr_n-1)))</code>, so it&rsquo;s an <code>(= Nat (add1 (incr n-1)) (add1 (add1 zero)))</code> when <code>n-1</code> is <code>zero</code>.</p><p>&mdash; then <code>(replace target mot base)</code></p><p>&mdash; is a <code>(mot to)</code>.</p><p>When <code>incr=add_n-1</code> is <code>(add1 n-1)</code> and not just <code>(add1 zero)</code>, then <code>to</code> is an <code>(= Nat (add1 (incr n-1)) (add1 (add1 n-1)))</code>.</p><p>QED ■</p><h2 id="double-and-twice">Double and Twice</h2><p>We didn&rsquo;t write down <code>*</code>, from Pages 85ff (Fifth Printing). It&rsquo;s time to do that now.</p><hr/><pre class="brush: racket"><code>(claim *
        (→ Nat Nat
           Nat))</code></pre><hr/><pre class="brush: racket"><code>(claim make-step-*
        (→ Nat

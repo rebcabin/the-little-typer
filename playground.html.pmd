@@ -148,10 +148,12 @@ signature:
 ```
 
 
-The base and the output of `step` must have the
-same type `(E U)`. `E` can be anything -- `Atom`
-or `Nat`, for instance, but it must be the same
-on both branches of `which-Nat`.
+The base and the output of `step` must have the same
+type `(E U)`. `E` can be anything -- `Atom` or
+`Nat`, for instance, but it must be the same on both
+branches of `which-Nat`. Bindings (sub-expressions
+like `(E U)` under `Π`) are sequential: later ones
+may refer to earlier ones):
 
 
 Here is pseudocode for which-Nat:
@@ -166,7 +168,7 @@ Here is pseudocode for which-Nat:
 
 A good name for the argument (parameter?) of step
 is `n-1` because step is called with `n-1` when
-`target` == `n` == `(add1 n-1)`.
+`target` == `n` == `(add1 n-1)`.
 
 
 A parameter is a name for an argument. What is
@@ -214,7 +216,7 @@ Notice that both `which-Nat` and `rec-Nat` ignore
 
 
 Notice that `rec-Nat` "destructures" its argument
-into `(add1 n-1)` and then "eliminates" `add1`
+into `(add1 n-1)` and then "eliminates" `add1`
 before handing `n-1` to the `step` function,
 `(λ (n-1 r) 'some-atom)`. More about
 destructuring and elimination below.
@@ -506,7 +508,7 @@ reminder of `rec-Nat`:
 The steppers in the `rec-Nat` example above
 ignores the recursive argument `r == r_`. Here is
 an example of a `rec-Nat` stepper that uses both
-arguments, including `r == rg`, i.e., `r` gauss:
+arguments, including `r == rg`, i.e., `r`:
 
 
 <hr>
@@ -588,9 +590,9 @@ a step-chart calculated by hand:
 
 
 This chapter is mostly about the miniature
-calculus on types, a calculus effected by Π. I
+calculus on types, a calculus effected by `Π`. I
 assume this is easy, so I don't talk much, just
-show some examples. In Emacs, type M-C-x with the
+show some examples. In Emacs, type `M-C-x` with the
 cursor in an example to see its value in the
 pie/racket interpreter.
 
@@ -724,11 +726,11 @@ elim-Pair
 ```
 
 
-# Kar, Kdr
+# `Kar`, `Kdr`
 
 
 These `kar` and `kdr` functions are specialized
-for Nats. `kar` and `kdr` are probably lousy
+for `Nat`s. `kar` and `kdr` are probably lousy
 names for them, but go with them just to exit the
 chapter. `elim-pair` is not specialized, so
 bracket the function-calls appropriately.
@@ -1354,7 +1356,9 @@ The motive, when applied to `zero`, returns
 _the type of_ the base.
 
 
-Letting iN be ind-Nat and a1 be add1:
+Letting `iN` be `ind-Nat` and `a1` be `add1`:
+
+
     claim mot (→ Nat U)
     claim b   (mot zero)             ; base
     claim s   (Π ((n-1 Nat))         ; step
@@ -1457,11 +1461,11 @@ I made up the following exercise for myself.
 
 Check type-fu by defining a function that's the
 same as `ind-Nat` (by technical meaning of "the
-same?" It's difficult to check, because ind-Nat
+same?" It's difficult to check, because `ind-Nat`
 isn't a function and doesn't have a normal form)
 
 
-The [official documentation for ind-Nat is here](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
+The [official documentation for `ind-Nat` is here](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
 
 
 ```racket
@@ -1565,8 +1569,11 @@ change.
 
 
 Motives are functions that return types. "The
-motive applied to [E and] zero should be the type
-of the base." The type of the base of `last` is
+motive applied to [`E` and] `zero` should be the type
+of the base."
+
+
+The type of the base of `last` is
 
     (→ (Vec E (add1 zero))
        E)
@@ -1764,8 +1771,11 @@ of an empty `Vec`. We can try
 
 
 Motives are functions that return types. "The
-motive applied to [E and] zero should be the type
-of the base." The type of the base of `drop-last`
+motive applied to [`E` and] `zero` should be the type
+of the base."
+
+
+The type of the base of `drop-last`
 is the type of a function that converts a
 singleton vector into an empty vector:
 
@@ -1834,7 +1844,7 @@ returns an empty `Vec`:
 
 The type of `step-drop-last` is the type of a
 function that converts a motive of `E` and `ℓ-1`
-to a motive of `E` and `ℓ == (add1 ℓ-1)`. Except
+to a motive of `E` and `ℓ == (add1 ℓ-1)`. Except
 for names, the claimed type of `step-drop-last`
 is the same as the claimed type for `step-last`,
 but the implementation differs.
@@ -2170,14 +2180,14 @@ can't reduce it any more:
 ;          Nat)
 ;       (λ (n)
 ;         (add1 n)))
-
+```
 
 
 If `add1` were a function, we could use the Final
 Law of Application (Page 139, Fifth Printing), or
 even the Initial Law of Application (Page 38,
 Fifth Printing) to show that `add1` is "the same"
-as `(λ (n) (add1 n))`, and also that they have
+as `(λ (n) (add1 n))`, and also that they have
 identical normal forms (up to renaming).
 
 
@@ -2410,7 +2420,7 @@ equal, though not the same.
 My edits after incorporating Frame 8.37, Page 179.
 
 
-The expression `(same e3)` is an `(= X e1 e2)` if `e1`,
+The expression `(same e3)` is an `(= X e1 e2)` if `e1`,
 `e2`, and `e3` are each an `X` and `e1` is the same as
 `e2` [J1].
 
@@ -2634,8 +2644,8 @@ Page 183 (Fifth Printing):
 
 
 The neutral expression `(the (→ Nat Nat) f)` is
-"the same" as `(λ (n) (f n))` by the Laws of `λ`
-when `n` does not occur in `f`. `(λ (n) (f n))`
+"the same" as `(λ (n) (f n))` by the Laws of `λ`
+when `n` does not occur in `f`. `(λ (n) (f n))`
 is not neutral because it is a value. So `f` is
 reckoned "neutral but not normal."
 
@@ -2679,7 +2689,7 @@ Let's try
 
 This fails because the normal form of `(add1 n)`,
 namely `(λ (n) (add1 n))`, is not neutral because
-it's a value, but `(iter-Nat n 1 (+ 1))` is
+it's a value, but `(iter‑Nat n 1 (+ 1))` is
 neutral even though it's normal.
 
 
@@ -2727,7 +2737,7 @@ Check it a couple of more ways:
 
 
 Socrates, on the left-hand side of every frame,
-says "try `ind-Nat`." We'll need `target`, `base`,
+says "try `ind‑Nat`." We'll need `target`, `base`,
 `motive`, and `step`.
 
 
@@ -2983,8 +2993,11 @@ parallelism:
 
 
 If `target` is an `(= X from to)`  [which is a `U`]
+
 and `f `is an     `(→ X Y)`  [even if a macro like `add1`]
+
 then              `(cong target f)` is
+
 an                `(= Y (f from) (f to))`.
 
 
@@ -3077,7 +3090,7 @@ for `replace`:
 
 
 ... and a new `step` for `replace`, a `step` that
-uses the motive `mot-step-incr=add1`. This `step`
+uses the motive `mot‑step‑incr=add1`. This `step`
 employs `replace` instead of `cong`:
 
 
@@ -3161,10 +3174,10 @@ the blanks:
 
 
 It's `incr=add_n-1`, a parameter. How is it an
-`(= X from to)`? `ind-Nat` feeds it to
+`(= X from to)`? `ind‑Nat` feeds it to
 `step-incr=add1-2`, and we recall that it
 starts as `(same (add1 zero))`. That is a
-witness for `(= Nat (add1 zero) (add1 zero)`,
+witness for `(= Nat (add1 zero) (add1 zero))`,
 so we are confident that `target` is an
 `(= Nat (add1 zero) (add1 zero))`.
 
@@ -3192,7 +3205,7 @@ types of type `U`, so `(mot n-1)` is a
 `base` is, manifestly,
 `(same_(add1_(incr_n-1)))`, so it's an
 `(= Nat (add1 (incr n-1)) (add1 (add1 zero)))`
-when `n-1` is zero.
+when `n-1` is `zero`.
 
 
 -- then              `(replace target mot base)`
