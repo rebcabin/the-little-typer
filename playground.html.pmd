@@ -8,7 +8,13 @@
 # Prolegomenon
 
 
-These are my notes on [_The Little Typer_](https://thelittletyper.com/index.html), Fifth Printing.
+These are my notes on [_The Little
+Typer_](https://thelittletyper.com/index.html),
+Fifth Printing. [Find the source
+here](https://github.com/rebcabin/the-little-typer/).
+Though my explanations are my own, the code is
+mostly copied from the book. You will most likely
+need the book to understand my notes.
 
 
 [Here is a good article on the basics of type theory](https://medium.com/@haliq12/homotopy-type-theory-hott-for-mere-mortals-8d28301a1b19).
@@ -64,6 +70,14 @@ matching `define`. Writing these pairs _feels like_
 writing Haskell. I also sometimes leave a single
 blank line between a definition and its unit tests.
 I'm not religious about any line-spacing.
+
+
+## Technology
+
+
+I build the html via
+[pollen](file:///Users/brian/Library/Racket/8.8/pkgs/pollen/pollen/doc/pollen/index.html).
+The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tufte-css).
 
 
 # Chapters 1 & 2
