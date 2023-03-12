@@ -66,7 +66,12 @@ Clojure-mode.
 
 Code blocks are delimited in triple-backticks, not
 nested. If you can extract the code from the
-`.pmd` file, you can run it in `racket`.
+`.pmd` file, you can run it in `racket`. Don't
+extract code blocks that are _not_ delimited in
+triple backticks. In particular, don't extract code
+blocks that are merely indented four space. They're
+supposed to just appear in this document, not to be
+executed in racket.
 
 
 I tried to do this whole thing in a Jupyter
@@ -75,7 +80,8 @@ Jupyter was not up to the job on my Mac Book Pro M1.
 
 
 Alternatively, if you don't want to set up Emacs
-for racket, load this file into DrRacket and play
+for racket, load code extracted from triple-backtick
+blocs from this file into DrRacket and play
 around. DrRacket comes for free with [the racket
 distribution](https://download.racket-lang.org/).
 Install the distribution, type `raco pkg install
@@ -160,6 +166,7 @@ signature:
 (define wN
   (λ (E)
    (λ (t b s) (which-Nat t b s))))
+}
 ```
 
 
@@ -174,11 +181,15 @@ may refer to earlier ones):
 Here is pseudocode for which-Nat:
 
 
-```racket
-;; (which-Nat target base step) == base if
-;; target == 0 else if target == n == (add1 n-1)
-;; then which-Nat = (step n-1)
-```
+> If `target` is `zero`
+
+> then `(which-Nat target base step)` is `base`
+
+> else if `target == n == (add1 n-1)`
+
+> then `(which-Nat target base step)` is
+
+>     (step n-1)
 
 
 A good name for the argument (parameter?) of step
@@ -204,14 +215,16 @@ expressions).
 
 
 ```racket
-(which-Nat zero 'naught (λ (n-1) 'more))
+(which-Nat zero
+  'naught (λ (n-1) 'more))              ; input to REPL
 ; (the Atom 'naught)                    ; response from REPL
-(which-Nat 4    'naught (λ (n-1) 'three))
+(which-Nat 4
+  'naught (λ (n-1) 'three))             ; input to REPL
 ; (the atom 'three)                     ; response from REPL
 ```
 
 
-I made up the following to show how rec-Nat can
+I made up the following to show how `rec-Nat` can
 mimic the behavior of `which-Nat`, i.e., by the
 step's ignoring both its arguments:
 
@@ -277,14 +290,12 @@ like a value constructor in expressions like
 `(add1 n-1)`.
 
 
-```racket
-;; (iter-Nat 5 3 add1)                  ; input to REPL
-;;                                      : response from REPL:
-;; .../the-little-typer/playground.pie:17:14:
-;; add1: expected valid Pie name
-;   at: add1
-;   in: add1
-```
+    (iter-Nat 5 3 add1)                 ; input to REPL
+                                        : response from REPL:
+    .../the-little-typer/playground.pie:17:14:
+    ; add1: expected valid Pie name
+    ;  at: add1
+    ;  in: add1
 
 
 ## Iter-Nat
@@ -293,29 +304,31 @@ like a value constructor in expressions like
 pseudocode for `iter-Nat`:
 
 
-```racket
-;; (iter-Nat target base step) == base if
-;; target == 0 else if target == n == (add1 n-1)
-;; then iter-Nat ==
-;; (step
-;;    (iter-Nat
-;;      n-1 base step))
-```
+> If `target` is `zero`
+
+> then `(iter-Nat target base step)` is `base`
+
+> else if `target == n == (add1 n-1)`
+
+> then `(iter-Nat target base step)` is
+
+>     (step
+>        (iter-Nat
+>          n-1 base step))
 
 
-`iter-Nat` has type
+`Iter-Nat` has type
 
 
-```racket
-;;     (Π ((E U))
-;;       (→ N E (→ N E) E))
-;;          ^ ^  \_ _/  ^
-;;           \ \   v     \
-;;            \ \   \     type of return value
-;;             \ \   type of `step`
-;;              \ type of `base`
-;;               type of `target`
-```
+    (Π ((E U))
+      (→ N E (→ N E) E))
+         ^ ^  \_ _/  ^
+          \ \   v     \
+           \ \   \     type of return value
+            \ \   type of `step`
+             \ type of `base`
+              type of `target`
+
 
 same as the type of `which-Nat`. The difference
 between the two is that `iter-Nat` calls
@@ -329,16 +342,16 @@ the way or at compile time.
 We must define `+`. It's not built-in:
 
 
-```racket
-;; (+ 2 3)                              ; input to REPL
-; Unknown variable +                    ; response from REPL
-```
+    (+ 2 3)                             ; input to REPL
+    ; Unknown variable +                ; response from REPL
 
-When some input to the REPL produces an error
-message, we must comment-out that input in this
-source file. The REPL halts on any error. We want
-to write down the errors, but we don't want to
-halt the REPL once we figure out the fix.
+
+The REPL halts on any error. We want to write down
+the errors, but we don't want to halt the REPL once
+we figure out the fix. So we don't put inputs that
+produce errors in triple-backticks. Instead we
+indent them by four spaces. It's safe to extract
+code that's in triple-backtick blocks.
 
 
 <hr>
@@ -369,11 +382,16 @@ halt the REPL once we figure out the fix.
 reminder of the pseudocode of `which-Nat`:
 
 
-```racket
-;; (which-Nat target base step) == base if
-;; target == 0 else if target == n == (add1 n-1)
-;; then which-Nat = (step n-1)
-```
+> If `target` is `zero`
+
+> then `(which-Nat target base step)` is `base`
+
+> else if `target == n == (add1 n-1)`
+
+> then `(which-Nat target base step)` is
+
+>     (step n-1)
+
 
 ## Elimination
 
@@ -383,11 +401,11 @@ is "elimination" because it strips off --
 eliminates -- the value constructor `add1`.
 Selection (`which-Nat`), iteration (`iter-Nat`),
 and recursion (`rec-Nat`) work in a backwards
-kind of way, by eliminating toward zero. One says
+kind of way, by eliminating toward `zero`. One says
 "backwards" because one's prior experience with
 recursion and iteration probably has one starting
-with some big Nat and _subtracting_ 1 from it
-before recursing. Here, in The Little Typer, one
+with some big `Nat` and _subtracting_ 1 from it
+before recursing. Here, in "The Little Typer," one
 instead destructures larger numbers `n` into
 smaller ones `(add1 n-1)` by writing out the
 _addition_ that "must have taken place." The
@@ -396,8 +414,8 @@ information.
 
 
 Sequential deconstruction and elimination _build
-up_ expressions of smaller Nats. The eliminators
-_rattle down_ those expressions in O(n) time to
+up_ expressions of smaller `Nat`s. The eliminators
+_rattle down_ those expressions in $O(n)$ time to
 produce final results in the unique normal form
 -- the "most direct" form.
 
@@ -406,22 +424,21 @@ produce final results in the unique normal form
 
 
 The invisible process of noticing that
-`n == (add1 n-1)` is "destructuring," a term not
-in The Little Typer. I borrowed it from Clojure.
-One might think it should "structuring" because
-it substitutes a value like `(add1 n-1)`, with a
+`n == (add1 n-1)` is "destructuring," a term not in
+"The Little Typer." I borrowed it from Clojure. One
+might think it should be "structuring" because it
+substitutes a value like `(add1 n-1)`, with a
 constructor up top, for an expression like `n`.
 However, I always pair destructuring with a
 following elimination, so destructuring is more a
 partner of elimination than it is a stand-alone
 operation. Also, I wanted to mimic Clojure, which
 unpacks variable-binding expressions into value
-forms, typically with Clojure keywords up top
-taking the role of Pie's constructors.
-Destructuring might better be called _pattern
-matching_, but The Little Typer has a specific
-meaning for _pattern matching_ in an Appendix and
-I don't want to collide names.
+forms, typically with Clojure keywords up top taking
+the role of Pie's constructors. Destructuring might
+better be called _pattern matching_, but "The Little
+Typer" has a specific meaning for _pattern matching_
+in an Appendix and I don't want to collide with it.
 
 
 Destructuring, in our example, defines the
@@ -430,17 +447,16 @@ argument `n-1` by setting up the value
 Clojure keyword] for later elimination to `n-1`.
 
 
-```racket
-;; (iter-Nat target base step) == base if
-;; target == 0 else if target == n == (add1 n-1)
-;;                               |-------------|
-;;                                destructuring
-;; then iter-Nat ==        ______/
-;;                        /
-;;             elimination
-;; (step       |---------|
-;;    (iter-Nat    n-1    base step))
-```
+    (iter-Nat target base step) == base if
+    target == 0 else if target == n == (add1 n-1)
+                                  |-------------|
+                                   destructuring
+    then iter-Nat ==        ______/
+                           /
+                elimination
+    (step       |---------|
+       (iter-Nat    n-1    base step))
+
 
 `Iter-Nat` is [an "eliminator" for Nats](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._iter-.Nat%29%29).
 
@@ -450,42 +466,43 @@ for `(+ 2 3)`. I assume one understands "subst.",
 i.e., substitution, without further explanation:
 
 
-```racket
-(+ 2 3) ; step 1. ...                     how? why?
-;; 2.     (iter-Nat     2    3 step-+)    subst. def
-;; 3.     (iter-Nat (add1 1) 3 step-+)    destructuring
-;; 4. (step-+            /                elimination
-;;        (iter-Nat     1    3 step-+))   ... always together
-;; 5. (step-+       ____^___
-;;        (iter-Nat (add1 0) 3 step-+))   destructuring
-;; 6. (step-+            /                elimination
-;;      (step-+         |                 ... line handmaidens
-;;        (iter-Nat     0    3 step-+)))
-;;        -------------------v--------
-;; 7. (step-+                |            subst. base
-;;      (step-+              3))
-;; ~~~> 5                                 rattle-down evaluation
-```
+    (+ 2 3) ; step 1. ...                     how? why?
+    2.     (iter-Nat     2    3 step-+)    subst. def
+    3.     (iter-Nat (add1 1) 3 step-+)    destructuring
+    4. (step-+            /                elimination
+           (iter-Nat     1    3 step-+))   ... always together
+    5. (step-+       ____^___
+           (iter-Nat (add1 0) 3 step-+))   destructuring
+    6. (step-+            /                elimination
+         (step-+         |                 ... line handmaidens
+           (iter-Nat     0    3 step-+)))
+           -------------------v--------
+    7. (step-+                |            subst. base
+         (step-+              3))
+    ~~~> 5                                 rattle-down evaluation
 
 
-Here is something I made up to show that
-`rec-Nat` is at least as strong as `iter-Nat`. In
-the following example, the `step` function body
-ignores its recursive argument `r`, so we write
-it `r_` by the naming convention that ignored
-variables have a `_` suffix.
+Next is something I made up to show that `rec-Nat`
+is at least as strong as `iter-Nat`. In the
+following example, `step`'s function body ignores
+its recursive argument `r`, so we write it `r_` by
+the naming convention that ignored variables have a
+`_` suffix.
 
 
 reminder of `rec-Nat`:
 
 
-```racket
-;; (rec-Nat target base step) == base if
-;; target == 0 else if target == (add1 n-1)
-;; then rec-Nat ==
-;; (step n-1                              nota bene
-;;    (rec-Nat n-1 base step))            elimination
-```
+> If `target` is `zero`
+
+> then `(rec-Nat target base step)` is `base`
+
+> else if `target == n == (add1 n-1)`
+
+> then `(rec-Nat target base step)` is
+
+>     (step n-1
+>       (rec-Nat n-1 base step))
 
 
 <hr>
@@ -497,24 +514,21 @@ reminder of `rec-Nat`:
   (λ (n-1 r_) (add1 n-1))) ;              ignore r == r_
 ```
 
-
-```racket
-(rec-Nat 2 3 sr+) ; step 1. ...
-;; 2.     (rec-Nat     2    3 sr+)        subst. def
-;;                 ____^___
-;; 3.     (rec-Nat (add1 1) 3 sr+)        destructuring
-;; 4. (sr+ 1            /                 elimination
-;;        (rec-Nat     1    3 sr+))       ... always together
-;; 5. (sr+ 1       ____^___               destructuring
-;;        (rec-Nat (add1 0) 3 sr+))
-;; 6. (sr+ 0            /                 elimination
-;;      (sr+ 0         |                  ... like handmaidens
-;;        (rec-Nat     0    3 sr+)))
-;;        ------------------v-----        subst. base
-;; 7. (sr+ 0                |
-;;      (sr+ 0              3))
-;; ~~~> 5                                 rattle-down evaluation
-```
+    (rec-Nat 2 3 sr+) ; step 1. ...
+    2.     (rec-Nat     2    3 sr+)        subst. def
+                    ____^___
+    3.     (rec-Nat (add1 1) 3 sr+)        destructuring
+    4. (sr+ 1            /                 elimination
+           (rec-Nat     1    3 sr+))       ... always together
+    5. (sr+ 1       ____^___               destructuring
+           (rec-Nat (add1 0) 3 sr+))
+    6. (sr+ 0            /                 elimination
+         (sr+ 0         |                  ... like handmaidens
+           (rec-Nat     0    3 sr+)))
+           ------------------v-----        subst. base
+    7. (sr+ 0                |
+         (sr+ 0              3))
+    ~~~> 5                                 rattle-down evaluation
 
 
 ## Gauss
@@ -560,45 +574,42 @@ arguments, including `r == rg`, i.e., `r`:
 Less noisy pseudocode:
 
 
-```racket
-;; letting rN == rec-Nat, s == some-stepper, a1 == add1
-;; claim s (→ Nat Nat Nat)
-;; (rN     0    b s) ~~> b
-;; (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
-```
+    letting rN == rec-Nat, s == some-stepper, a1 == add1
+    claim s (→ Nat Nat Nat)
+    (rN     0    b s) ~~> b
+    (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
+
 
 a step-chart calculated by hand:
 
 
-```racket
-(gauss 3) ; step 1. ...
-;; 2.       (rN    3   0 sg)              subst. def
-;;              ___^__
-;; 3.       (rN (a1 2) 0 sg)              destructuring
-;; 4. (sg 2        /                      elimination
-;;          (rN    2   0 sg))             ... always together
-;; 5. (sg 2     ___^__
-;;          (rN (a1 1) 0 sg))             destructuring
-;; 6. (sg 2        /                      elimination
-;;      (sg 1      |                      ... like handmaidens
-;;          (rN    1   0 sg)))
-;; 6. (sg 2        |
-;;      (sg 1   ___^__
-;;          (rN (a1 0) 0 sg)))            destructuring
-;; 7. (sg 2        /                      elimination
-;;      (sg 1      |
-;;        (sg 0    |
-;;          (rN    0   0 sg))))
-;; 8. (sg 2 -------v--------
-;;      (sg 1      |
-;;        (sg 0    0)))                   subst. base
-;; 9. (sg 2 (sg 1 (+ (add1 0) 0)))        rattle-down evaluation
-;; A. (sg 2 (sg 1 1))                     including
-;; B. (sg 2 (+ (add1 1) 1))               multiple
-;; C. (sg 2 3)                            steps not
-;; D. (+ (add1 2) 3)                      exploded here
-;; E. 6
-```
+    (gauss 3) ; step 1. ...
+    2.       (rN    3   0 sg)              subst. def
+                 ___^__
+    3.       (rN (a1 2) 0 sg)              destructuring
+    4. (sg 2        /                      elimination
+             (rN    2   0 sg))             ... always together
+    5. (sg 2     ___^__
+             (rN (a1 1) 0 sg))             destructuring
+    6. (sg 2        /                      elimination
+         (sg 1      |                      ... like handmaidens
+             (rN    1   0 sg)))
+    6. (sg 2        |
+         (sg 1   ___^__
+             (rN (a1 0) 0 sg)))            destructuring
+    7. (sg 2        /                      elimination
+         (sg 1      |
+           (sg 0    |
+             (rN    0   0 sg))))
+    8. (sg 2 -------v--------
+         (sg 1      |
+           (sg 0    0)))                   subst. base
+    9. (sg 2 (sg 1 (+ (add1 0) 0)))        rattle-down evaluation
+    A. (sg 2 (sg 1 1))                     including
+    B. (sg 2 (+ (add1 1) 1))               multiple
+    C. (sg 2 3)                            steps not
+    D. (+ (add1 2) 3)                      exploded here
+    E. 6
 
 
 # Chapter 4
@@ -612,10 +623,8 @@ cursor in an example to see its value in the
 pie/racket interpreter.
 
 
-```racket
-;; (claim foo (→ A D))
-;; Page 98:  ~" → is not up to the job "~
-```
+     (claim foo (→ A D))
+     Page 98:  ~" → is not up to the job "~
 
 
 ## Flip
@@ -665,7 +674,6 @@ We'll make much truck of the normal form later!
 ## Curried!
 
 
-
 ```racket
 (flip Nat Atom (cons 17 'apple))
 ; (the (Pair Atom Nat)
@@ -688,12 +696,10 @@ FUNCTIONS! You CAN'T CURRY THEM!
 ## `cons` is Not a Function! (Can't Curry it)
 
 
-```racket
-;; (flip Nat Atom (cons 17 'apple))
-; cons: expected valid Pie name
-;   at: cons
-;   in: cons
-```
+    (flip Nat Atom (cons 17 'apple))
+    ; cons: expected valid Pie name
+    ;   at: cons
+    ;   in: cons
 
 
 ## Write Your Own Eliminator
@@ -798,10 +804,7 @@ kar
 ```
 
 
-## Frame 4.50
-
-
-## Twin
+## Frame 4.50: Twin
 
 
 <hr>
@@ -868,32 +871,35 @@ No need for a lot of prose, here. Read the code!
 reminder of `rec-Nat`:
 
 
-```racket
-;; letting rN == rec-Nat, s == some-stepper, a1 == add1
-;; claim s (→ Nat Nat Nat)
-;; (rN     0    b s) ~~> b
-;; (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
-```
+> If `target` is `zero`
+
+> then `(rec-Nat target base step)` is `base`
+
+> else if `target == n == (add1 n-1)`
+
+> then `(rec-Nat target base step)` is
+
+>     (step n-1
+>       (rec-Nat n-1 base step))
 
 
-```racket
-;; pseudocode for rec-List:
-;; claim s (-> E (List E) X X)            stepper
-;; claim b X                              base
-;; claim t (List E)                       target
-```
-
-letting `rL` == `rec-List`, `s` == some-stepper, `::` for
-destructuring like `add1` (the "1" in `add1` is
-analogous to the additional `E` argument in the
-stepper, `s` [Frame 5.27]; the book does not state
-this, but it's obvious in retrospect!).
+pseudocode for `rec-List`:
 
 
-```racket
-;; (rL    nil    b s) ~~> b
-;; (rl (:: e es) b s) ~~> (s e es (rL es b s))
-```
+    claim s (-> E (List E) X X)            stepper
+    claim b X                              base
+    claim t (List E)                       target
+
+
+Letting `rL` be `rec-List`, `s` be some-stepper;
+using `::` for destructuring like `add1` (the "1" in
+`add1` is analogous to the additional `E` argument
+in the stepper, `s` [Frame 5.27]; the book does not
+state this, but it's obvious in retrospect!).
+
+
+    (rL    nil    b s) ~~> b
+    (rl (:: e es) b s) ~~> (s e es (rL es b s))
 
 
 <hr>
@@ -960,13 +966,10 @@ Specialized for the `Atom` type:
 ```
 
 
-## Frame 5.45
+## Frame 5.45: Append
 
 
-## Append
-
-
-`step-append` is called post-destructuring into
+`Step-append` is called post-destructuring into
 `(:: e es)` and post-elimination of `::`, just as
 with `rec-Nat`. Destructuring and elimination are
 handmaidens, destructuring before elimination.
@@ -1056,12 +1059,10 @@ produce a `List`!
 illegal! compile error!
 
 
-```racket
-;; (snoc Nat nil nil)
-; nil requires a List type, but was used as a Nat
-;   Source locations:
-;   playground.pie:54:14
-```
+    (snoc Nat nil nil)
+    ; nil requires a List type, but was used as a Nat
+    ;   Source locations:
+    ;   playground.pie:54:14
 
 
 ```racket
@@ -1082,11 +1083,10 @@ illegal! compile error!
 ```
 
 
-`step-reverse` is called post-destructuring into
+`Step-reverse` is called post-destructuring into
 `(:: e es)` and post-elimination of `::`, just as
 with `rec-Nat`. So it gets two arguments, `e` and
-`es`, as well as the recursive "almost,"
-reversed.
+`es`, as well as the recursive "almost," reversed.
 
 
 ```racket
@@ -1128,8 +1128,10 @@ this case. The book is not clear about it.
 (reverse Nat nil)
 (reverse Nat (:: 1 nil))
 (reverse Nat (:: 2 (:: 1 nil)))
-; You fill those in!
 ```
+
+
+You fill those in!
 
 
 # Chapter 6
@@ -1177,13 +1179,10 @@ type-hints:
 ```
 
 
-```racket
-;; (head (vec:: 'a vecnil))
-;; because
-; Can't determine a type
-;   Source locations:
-;   playground.pie:71:6
-```
+    (head (vec:: 'a vecnil))
+    ; Can't determine a type
+    ;   Source locations:
+    ;   playground.pie:71:6
 
 
 ```racket
@@ -1225,25 +1224,20 @@ See https://stackoverflow.com/questions/75516108/vec-in-the-little-typer/7551610
 ```
 
 
-## First
+## Frames 6.34 through 6.37: First
 
 
-## Frames 6.34 through 6.37
+### _Totality_
 
 
-## _Totality_
-
-
-This version of `first` requires a Nat argument,
+This version of `first` requires a `Nat` argument,
 `ℓ-1`, that is one fewer than the length of the
-`Vec`. The argument must be one fewer than the
-length so that `first` may be a total function;
-so that neither its input nor its output may ever
-be `vecnil`, that is, the sole `(Vec E 0)`.
-`First` guarantees totality by destructuring
-`ℓ-1` into `(add1 ℓ-1)`, which may never be
-`zero`, then eliminating `add1` to yield `ℓ-1`,
-which _can_ be `zero`.
+`Vec` so that `first` may be a total function; so
+that neither its input nor its output may ever be
+`vecnil`, the sole `(Vec E 0)`. `First` guarantees
+totality by destructuring `ℓ` into `(add1 ℓ-1)`,
+which may never be `zero`, then eliminating `add1`
+to yield `ℓ-1`, which _can_ be `zero`.
 
 
 The requirement that all functions be total gives
@@ -1279,18 +1273,16 @@ It's equivalent, but aggressively renames the Nat
 argument from `ℓ` to `ℓ-1`.
 
 
-```racket
-;;     (claim first
-;;            (Π ((E U)
-;;                (ℓ-1 Nat))
-;;               (→ (Vec E (add1 ℓ-1))
-;;                  E)))
+    (claim first
+           (Π ((E U)
+               (ℓ-1 Nat))
+              (→ (Vec E (add1 ℓ-1))
+                 E)))
 
-;;     (define first
-;;       (λ (E ℓ-1)
-;;         (λ (es)
-;;           (head es))))
-```
+    (define first
+      (λ (E ℓ-1)
+        (λ (es)
+          (head es))))
 
 
 ```racket
@@ -1314,41 +1306,35 @@ calculus that uses `GREEK CAPITAL LETTER PI`, `Π`.
 # Chapter 7
 
 
-```racket
-;; (define peas
-;;   (λ (how-many-peas)
-;;     (rec-Nat how-many-peas           ; target
-;;           ;  ------v------
-;;           ;    ____^_____
-;;           ; == (add1 ℓ-1)
-;;              vecnil                  ; base: type?
-;;              (λ (ℓ-1_ peas_ℓ-1)      ; step: uh-oh
-;;                (vec:: 'pea peas_ℓ-1)))))  ; type?
-```
+    (define peas
+      (λ (how-many-peas)
+        (rec-Nat how-many-peas           ; target
+              ;  ------v------
+              ;    ____^_____
+              ; == (add1 ℓ-1)
+                 vecnil                  ; base: type?
+                 (λ (ℓ-1_ peas_ℓ-1)      ; step: uh-oh
+                   (vec:: 'pea peas_ℓ-1)))))  ; type?
 
 
 `peas` does not have a consistent type. `rec-Nat`
 requires the type of `base` to be the same as
 that of `peas_ℓ-1`. But, the type of base is
 
-```racket
-;;
-;;     (Vec Atom 0),
-;;
-;; and the type of `peas_ℓ-1` is
-;;
-;;     (Vec Atom ℓ-1)
-;;
-;; and `ℓ-1` could be anything `>= 0`.
-```
+    (Vec Atom 0),
+
+and the type of `peas_ℓ-1` is
+
+    (Vec Atom ℓ-1)
+
+and `ℓ-1` could be anything `>= 0`.
 
 
-Any ___motive___ for types that depend on Nat has
+Any ___motive___ for types that depend on `Nat` has
 type `(→ Nat U)`.
 
 
-"The motive explains _why_ the target is to be
-eliminated."
+> The motive explains _why_ the target is to be eliminated.
 
 
 I would say "how the target is destructured?"
@@ -1467,8 +1453,10 @@ The motive returns a type:
 (peas 0)
 (peas 1)
 (peas 3)
-; You fill in the responses!
 ```
+
+
+You fill in the responses!
 
 
 I made up the following exercise for myself.
@@ -1483,15 +1471,13 @@ isn't a function and doesn't have a normal form)
 The [official documentation for `ind-Nat` is here](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._ind-.Nat%29%29)
 
 
-```racket
-;; (ind-Nat target motive base step) → (motive target)
-;;     target : Nat
-;;     motive : (-> Nat U)
-;;     base   : (motive zero)
-;;     step	 	:	(Π ((n Nat))
-;;                (-> (motive n)
-;;                (motive (add1 n))))
-```
+    (ind-Nat target motive base step) → (motive target)
+        target : Nat
+        motive : (-> Nat U)
+        base   : (motive zero)
+        step	 	:	(Π ((n Nat))
+                   (-> (motive n)
+                   (motive (add1 n))))
 
 
 I got some help on this self-inflicted "homework"
@@ -1577,10 +1563,7 @@ change.
 ```
 
 
-## Last
-
-
-## Frame 7.38, Page 152 (Fifth Printing)
+## Last: Frame 7.38, Page 152 (Fifth Printing)
 
 
 Motives are functions that return types. "The
@@ -1609,12 +1592,10 @@ that is, the type of a function of a singleton
 Can we be more specific?
 
 
-```racket
-;;     (claim mot-last
-;;            ;; extra type argument at the front:
-;;            (Π ((E U))
-;;               (the U (→ (Vec E Nat) E))))
-```
+    (claim mot-last
+           ;; extra type argument at the front:
+           (Π ((E U))
+              (the U (→ (Vec E Nat) E))))
 
 
 Doesn't work, so we can't easily be more
@@ -1659,16 +1640,14 @@ This shows why the following attempt at a more
 specific type for `mot-last` fails:
 
 
-```racket
-;; (claim mot-last
-;;        ;; extra type argument at the front:
-;;        (Π ((E U))
-;;           (the U (→ (Vec E Nat) E))))
-; Expected
-;   (→ (Vec E k-1)
-;     E)
-; but given U
-```
+    (claim mot-last
+           ;; extra type argument at the front:
+           (Π ((E U))
+              (the U (→ (Vec E Nat) E))))
+    ; Expected
+    ;   (→ (Vec E k-1)
+    ;     E)
+    ; but given U
 
 
 The motive must be able to return multiple
@@ -1779,20 +1758,18 @@ of an empty `Vec`. We can try
 ```
 
 
-## Drop-Last
+## Drop-Last: Frame 7.64, pg. 160 (Fifth Printing)
 
 
-## Frame 7.64, pg. 160 (Fifth Printing)
+Motives are functions that return types.
 
 
-Motives are functions that return types. "The
-motive applied to [`E` and] `zero` should be the type
-of the base."
+> "The motive applied to [`E` and] `zero` should be the type of the base."
 
 
-The type of the base of `drop-last`
-is the type of a function that converts a
-singleton vector into an empty vector:
+The type of the base of `drop-last` is the type of a
+function that converts a singleton vector into an
+empty vector:
 
     (→ (Vec E (add1 zero))
        (Vec E     zero   ))
@@ -1968,22 +1945,18 @@ cursor to the end. That's undesirable because
 I reload this buffer (C-c C-c) frequently.
 
 
-```racket
-;;     (claim peas-i
-;;            (Pi ((n Nat))
-;;                (Vec Atom n)))
-```
+    (claim peas-i
+           (Pi ((n Nat))
+               (Vec Atom n)))
 
 
-```racket
-;;     (define peas-i
-;;       (λ (n)
-;;         (ind-Nat n
-;;                  (λ (k) (Vec Atom k))    ; motive
-;;                  vecnil                  ; base
-;;                  (λ (n-1 ps-1)           ; step
-;;                    (vec:: TODO TODO)))))
-```
+    (define peas-i
+      (λ (n)
+        (ind-Nat n
+                 (λ (k) (Vec Atom k))    ; motive
+                 vecnil                  ; base
+                 (λ (n-1 ps-1)           ; step
+                   (vec:: TODO TODO)))))
 
 
 # Chapter 8
