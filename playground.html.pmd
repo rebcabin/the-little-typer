@@ -9,8 +9,9 @@
   `(mathjax ,(apply string-append `("$" ,@xs "$"))))
 ◊(define ($$ . xs)
   `(mathjax ,(apply string-append `("$$" ,@xs "$$"))))
-◊(require pollen/unstable/pygments)
-
+◊(require pollen/template)
+◊(define (highlight lang . xs)
+   `(pre (code ((class ,(format "~a" lang))) ,@xs)))
 
 > I wonder whether ${2^{\aleph_\alpha} = \aleph_{\alpha+1}}$?
 
@@ -140,11 +141,11 @@ The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tuf
 
 
 ```racket
-(the (Pair Atom Atom)                       ; type
-     (cons 'spinach 'cauliflower))             ; instance
+(the (Pair Atom Atom)                   ; type
+     (cons 'spinach 'cauliflower))      ; instance
 
 
-(the Atom (the Atom 'pie))                  ; instance only
+(the Atom (the Atom 'pie))              ; instance only
 ```
 
 
@@ -153,6 +154,7 @@ The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tuf
 
 Here is my clone of `which-Nat` and its type
 signature:
+
 
 
 ```racket
@@ -166,7 +168,6 @@ signature:
 (define wN
   (λ (E)
    (λ (t b s) (which-Nat t b s))))
-}
 ```
 
 
@@ -322,12 +323,12 @@ pseudocode for `iter-Nat`:
 
     (Π ((E U))
       (→ N E (→ N E) E))
-         ^ ^  \_ _/  ^
-          \ \   v     \
-           \ \   \     type of return value
-            \ \   type of `step`
-             \ type of `base`
-              type of `target`
+    ;    ^ ^  \_ _/  ^
+    ;     \ \   v     \
+    ;      \ \   \     type of return value
+    ;       \ \   type of `step`
+    ;        \ type of `base`
+    ;         type of `target`
 
 
 same as the type of `which-Nat`. The difference
@@ -555,11 +556,10 @@ arguments, including `r == rg`, i.e., `r`:
 <hr>
 ```racket
 (claim gauss
-       ;;  n  output
-       (→ Nat Nat))
+       (→ Nat  Nat))
 
 (define gauss
-  (λ (n) ; Don't name this argument n-1
+  (λ (n)
     (rec-Nat n ; `target`: if zero, return ...
              0 ; `base`: else, if target is `(add1 n-1)`
              ;; return

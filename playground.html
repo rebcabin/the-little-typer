@@ -1,22 +1,30 @@
 <html>
 <head>
   <meta charset="UTF-8">
+
+  <title>The Little Typer
+  </title>
+
+  <link rel="stylesheet" type="text/css" href="tufte.css"></link>
+
+       <!-- <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/night-owl.min.css">
+            <link/> -->
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/base16/ia-dark.min.css">
+  <link/>
+
   <script type="text/javascript"
-      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
   </script>
 
   <script type="text/x-mathjax-config">
    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$']]}});
   </script>
 
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js">
-       </script> -->
-
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/night-owl.min.css">
-  <link/>
-
-  <!-- and it's easy to individually load additional languages -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js">
+  </script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/scheme.min.js">
   </script>
@@ -24,20 +32,18 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js">
   </script>
 
-  <title>The Little Typer
-  </title>
-
-  <link rel="stylesheet" type="text/css" href="tufte.css">
-  </link>
+  <script>
+   hljs.highlightAll();
+  </script>
 
 </head>
 <body><root><pre class="brush: racket"><code>#lang pie  ;; Racket supports this language as a
            ;; package (`raco pkg install pie`)</code></pre><blockquote><p>I wonder whether ${2^{\aleph_\alpha} = \aleph_{\alpha+1}}$?</p></blockquote><p>&mdash; Matthew Butterick</p><h1 id="prolegomenon">Prolegomenon</h1><p>I am Brian Beckman. These are my notes on <a href="https://thelittletyper.com/index.html"><em>The Little Typer</em></a>, Fifth Printing. <a href="https://github.com/rebcabin/the-little-typer/">Find the source of my notes here</a>.</p><p>Though my explanations are my own, the code is mostly copied from the book. You will most likely need the book to understand my notes.</p><p><a href="https://medium.com/@haliq12/homotopy-type-theory-hott-for-mere-mortals-8d28301a1b19">Here is a good article on the basics of type theory</a>. In there, we find out that dependent type theory is not just for programming languages.</p><p><a href="https://en.wikipedia.org/wiki/Type_theory">The Wikipedia article</a> is worth your time, too.</p><p><a href="https://www.cis.upenn.edu/~bcpierce/tapl/">Benjamin Pierce&rsquo;s book TAPL</a> is famous and on my reading list for the future.</p><p><a href="https://softwarefoundations.cis.upenn.edu/">Software Foundations is an interactive course</a> in Coq. I played around with it but came here for something smaller and easier.</p><h2 id="version">Version</h2><p>10 March 2023</p><h2 id="logistics">Logistics</h2><p>In Emacs racket-mode, <code>C-c C-c</code> sends the whole file to the racket interpreter. <code>C-M-x</code> sends the s-exp that surrounds the cursor, just as with CIDER in Clojure-mode.</p><p>Code blocks are delimited in triple-backticks, not nested. If you can extract the code from the <code>.pmd</code> file, you can run it in <code>racket</code>. Don&rsquo;t extract code blocks that are <em>not</em> delimited in triple backticks. In particular, don&rsquo;t extract code blocks that are merely indented four space. They&rsquo;re supposed to just appear in this document, not to be executed in racket.</p><p>I tried to do this whole thing in a Jupyter notebook, but found that the racket kernel for Jupyter was not up to the job on my Mac Book Pro M1.</p><p>Alternatively, if you don&rsquo;t want to set up Emacs for racket, load code extracted from triple-backtick blocs from this file into DrRacket and play around. DrRacket comes for free with <a href="https://download.racket-lang.org/">the racket distribution</a>. Install the distribution, type <code>raco pkg install
-pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket is a fine IDE if you can stand imperfect Emacs key-binding emulation (I can&rsquo;t; too many decades of muscle memory!)</p><p>Mostly, I leave two blank lines between things. I leave one blank line between a <code>claim</code> and its matching <code>define</code>. Writing these pairs <em>feels like</em> writing Haskell. I also sometimes leave a single blank line between a definition and its unit tests. I&rsquo;m not religious about any line-spacing.</p><h2 id="license">License</h2><p><a href="https://creativecommons.org/licenses/by/4.0/"><code>https://creativecommons.org/licenses/by/4.0/</code></a></p><h2 id="technology">Technology</h2><p>I build the html via <a href="file:///Users/brian/Library/Racket/8.8/pkgs/pollen/pollen/doc/pollen/index.html">pollen</a>. The web fonts and CSS styles are from <a href="https://github.com/edwardtufte/tufte-css">tufte</a>.</p><h2 id="undone">Undone</h2><ul><li><p>pygments or highlights.js for syntax highlighting.  Multiple attempts in the <code>pm</code> leaf directory do  not work as expected. Color changes in pygments do  not appear, and highlights does not produce syntax  highlighting, though it renders code correctly in  <code>pre</code> tags.</p></li><li><p>sidenotes, marginnotes from the <code>template.html</code>  don&rsquo;t work.</p></li><li><p>Table of Contents</p></li></ul><h1 id="chapters-1--2">Chapters 1 &amp; 2</h1><pre class="brush: racket"><code>'spinach</code></pre><pre class="brush: racket"><code>(the (Pair Atom Atom)                       ; type
-     (cons 'spinach 'cauliflower))             ; instance
+pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket is a fine IDE if you can stand imperfect Emacs key-binding emulation (I can&rsquo;t; too many decades of muscle memory!)</p><p>Mostly, I leave two blank lines between things. I leave one blank line between a <code>claim</code> and its matching <code>define</code>. Writing these pairs <em>feels like</em> writing Haskell. I also sometimes leave a single blank line between a definition and its unit tests. I&rsquo;m not religious about any line-spacing.</p><h2 id="license">License</h2><p><a href="https://creativecommons.org/licenses/by/4.0/"><code>https://creativecommons.org/licenses/by/4.0/</code></a></p><h2 id="technology">Technology</h2><p>I build the html via <a href="file:///Users/brian/Library/Racket/8.8/pkgs/pollen/pollen/doc/pollen/index.html">pollen</a>. The web fonts and CSS styles are from <a href="https://github.com/edwardtufte/tufte-css">tufte</a>.</p><h2 id="undone">Undone</h2><ul><li><p>pygments or highlights.js for syntax highlighting.  Multiple attempts in the <code>pm</code> leaf directory do  not work as expected. Color changes in pygments do  not appear, and highlights does not produce syntax  highlighting, though it renders code correctly in  <code>pre</code> tags.</p></li><li><p>sidenotes, marginnotes from the <code>template.html</code>  don&rsquo;t work.</p></li><li><p>Table of Contents</p></li></ul><h1 id="chapters-1--2">Chapters 1 &amp; 2</h1><pre class="brush: racket"><code>'spinach</code></pre><pre class="brush: racket"><code>(the (Pair Atom Atom)                   ; type
+     (cons 'spinach 'cauliflower))      ; instance
 
 
-(the Atom (the Atom 'pie))                  ; instance only</code></pre><h2 id="which-nat"><code>Which-Nat</code></h2><p>Here is my clone of <code>which-Nat</code> and its type signature:</p><pre class="brush: racket"><code>(claim wN
+(the Atom (the Atom 'pie))              ; instance only</code></pre><h2 id="which-nat"><code>Which-Nat</code></h2><p>Here is my clone of <code>which-Nat</code> and its type signature:</p><pre class="brush: racket"><code>(claim wN
        (Π ((E      U        )
            (target Nat      )
            (base   E        )
@@ -46,8 +52,7 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
 
 (define wN
   (λ (E)
-   (λ (t b s) (which-Nat t b s))))
-}</code></pre><p>The base and the output of <code>step</code> must have the same type <code>(E U)</code>. <code>E</code> can be anything &mdash; <code>Atom</code> or <code>Nat</code>, for instance, but it must be the same on both branches of <code>which-Nat</code>. Bindings (sub-expressions like <code>(E U)</code> under <code>Π</code>) are sequential: later ones may refer to earlier ones):</p><p>Here is pseudocode for which-Nat:</p><blockquote><p>If <code>target</code> is <code>zero</code></p></blockquote><blockquote><p>then <code>(which-Nat target base step)</code> is <code>base</code></p></blockquote><blockquote><p>else if <code>target == n == (add1 n-1)</code></p></blockquote><blockquote><p>then <code>(which-Nat target base step)</code> is</p></blockquote><blockquote><pre><code>(step n-1)</code></pre></blockquote><p>A good name for the argument (parameter?) of step is <code>n-1</code> because step is called with <code>n-1</code> when <code>target</code> == <code>n</code> == <code>(add1 n-1)</code>.</p><p>A parameter is a name for an argument. What is the name of a parameter (your answer)?</p><p>SPOILER: Parameters inhabit a space of symbolic calculation inside the compiler or its runtime, Names of parameters only appear in the implementations of the compiler or its run-time representative functions, where they may stand for arbitrary parameters. At the user&rsquo;s level. parameters are names for arguments, where they may stand for arbitrary argument values. Recall that values are expressions with constructors up top (in first positions in parenthesized expressions).</p><pre class="brush: racket"><code>(which-Nat zero
+   (λ (t b s) (which-Nat t b s))))</code></pre><p>The base and the output of <code>step</code> must have the same type <code>(E U)</code>. <code>E</code> can be anything &mdash; <code>Atom</code> or <code>Nat</code>, for instance, but it must be the same on both branches of <code>which-Nat</code>. Bindings (sub-expressions like <code>(E U)</code> under <code>Π</code>) are sequential: later ones may refer to earlier ones):</p><p>Here is pseudocode for which-Nat:</p><blockquote><p>If <code>target</code> is <code>zero</code></p></blockquote><blockquote><p>then <code>(which-Nat target base step)</code> is <code>base</code></p></blockquote><blockquote><p>else if <code>target == n == (add1 n-1)</code></p></blockquote><blockquote><p>then <code>(which-Nat target base step)</code> is</p></blockquote><blockquote><pre><code>(step n-1)</code></pre></blockquote><p>A good name for the argument (parameter?) of step is <code>n-1</code> because step is called with <code>n-1</code> when <code>target</code> == <code>n</code> == <code>(add1 n-1)</code>.</p><p>A parameter is a name for an argument. What is the name of a parameter (your answer)?</p><p>SPOILER: Parameters inhabit a space of symbolic calculation inside the compiler or its runtime, Names of parameters only appear in the implementations of the compiler or its run-time representative functions, where they may stand for arbitrary parameters. At the user&rsquo;s level. parameters are names for arguments, where they may stand for arbitrary argument values. Recall that values are expressions with constructors up top (in first positions in parenthesized expressions).</p><pre class="brush: racket"><code>(which-Nat zero
   'naught (λ (n-1) 'more))              ; input to REPL
 ; (the Atom 'naught)                    ; response from REPL
 (which-Nat 4
@@ -68,12 +73,12 @@ pie</code> at the terminal, launch <code>DrRacket</code> and party on. DrRacket 
    (iter-Nat
      n-1 base step))</code></pre></blockquote><p><code>Iter-Nat</code> has type</p><pre><code>(Π ((E U))
   (→ N E (→ N E) E))
-     ^ ^  \_ _/  ^
-      \ \   v     \
-       \ \   \     type of return value
-        \ \   type of `step`
-         \ type of `base`
-          type of `target`</code></pre><p>same as the type of <code>which-Nat</code>. The difference between the two is that <code>iter-Nat</code> calls <code>iter-Nat</code> internally for the argument of <code>step</code>. User-defined code must not recurse explicitly, but this system-defined routine can recurse internally because it does type-checking along the way or at compile time.</p><p>We must define <code>+</code>. It&rsquo;s not built-in:</p><pre><code>(+ 2 3)                             ; input to REPL
+;    ^ ^  \_ _/  ^
+;     \ \   v     \
+;      \ \   \     type of return value
+;       \ \   type of `step`
+;        \ type of `base`
+;         type of `target`</code></pre><p>same as the type of <code>which-Nat</code>. The difference between the two is that <code>iter-Nat</code> calls <code>iter-Nat</code> internally for the argument of <code>step</code>. User-defined code must not recurse explicitly, but this system-defined routine can recurse internally because it does type-checking along the way or at compile time.</p><p>We must define <code>+</code>. It&rsquo;s not built-in:</p><pre><code>(+ 2 3)                             ; input to REPL
 ; Unknown variable +                ; response from REPL</code></pre><p>The REPL halts on any error. We want to write down the errors, but we don&rsquo;t want to halt the REPL once we figure out the fix. So we don&rsquo;t put inputs that produce errors in triple-backticks. Instead we indent them by four spaces. It&rsquo;s safe to extract code that&rsquo;s in triple-backtick blocks.</p><hr/><pre class="brush: racket"><code>(claim step-+
        (→ Nat Nat))
 
@@ -131,11 +136,10 @@ then iter-Nat ==        ______/
 (define step-gauss
   (λ (n-1 rg)
     (+ (add1 n-1) rg)))</code></pre><hr/><pre class="brush: racket"><code>(claim gauss
-       ;;  n  output
-       (→ Nat Nat))
+       (→ Nat  Nat))
 
 (define gauss
-  (λ (n) ; Don't name this argument n-1
+  (λ (n)
     (rec-Nat n ; `target`: if zero, return ...
              0 ; `base`: else, if target is `(add1 n-1)`
              ;; return
