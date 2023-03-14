@@ -2347,7 +2347,7 @@ Here is `incr`:
 ```racket
 (claim incr (→ Nat Nat))
 
-(de4fine incr
+(define incr
   (λ (n)
     (iter-Nat n                         ; target
               1                         ; base
