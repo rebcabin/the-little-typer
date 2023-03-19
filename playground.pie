@@ -1387,10 +1387,13 @@ kar
 ;; Can we be more specific?
 
 
-;;     (claim mot-last
-;;            ;; extra type argument at the front:
-;;            (Π ((E U))
-;;               (the U (→ (Vec E Nat) E))))
+    ;; (claim mot-last-42
+    ;;        ;; extra type argument at the front:
+    ;;        (Π ((E U))
+    ;;           (the U (→ (Vec E Nat) E))))
+    ; Not a type
+    ;   Source locations:
+    ;   /playground.pie:1393:14
 
 
 ;; Doesn't work, so we can't easily be more

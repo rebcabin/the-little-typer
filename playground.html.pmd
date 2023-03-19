@@ -28,9 +28,38 @@ Fifth Printing. [Find the source of my notes
 here](https://github.com/rebcabin/the-little-typer/).
 
 
+## Why?
+
+
+Dependent types just plain give you better software.
+
+
+The practical value of dependent types is that they
+can eliminate the need for expensive testing, both
+writing and running software. Some input sets are
+infinite, like strings produced by a grammar or the
+natural numbers $\mathbb{N}={0, 1, \ldots}$. It is
+not possible to exhaustively test a program on such
+infinite sets. It is often possible, however, to
+prove that certain properties of functions are true
+over an infinite set of inputs, merely by writing
+the function in a type-safe way.
+
+
+The idea [can be extended to concurrent programs](https://github.com/leithaus/rho4u/blob/main/oslf/oslf.pdf).
+They can be proved free of deadlock, starvation, or
+other ills of concurrency just by type analysis.
+
+
+## What?
+
+
 Though my explanations are my own, the code is
-mostly copied from the book. You will most likely
+mostly copied from the book. You will
 need the book to understand my notes.
+
+
+## How?
 
 
 [Here is a good article on the basics of type theory](https://medium.com/@haliq12/homotopy-type-theory-hott-for-mere-mortals-8d28301a1b19).
@@ -53,26 +82,42 @@ something smaller and easier.
 ## Version
 
 
-10 March 2023
+17 March 2023
 
 
 ## Logistics
 
 
-In Emacs racket-mode, `C-c C-c` sends the whole file
-to the racket interpreter. `C-M-x` sends the s-exp
-that surrounds the cursor, just as with CIDER in
-Clojure-mode.
+This is a `pollen` input file. See [this
+documentation](https://docs.racket-lang.org/pollen/index.html)
+to learn how to convert it to html for yourself.
 
 
-Code blocks are delimited in triple-backticks, not
-nested. If you can extract the code from the
-`.pmd` file, you can run it in `racket`. Don't
-extract code blocks that are _not_ delimited in
-triple backticks. In particular, don't extract code
-blocks that are merely indented four space. They're
-supposed to just appear in this document, not to be
-executed in racket.
+To run the code in [the Pie
+language](https://docs.racket-lang.org/pie/index.html),
+first _tangle_ it out of this file by running
+
+
+    python tangledown.py
+    racket test.pie
+
+
+or by running `test.pie` in racket mode in Emacs or
+directly in DrRacket.
+
+
+Tangledown regenerates `test.pie` every time you run
+`python tangledown.py`. Tangledown overwrites
+anything you may have changed in `test.pie`. If you
+want something permanent, put it in this file,
+`playground.html.pmd`.
+
+
+Tangledown ignores code blocks that are _not_
+delimited in triple backticks. In particular, it
+won't extract for execution code blocks that are
+merely indented four spaces. Such blocks are
+commentary or documentation, not executed in racket.
 
 
 I tried to do this whole thing in a Jupyter
@@ -80,16 +125,15 @@ notebook, but found that the racket kernel for
 Jupyter was not up to the job on my Mac Book Pro M1.
 
 
-Alternatively, if you don't want to set up Emacs
-for racket, load code extracted from triple-backtick
-blocs from this file into DrRacket and play
-around. DrRacket comes for free with [the racket
-distribution](https://download.racket-lang.org/).
-Install the distribution, type `raco pkg install
-pie` at the terminal, launch `DrRacket` and party
-on. DrRacket is a fine IDE if you can stand
-imperfect Emacs key-binding emulation (I can't;
-too many decades of muscle memory!)
+I tried a version in
+[org-babel](https://orgmode.org/worg/org-contrib/babel/),
+but it's too hard to get anyone else to work with
+it. "Everyone" knows Markdown; "no one" knows
+org-mode. I might go to [the full-blown
+tangledown](https://github.com/rebcabin/tangledown)
+someday, but this book is written in linear style,
+so we don't have the "inside-out" problem that
+tangledown solves.
 
 
 Mostly, I leave two blank lines between things. I
@@ -101,6 +145,11 @@ I'm not religious about any line-spacing.
 
 
 ## License
+
+
+The book is copyrighted and not free. My notes are
+free for any use, so long as you don't pretend that
+you wrote them.
 
 
 [`https://creativecommons.org/licenses/by/4.0/`](https://creativecommons.org/licenses/by/4.0/)
@@ -115,14 +164,6 @@ The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tuf
 
 
 ## Undone
-
-
-* pygments or highlights.js for syntax highlighting.
-  Multiple attempts in the `pm` leaf directory do
-  not work as expected. Color changes in pygments do
-  not appear, and highlights does not produce syntax
-  highlighting, though it renders code correctly in
-  `pre` tags.
 
 
 * sidenotes, marginnotes from the `template.html`
@@ -152,7 +193,7 @@ The web fonts and CSS styles are from [tufte](https://github.com/edwardtufte/tuf
 ## `Which-Nat`
 
 
-Here is my clone of `which-Nat` and its type
+Here is my clone of `which-Nat` with its type
 signature:
 
 
@@ -171,12 +212,18 @@ signature:
 ```
 
 
-The base and the output of `step` must have the same
+I wrote that to test my understanding of the type
+signature of `which-Nat`. The book does not exhibit
+that type signature directly.
+
+
+`Base` and the output of `step` must have the same
 type `(E U)`. `E` can be anything -- `Atom` or
 `Nat`, for instance, but it must be the same on both
-branches of `which-Nat`. Bindings (sub-expressions
-like `(E U)` under `Π`) are sequential: later ones
-may refer to earlier ones):
+branches, `base` and `(step ...)`, of `which-Nat`.
+Bindings (sub-expressions like `(E U)` under `Π`)
+are sequential: later ones may refer to earlier
+ones).
 
 
 Here is pseudocode for which-Nat:
@@ -203,21 +250,21 @@ the name of a parameter (your answer)?
 
 
 SPOILER: Parameters inhabit a space of symbolic
-calculation inside the compiler or its runtime,
+calculation inside the compiler or its runtime.
 Names of parameters only appear in the
-implementations of the compiler or its run-time
-representative functions, where they may stand
-for arbitrary parameters. At the user's level.
-parameters are names for arguments, where they
-may stand for arbitrary argument values. Recall
-that values are expressions with constructors up
-top (in first positions in parenthesized
-expressions).
+implementations of the compiler or its runtime,
+where they may stand for parameters. At the user's
+level, parameters are names for arguments, where
+they stand for arbitrary values. Recall that values
+are expressions with constructors up top (in first
+positions in parenthesized expressions). Pie also
+(apparently) furnishes aliases for some values, like
+`0` for `zero` and `1` for `(add1 zero)`.
 
 
 ```racket
 (which-Nat zero
-  'naught (λ (n-1) 'more))              ; input to REPL
+  'naught (λ (n-1) 'NO))                ; input to REPL
 ; (the Atom 'naught)                    ; response from REPL
 (which-Nat 4
   'naught (λ (n-1) 'three))             ; input to REPL
@@ -232,33 +279,33 @@ step's ignoring both its arguments:
 
 ```racket
 ;;      target    base       step
+;;         v        v          v
 ;;       ---- ----------- ----------
-(rec-Nat zero 'rec-naught (λ (n-1 r) 'rec-more))
+(rec-Nat zero 'rec-naught (λ (n-1 r) 'NO))
 ; (the Atom 'rec-naught)
 (rec-Nat 4    'rec-naught (λ (n-1 r) 'rec-three))
 ; (the Atom 'rec-three
 ```
 
 
-Notice that both `which-Nat` and `rec-Nat` ignore
-`step` when `target` is `zero`.
+Both `which-Nat` and `rec-Nat` ignore `step` when
+`target` is `zero`.
 
 
 Notice that `rec-Nat` "destructures" its argument
 into `(add1 n-1)` and then "eliminates" `add1`
-before handing `n-1` to the `step` function,
-`(λ (n-1 r) 'some-atom)`. More about
-destructuring and elimination below.
+before handing `n-1` to `step`,
+`(λ (n-1 r) 'some-atom)`. More about destructuring
+and elimination below.
 
 
-The book writes ignored arguments in a dimmed,
-grey, `dim` font. I think one need not bother
-much about that here. But one might sometimes
-write `_` or `foo_` with a `_` suffix for ignored
-arguments. Lots of programming languages follow
-that convention, sometimes allowing multiple
-instances of `_` in an argument list without
-collision.
+The book writes ignored arguments in a dim, grey
+font. One need not bother about that here. But one
+might sometimes write `_` or `foo_` with a `_`
+suffix for ignored arguments. Lots of programming
+languages follow that convention, sometimes allowing
+multiple, non-colliding instances of `_` in an
+argument list.
 
 
 Later, one will see that by `step`'s ignoring
@@ -282,7 +329,7 @@ parameters `target`, `base`, and `step`.
 (iter-Nat    5     3  (λ (k) (add1 k)))
 ```
 
-Discovery about pie (the language of this file):
+Discovery about Pie (the language of this file):
 cannot use `add1` instead of `(λ (k) (add1 k))`.
 Later, one finds the reason: `add1` is not a
 function; it's of an un-named primitive kind,
@@ -292,7 +339,7 @@ like a value constructor in expressions like
 
 
     (iter-Nat 5 3 add1)                 ; input to REPL
-                                        : response from REPL:
+                                        ; response from REPL:
     .../the-little-typer/playground.pie:17:14:
     ; add1: expected valid Pie name
     ;  at: add1
@@ -397,21 +444,18 @@ reminder of the pseudocode of `which-Nat`:
 ## Elimination
 
 
-The process of replacing `(add1 n-1)` with `n-1`
-is "elimination" because it strips off --
-eliminates -- the value constructor `add1`.
-Selection (`which-Nat`), iteration (`iter-Nat`),
-and recursion (`rec-Nat`) work in a backwards
-kind of way, by eliminating toward `zero`. One says
-"backwards" because one's prior experience with
-recursion and iteration probably has one starting
-with some big `Nat` and _subtracting_ 1 from it
-before recursing. Here, in "The Little Typer," one
-instead destructures larger numbers `n` into
-smaller ones `(add1 n-1)` by writing out the
-_addition_ that "must have taken place." The
-effect is the same, but preserves type
-information.
+The process of replacing `(add1 n-1)` with `n-1` is
+"elimination" because it strips off -- eliminates --
+the value constructor `add1`. Selection
+(`which-Nat`), iteration (`iter-Nat`), and recursion
+(`rec-Nat`) work backwards, by eliminating toward
+`zero`. One's prior experience with recursion and
+iteration probably has one starting with some big
+`Nat` and _subtracting_ 1 from it before recursing.
+Here, one instead destructures larger numbers `n`
+into smaller ones `(add1 n-1)` by writing out the
+_addition_ that "must have taken place." The effect
+is the same, but preserves type information.
 
 
 Sequential deconstruction and elimination _build
@@ -424,8 +468,8 @@ produce final results in the unique normal form
 ## Destructuring
 
 
-The invisible process of noticing that
-`n == (add1 n-1)` is "destructuring," a term not in
+I call the invisible process of noticing that
+`n == (add1 n-1)` "destructuring," a term not in
 "The Little Typer." I borrowed it from Clojure. One
 might think it should be "structuring" because it
 substitutes a value like `(add1 n-1)`, with a
@@ -462,12 +506,13 @@ Clojure keyword] for later elimination to `n-1`.
 `Iter-Nat` is [an "eliminator" for Nats](https://docs.racket-lang.org/pie/#%28def._%28%28lib._pie%2Fmain..rkt%29._iter-.Nat%29%29).
 
 
-Here is a "same-chart" -- a hand calculation --
-for `(+ 2 3)`. I assume one understands "subst.",
-i.e., substitution, without further explanation:
+Here is a "same-chart" -- an informal hand
+calculation -- for `(+ 2 3)`. I assume one
+understands "subst.", i.e., substitution, without
+further explanation:
 
 
-    (+ 2 3) ; step 1. ...                     how? why?
+    (+ 2 3) ; step 1. ...                  how? why?
     2.     (iter-Nat     2    3 step-+)    subst. def
     3.     (iter-Nat (add1 1) 3 step-+)    destructuring
     4. (step-+            /                elimination
@@ -487,11 +532,10 @@ Next is something I made up to show that `rec-Nat`
 is at least as strong as `iter-Nat`. In the
 following example, `step`'s function body ignores
 its recursive argument `r`, so we write it `r_` by
-the naming convention that ignored variables have a
-`_` suffix.
+the naming convention.
 
 
-reminder of `rec-Nat`:
+reminder of the pseudocode of `rec-Nat`:
 
 
 > If `target` is `zero`
@@ -535,7 +579,7 @@ reminder of `rec-Nat`:
 ## Gauss
 
 
-The steppers in the `rec-Nat` example above
+The stepper in the `rec-Nat` example above
 ignores the recursive argument `r == r_`. Here is
 an example of a `rec-Nat` stepper that uses both
 arguments, including `r == rg`, i.e., `r`:
@@ -549,7 +593,7 @@ arguments, including `r == rg`, i.e., `r`:
 
 (define step-gauss
   (λ (n-1 rg)
-    (+ (add1 n-1) rg)))
+    (+ (add1 n-1) rg)))  ;; "+" is already defined.
 ```
 
 
@@ -580,7 +624,7 @@ Less noisy pseudocode:
     (rN (a1 n-1) b s) ~~> (s n-1 (rN n-1 b s))
 
 
-a step-chart calculated by hand:
+a same-chart calculated by hand:
 
 
     (gauss 3) ; step 1. ...
@@ -618,13 +662,11 @@ a step-chart calculated by hand:
 This chapter is mostly about the miniature
 calculus on types, a calculus effected by `Π`. I
 assume this is easy, so I don't talk much, just
-show some examples. In Emacs, type `M-C-x` with the
-cursor in an example to see its value in the
-pie/racket interpreter.
+show some examples.
 
 
-     (claim foo (→ A D))
-     Page 98:  ~" → is not up to the job "~
+    (claim foo (→ A D))
+    Page 98:  ~" → is not up to the job "~
 
 
 ## Flip
@@ -644,7 +686,7 @@ pie/racket interpreter.
 ```
 
 
-We'll make much truck of the normal form later!
+We make much truck of the normal form later!
 
 
 ```racket
@@ -671,7 +713,7 @@ We'll make much truck of the normal form later!
 ```
 
 
-## Curried!
+curried:
 
 
 ```racket
@@ -868,7 +910,7 @@ No need for a lot of prose, here. Read the code!
 ## Length
 
 
-reminder of `rec-Nat`:
+reminder of the pseudocode of `rec-Nat`:
 
 
 > If `target` is `zero`
@@ -895,7 +937,10 @@ Letting `rL` be `rec-List`, `s` be some-stepper;
 using `::` for destructuring like `add1` (the "1" in
 `add1` is analogous to the additional `E` argument
 in the stepper, `s` [Frame 5.27]; the book does not
-state this, but it's obvious in retrospect!).
+state this, but it's obvious in retrospect!). Notice
+the recursive case is `(rL es b s)`, where
+`e` and `es` have been destructured from `(:: e es)`,
+and `::` has been eliminated:
 
 
     (rL    nil    b s) ~~> b
@@ -906,14 +951,14 @@ state this, but it's obvious in retrospect!).
 ```racket
 (claim step-length
        (Π ((E U))
-          (→ E
-             (List E)
-             Nat
-             Nat)))
+          (→ E          ; head element e
+             (List E)   ; tail List es
+             Nat        ; value of recursive call on es
+             Nat)))     ; return value
 
 (define step-length
   (λ (E)
-    (λ (e es length-es)
+    (λ (e_ es_ length-es)
       (add1 length-es))))
 ```
 
@@ -970,7 +1015,7 @@ Specialized for the `Atom` type:
 
 
 `Step-append` is called post-destructuring into
-`(:: e es)` and post-elimination of `::`, just as
+`(:: e es)`, then post-elimination of `::`, just as
 with `rec-Nat`. Destructuring and elimination are
 handmaidens, destructuring before elimination.
 
@@ -979,14 +1024,14 @@ handmaidens, destructuring before elimination.
 ```racket
 (claim step-append
        (Π ((E U))
-          (→ E
-             (List E)
-             (List E)
-             (List E))))
+          (→ E            ; element e
+             (List E)     ; list es to append to
+             (List E)     ; result from recursive call
+             (List E))))  ; final result
 
 (define step-append
   (λ (E)
-    (λ (e es append-es)
+    (λ (e es_ append-es)
       (:: e append-es))))
 ```
 
@@ -995,14 +1040,17 @@ handmaidens, destructuring before elimination.
 ```racket
 (claim append
        (Π ((E U))
-          (→ (List E)
-             (List E)
-             (List E))))
+          (→ (List E)     ; a list to append to
+             (List E)     ; a list to append to that list
+             (List E))))  ; final result
 
 (define append
   (λ (E)
     (λ (start end)
-      (rec-List start end (step-append E)))))
+      (rec-List
+        start
+        end
+        (step-append E)))))
 ```
 
 
@@ -1040,9 +1088,9 @@ handmaidens, destructuring before elimination.
 ```racket
 (claim snoc
        (Π ((E U))
-          (→ (List E) ; start
-             E        ; element e
-             (List E))))
+          (→ (List E)     ; start List es
+             E            ; Element e
+             (List E))))  ; final result
 
 (define snoc
   (λ (E)
@@ -1076,17 +1124,17 @@ illegal! compile error!
 ```racket
 (claim step-reverse
        (Π ((E U))
-          (→ E
-             (List E)
-             (List E)
-             (List E))))
+          (→ E            ; Element e
+             (List E)     ; Residual List to be reversed
+             (List E)     ; List reversed so far
+             (List E))))  ; final result
 ```
 
 
 `Step-reverse` is called post-destructuring into
 `(:: e es)` and post-elimination of `::`, just as
 with `rec-Nat`. So it gets two arguments, `e` and
-`es`, as well as the recursive "almost," reversed.
+`es`, as well as the recursive "almost" `reversed`.
 
 
 ```racket
@@ -1106,11 +1154,12 @@ with `rec-Nat`. So it gets two arguments, `e` and
 ```
 
 
-I first wrote the `nil` below without peeking at
-the answer. But the book snuck one in on me: too
-clever by half! `nil` must be explicitly typed,
-here. Not sure why type inference in Pie fails in
-this case. The book is not clear about it.
+I first wrote the `nil` below without peeking at the
+answer. But the book snuck one in on me: too clever
+by half! `nil` must be explicitly typed, here
+according to a footnote. Not sure why type inference
+in Pie fails in this case. The book does not explain
+why, just slips the fact in via footnote.
 
 
 ```racket
@@ -1118,8 +1167,8 @@ this case. The book is not clear about it.
   (λ (E)
     (λ (es)
       (rec-List es
-                (the (List E) nil)
                 ;; See sneaky footnote on Page 125!
+                (the (List E) nil)  ; must be explicit
                 (step-reverse E)))))
 ```
 
@@ -1147,16 +1196,15 @@ of type `U`:
 ```
 
 
-`Vec` is like a `List` that carries its length
-along with it. A `Vec` of length 3 is of a
-different type than a `Vec` of length 2. We'll
-have to occasionally pass Nats around to remind
-certain functions of the Nat part of a `Vec`
-type.
+`Vec` is like a `List` that carries its length along
+with it. A `Vec` of length 3 is of a different type
+than a `Vec` of length 2. We must occasionally pass
+`Nat`s around to remind certain functions of the
+`Nat` part of a `Vec` type.
 
 
 Here is an instance expression ("The Little Typer"
-through chapter 6 does not use the word
+through Chapter 6 does not use the word
 "instance" in this way, but I use it to mean a
 value):
 
@@ -1175,7 +1223,7 @@ type-hints:
 
 ```racket
 (head (the (Vec Atom 1) (vec:: 'a vecnil)))
-                                        ; ~~> (the Atom 'a)
+; ~~> (the Atom 'a)
 ```
 
 
@@ -1187,7 +1235,7 @@ type-hints:
 
 ```racket
 (tail (the (Vec Atom 1) (vec:: 'a vecnil)))
-                                        ; ~~> (the (Vec Atom 0) vecnil
+; ~~> (the (Vec Atom 0) vecnil
 ```
 
 
@@ -1224,20 +1272,17 @@ See https://stackoverflow.com/questions/75516108/vec-in-the-little-typer/7551610
 ```
 
 
-## Frames 6.34 through 6.37: First
+## Frames 6.34 through 6.37: `First`
 
 
 ### _Totality_
 
 
-This version of `first` requires a `Nat` argument,
-`ℓ-1`, that is one fewer than the length of the
-`Vec` so that `first` may be a total function; so
-that neither its input nor its output may ever be
-`vecnil`, the sole `(Vec E 0)`. `First` guarantees
-totality by destructuring `ℓ` into `(add1 ℓ-1)`,
-which may never be `zero`, then eliminating `add1`
-to yield `ℓ-1`, which _can_ be `zero`.
+For `first` to be a total function, it must never
+receive a `Vec` of length `zero`. To guarantee that,
+`first` will take a `Nat` argument, `(add1 ℓ-1)`,
+which can never be `zero`, then eliminate the
+`add1`.
 
 
 The requirement that all functions be total gives
@@ -1247,7 +1292,7 @@ might diverge, i.e., be non-terminating or empty.
 
 `First` must be total, so its base type must be
 some `Vec` with at least one element. The _type_
-`(Vec E (add1 ℓ-1))` tells the whole story! Wow!
+`(Vec E (add1 ℓ-1))` tells the whole story!
 
 
 Note from the shorthand on Page 138 (Fifth
@@ -1268,9 +1313,8 @@ Printing), one might just as well write
 ```
 
 
-As what I originally wrote (without peeking).
-It's equivalent, but aggressively renames the Nat
-argument from `ℓ` to `ℓ-1`.
+as the following, which I originally wrote (without
+peeking).
 
 
     (claim first
@@ -1280,7 +1324,7 @@ argument from `ℓ` to `ℓ-1`.
                  E)))
 
     (define first
-      (λ (E ℓ-1)
+      (λ (E_ ℓ_)
         (λ (es)
           (head es))))
 
@@ -1340,17 +1384,17 @@ type `(→ Nat U)`.
 I would say "how the target is destructured?"
 because I like to distinguish destructuring and
 elimination. Why? because it helps me to name my
-variables. If I point out that `n` is
-destructured into `(add1 n-1)`, then it's clear
-that the result of elimination, `n-1`, can be
-zero whilst `n` can't and they both remain Nats.
+variables. If I point out that `n` is destructured
+into `(add1 n-1)`, then it's clear that the result
+of elimination, `n-1`, can be zero whilst `n` can't
+and they both remain `Nat`s.
 
 
 Here is a shorthand synopsis for `ind-Nat`, which
-does forward-rewriting by adding 1 to the input
-of `step`. Backwards rewriting is done by
-elimination on `(add1 n-1)`; that elimination
-amounts to subtraction.
+does forward-rewriting by adding 1 to the input of
+`step`. Backwards rewriting is done by elimination
+on `(add1 n-1)`, and elimination that amounts to
+subtraction.
 
 
 The motive, when applied to `zero`, returns
@@ -1373,7 +1417,7 @@ Letting `iN` be `ind-Nat` and `a1` be `add1`:
         (s   (Π ((n-1 Nat))          ; step
                 (→ (m n-1)
                    (m (add1 n-1))))))
-       (m t))
+       (m t))                        ; final result type
 
     (iN      0     m b s) ~~> b == (m 0)
     (iN (add1 ℓ-1) m b s) ~~>
@@ -1446,7 +1490,7 @@ The motive returns a type:
 ```
 
 
-`M-C-x` on these after loading the file via `C-c C-c`.
+Fill in the responses for these:
 
 
 ```racket
@@ -1454,9 +1498,6 @@ The motive returns a type:
 (peas 1)
 (peas 3)
 ```
-
-
-You fill in the responses!
 
 
 I made up the following exercise for myself.
@@ -1523,11 +1564,13 @@ problem. [See here](https://racket.discourse.group/t/the-type-of-ind-nat-in-the-
 ```
 
 
+You fill in the responses!
+
+
 ```racket
 (peas-ex 0)
 (peas-ex 1)
 (peas-ex 2)
-; You fill in the responses!
 ```
 
 
@@ -1544,10 +1587,10 @@ change.
 ```racket
 (claim also-rec-Nat
        (Π ((E U))
-          (→ Nat                        ; target
-             E                          ; base
-             (→ Nat E E)                ; step
-             E)))                       ; result
+          (→ Nat                ; target
+             E                  ; base
+             (→ Nat E E)        ; step
+             E)))               ; result
 ```
 
 
@@ -1556,14 +1599,17 @@ change.
   (λ (E)
     (λ (t b s)
       (ind-Nat
-       t                                ; target
-       (λ (k) E)                        ; motive_
-       b                                ; base
-       s))))                            ; step
+       t                        ; target
+       (λ (k) E)                ; motive_ returns a type
+       b                        ; base
+       s))))                    ; step
 ```
 
 
-## Last: Frame 7.38, Page 152 (Fifth Printing)
+## `Last`: Frame 7.38, Page 152 (Fifth Printing)
+
+
+### Motive
 
 
 Motives are functions that return types. "The
@@ -1573,8 +1619,8 @@ of the base."
 
 The type of the base of `last` is
 
-    (→ (Vec E (add1 zero))
-       E)
+    (→ (Vec E (add1 zero))      ; singleton vector
+       E)                       ; result
 
 that is, the type of a function of a singleton
 `Vec` that returns the sole element of that
@@ -1596,10 +1642,12 @@ Can we be more specific?
            ;; extra type argument at the front:
            (Π ((E U))
               (the U (→ (Vec E Nat) E))))
+    ; Not a type
+    ;   Source locations: ...
 
 
-Doesn't work, so we can't easily be more
-specific! Let's see why it doesn't work:
+Doesn't work, so we can't easily be more specific!
+Let's see why it doesn't work:
 
 
 ```racket
@@ -1662,6 +1710,9 @@ it! The return value must be of "any type" and
 the first input must be of "any type."
 
 
+### Base
+
+
 <hr>
 ```racket
 (claim base-last
@@ -1677,6 +1728,9 @@ the first input must be of "any type."
     (λ (singleton-vec)
       (head singleton-vec))))
 ```
+
+
+### Step
 
 
 <hr>
@@ -2827,6 +2881,7 @@ and `f` "be" `add1`, `(cong target f)` is
         (add1 (add1 n-1)))
 
 
+<hr>
 ```racket
 (claim step-incr=add1
        (Π (( n-1 Nat ))
@@ -2991,7 +3046,6 @@ parallelism:
 Reminders:
 
 
-<hr>
     (define incr=add1
       (λ (n)
         (ind-Nat n
@@ -3000,18 +3054,15 @@ Reminders:
                  step-incr=add1)))
 
 
-<hr>
     (define mot-incr=add1
       (λ (k)
         (= Nat (incr k) (add1 k))))
 
 
-<hr>
     (define base-incr=add1
       (same (add1 zero)))
 
 
-<hr>
     (define step-incr=add1
       (λ (n-1)
         (λ (incr=add_n-1)
@@ -3063,9 +3114,9 @@ for `replace`:
 ```
 
 
-... and a new `step` for `replace`, a `step` that
-uses the motive `mot‑step‑incr=add1`. This `step`
-employs `replace` instead of `cong`:
+... and a new `step`, a `step` that uses the motive
+`mot‑step‑incr=add1`. This `step` employs `replace`
+instead of `cong`:
 
 
 <hr>
@@ -3143,7 +3194,7 @@ Copying from The Law of `replace` and filling in
 the blanks:
 
 
--- If `target` is an `(= X from to)`
+> If `target` is an `(= X from to)`
 
 
 It's `incr=add_n-1`, a parameter. How is it an
@@ -3155,7 +3206,7 @@ so we are confident that `target` is an
 `(= Nat (add1 zero) (add1 zero))`.
 
 
--- `mot` is an       `(→ X U)`
+> `mot` is an       `(→ X U)`
 
 
 `(mot n-1)`, the motive for `replace`, is a
@@ -3170,7 +3221,7 @@ types of type `U`, so `(mot n-1)` is a
 `(→ Nat U)`.
 
 
--- and `base` is a `(mot from)`
+> and `base` is a `(mot from)`
 
 
 `from` is `(add1 zero)`; `(mot from)` is an
@@ -3181,10 +3232,8 @@ types of type `U`, so `(mot n-1)` is a
 when `n-1` is `zero`.
 
 
--- then              `(replace target mot base)`
-
-
--- is a              `(mot to)`.
+> then              `(replace target mot base)`
+> is a              `(mot to)`.
 
 When `incr=add_n-1` is `(add1 n-1)` and not
 just `(add1 zero)`, then `to` is an
@@ -3247,7 +3296,7 @@ Printing). It's time to do that now.
 ### Double
 
 
-Add 2 to `zero` `n` times by iteration:
+Add 2 to `zero` $n$ times by iteration:
 
 
 <hr>
@@ -3300,7 +3349,7 @@ Add the argument `n` to itself:
 ```
 
 
-## The claim
+### The claim
 
 
 `Twice` equals `double` for any `n: Nat`:
@@ -3472,6 +3521,68 @@ own motive and base:
 (twice=double 21)
 ; (the (= Nat 42 42)
 ;   (same 42))
+```
+
+
+## Twice-Vec
+
+
+### Claim
+
+
+<hr>
+```racket
+(claim twice-Vec
+       (Π ((E U)
+           (ℓ Nat))
+          (→ (Vec E ℓ)
+             (Vec E (double ℓ)))))
+```
+
+
+### Base
+
+
+<hr>
+```racket
+(claim base-double-Vec
+       (Π ((E U))
+          (→ (Vec E zero)
+             (Vec E (double zero)))))
+
+(define base-double-Vec
+  (λ (E)
+    (λ (es)
+      vecnil)))
+```
+
+
+### Motive
+
+
+Remember that the motive applied to `zero` is the
+`base`, after applying the motive to the type
+argument `E`. Evidently, Pie can work out that
+`vecnil` above is `(the E vecnil)`.
+
+
+<hr>
+```racket
+(claim mot-double-Vec
+       (→ U Nat
+          U))
+
+(define mot-double-Vec
+  (λ (E k)
+    (→ (Vec E k)
+       (Vec E (double k)))))
+```
+
+
+### Step
+
+
+```racket
 ```
 
 
